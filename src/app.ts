@@ -20,6 +20,7 @@ import { healthRoutes } from './presentation/routes/health.routes.js';
 import { orderRoutes } from './presentation/routes/order.routes.js';
 import { productRoutes } from './presentation/routes/product.routes.js';
 import { productTypeRoutes } from './presentation/routes/product-type.routes.js';
+import { userRoutes } from './presentation/routes/user.routes.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -58,6 +59,7 @@ export async function buildApp() {
   await app.register(orderRoutes, { prefix: '/api/v1/orders' });
   await app.register(productTypeRoutes, { prefix: '/api/v1/product-types' });
   await app.register(productRoutes, { prefix: '/api/v1/products' });
+  await app.register(userRoutes, { prefix: '/api/v1/users' });
 
   app.setErrorHandler((error: FastifyError, req, reply) => {
     if (hasZodFastifySchemaValidationErrors(error)) {

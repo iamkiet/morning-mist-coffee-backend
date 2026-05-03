@@ -1,5 +1,10 @@
-import { eq, sql } from 'drizzle-orm';
-import type { CreateUserInput, User } from '../../domain/user/user.entity.js';
+import { and, asc, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import type {
+  CreateUserInput,
+  ListUsersFilter,
+  User,
+  UserFilterCriteria,
+} from '../../domain/user/user.entity.js';
 import type { UserRepo } from '../../domain/user/user.repo.js';
 import type { DB } from '../db/client.js';
 import { users, type UserRow } from '../db/schema.js';
@@ -12,10 +17,35 @@ function rowToUser(row: UserRow): User {
     email: row.email,
     passwordHash: row.passwordHash,
     role: row.role,
+    status: row.status,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
 }
+
+function buildConditions(criteria: UserFilterCriteria) {
+  const conditions = [];
+  if (criteria.role !== undefined) conditions.push(eq(users.role, criteria.role));
+  if (criteria.status !== undefined) conditions.push(eq(users.status, criteria.status));
+  if (criteria.q !== undefined && criteria.q.length > 0) {
+    const pattern = `%${criteria.q}%`;
+    conditions.push(
+      or(
+        ilike(users.firstName, pattern),
+        ilike(users.lastName, pattern),
+        ilike(users.email, pattern),
+      ),
+    );
+  }
+  return conditions.length > 0 ? and(...conditions) : undefined;
+}
+
+const sortColumns = {
+  createdAt: users.createdAt,
+  firstName: users.firstName,
+  lastName: users.lastName,
+  email: users.email,
+} as const;
 
 export class PostgresUserRepository implements UserRepo {
   constructor(private readonly db: DB) {}
@@ -51,5 +81,30 @@ export class PostgresUserRepository implements UserRepo {
       .returning();
     if (!row) throw new Error('Failed to create user');
     return rowToUser(row);
+  }
+
+  async list(filter: ListUsersFilter): Promise<User[]> {
+    const { sortBy, sortDir, limit, offset, ...criteria } = filter;
+    const where = buildConditions(criteria);
+    const col = sortColumns[sortBy];
+    const order = sortDir === 'asc' ? asc(col) : desc(col);
+
+    const rows = await this.db
+      .select()
+      .from(users)
+      .where(where)
+      .orderBy(order, desc(users.id))
+      .limit(limit)
+      .offset(offset);
+    return rows.map(rowToUser);
+  }
+
+  async count(criteria: UserFilterCriteria): Promise<number> {
+    const where = buildConditions(criteria);
+    const [result] = await this.db
+      .select({ total: count() })
+      .from(users)
+      .where(where);
+    return result?.total ?? 0;
   }
 }

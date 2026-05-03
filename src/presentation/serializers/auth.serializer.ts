@@ -8,6 +8,7 @@ export function toUserDTO(user: User): UserDTO {
     lastName: user.lastName,
     email: user.email,
     role: user.role,
+    status: user.status,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };

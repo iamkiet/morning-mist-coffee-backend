@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 export const userRole = pgEnum('user_role', ['user', 'admin']);
+export const userStatus = pgEnum('user_status', ['active', 'inactive', 'banned']);
 
 export const users = pgTable(
   'users',
@@ -22,6 +23,7 @@ export const users = pgTable(
     email: text().notNull(),
     passwordHash: text(),
     role: userRole().notNull().default('user'),
+    status: userStatus().notNull().default('active'),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

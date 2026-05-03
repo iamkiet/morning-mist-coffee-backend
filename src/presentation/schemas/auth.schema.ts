@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const UserRoleSchema = z.enum(['user', 'admin']);
+export const UserStatusSchema = z.enum(['active', 'inactive', 'banned']);
 
 export const UserSchema = z.object({
   id: z.uuid(),
@@ -8,6 +9,7 @@ export const UserSchema = z.object({
   lastName: z.string(),
   email: z.email(),
   role: UserRoleSchema,
+  status: UserStatusSchema,
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
