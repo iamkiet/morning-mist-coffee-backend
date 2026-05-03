@@ -1,4 +1,14 @@
-import { and, asc, desc, eq, gte, ilike, lte, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  lte,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import type {
   CreateProductInput,
   ListProductsFilter,
@@ -6,7 +16,10 @@ import type {
   ProductSortField,
   UpdateProductInput,
 } from '../../domain/product/product.entity.js';
-import type { ProductFilterCriteria, ProductRepo } from '../../domain/product/product.repo.js';
+import type {
+  ProductFilterCriteria,
+  ProductRepo,
+} from '../../domain/product/product.repo.js';
 import type { Currency } from '../../domain/shared/currency.js';
 import type { DB } from '../db/client.js';
 import { products, type ProductRow } from '../db/schema.js';
@@ -19,10 +32,13 @@ const SORT_COLUMNS = {
 
 function buildFilters(filter: ProductFilterCriteria): SQL[] {
   const filters: SQL[] = [];
-  if (filter.productTypeId) filters.push(eq(products.productTypeId, filter.productTypeId));
+  if (filter.productTypeId)
+    filters.push(eq(products.productTypeId, filter.productTypeId));
   if (filter.currency) filters.push(eq(products.currency, filter.currency));
-  if (filter.priceMin !== undefined) filters.push(gte(products.priceCents, filter.priceMin));
-  if (filter.priceMax !== undefined) filters.push(lte(products.priceCents, filter.priceMax));
+  if (filter.priceMin !== undefined)
+    filters.push(gte(products.priceCents, filter.priceMin));
+  if (filter.priceMax !== undefined)
+    filters.push(lte(products.priceCents, filter.priceMax));
   if (filter.q) filters.push(ilike(products.name, `%${filter.q}%`));
   return filters;
 }
@@ -70,7 +86,11 @@ export class PostgresProductRepository implements ProductRepo {
   }
 
   async findById(id: string): Promise<Product | null> {
-    const [row] = await this.db.select().from(products).where(eq(products.id, id)).limit(1);
+    const [row] = await this.db
+      .select()
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
     return row ? rowToProduct(row) : null;
   }
 
@@ -104,7 +124,8 @@ export class PostgresProductRepository implements ProductRepo {
     if (input.priceCents !== undefined) patch.priceCents = input.priceCents;
     if (input.currency !== undefined) patch.currency = input.currency;
     if (input.image !== undefined) patch.image = input.image;
-    if (input.productTypeId !== undefined) patch.productTypeId = input.productTypeId;
+    if (input.productTypeId !== undefined)
+      patch.productTypeId = input.productTypeId;
 
     if (Object.keys(patch).length === 0) {
       return this.findById(id);
@@ -119,9 +140,12 @@ export class PostgresProductRepository implements ProductRepo {
   }
 
   async delete(id: string): Promise<boolean> {
-    const rows = await this.db.delete(products).where(eq(products.id, id)).returning({
-      id: products.id,
-    });
+    const rows = await this.db
+      .delete(products)
+      .where(eq(products.id, id))
+      .returning({
+        id: products.id,
+      });
     return rows.length > 0;
   }
 }

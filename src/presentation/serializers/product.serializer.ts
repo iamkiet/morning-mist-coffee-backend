@@ -1,5 +1,8 @@
 import type { Product } from '../../domain/product/product.entity.js';
-import { mapPaginated, type Paginated } from '../../domain/shared/pagination.js';
+import {
+  mapPaginated,
+  type Paginated,
+} from '../../domain/shared/pagination.js';
 import type { ProductDTO } from '../schemas/product.schema.js';
 
 export function toProductDTO(p: Product): ProductDTO {
@@ -16,6 +19,8 @@ export function toProductDTO(p: Product): ProductDTO {
   };
 }
 
-export function toProductListPayload(result: Paginated<Product>): Paginated<ProductDTO> {
+export function toProductListPayload(
+  result: Paginated<Product>,
+): Paginated<ProductDTO> {
   return mapPaginated(result, toProductDTO);
 }

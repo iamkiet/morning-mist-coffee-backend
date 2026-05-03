@@ -10,7 +10,8 @@ export class CreateProductTypeUseCase {
 
   async execute(input: CreateProductTypeInput): Promise<ProductType> {
     const existing = await this.repo.findByName(input.name);
-    if (existing) throw new ConflictError(`Product type '${input.name}' already exists`);
+    if (existing)
+      throw new ConflictError(`Product type '${input.name}' already exists`);
     return this.repo.create({ name: input.name.trim() });
   }
 }

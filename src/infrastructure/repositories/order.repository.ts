@@ -6,7 +6,10 @@ import type {
   OrderSortField,
   OrderStatus,
 } from '../../domain/order/order.entity.js';
-import type { OrderFilterCriteria, OrderRepo } from '../../domain/order/order.repo.js';
+import type {
+  OrderFilterCriteria,
+  OrderRepo,
+} from '../../domain/order/order.repo.js';
 import type { DB } from '../db/client.js';
 import { orders, type OrderRow } from '../db/schema.js';
 
@@ -20,8 +23,10 @@ function buildFilters(filter: OrderFilterCriteria): SQL[] {
   if (filter.customerId) filters.push(eq(orders.customerId, filter.customerId));
   if (filter.status) filters.push(eq(orders.status, filter.status));
   if (filter.currency) filters.push(eq(orders.currency, filter.currency));
-  if (filter.totalMin !== undefined) filters.push(gte(orders.totalCents, filter.totalMin));
-  if (filter.totalMax !== undefined) filters.push(lte(orders.totalCents, filter.totalMax));
+  if (filter.totalMin !== undefined)
+    filters.push(gte(orders.totalCents, filter.totalMin));
+  if (filter.totalMax !== undefined)
+    filters.push(lte(orders.totalCents, filter.totalMax));
   return filters;
 }
 
@@ -67,7 +72,11 @@ export class PostgresOrderRepository implements OrderRepo {
   }
 
   async findById(id: string): Promise<Order | null> {
-    const [row] = await this.db.select().from(orders).where(eq(orders.id, id)).limit(1);
+    const [row] = await this.db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, id))
+      .limit(1);
     return row ? rowToOrder(row) : null;
   }
 

@@ -1,8 +1,18 @@
 import { z } from 'zod';
-import { paginatedResponse, paginationFields, sortFields } from './_pagination.js';
+import {
+  paginatedResponse,
+  paginationFields,
+  sortFields,
+} from './_pagination.js';
 import { CurrencySchema } from './product.schema.js';
 
-export const OrderStatus = z.enum(['pending', 'paid', 'shipped', 'delivered', 'cancelled']);
+export const OrderStatus = z.enum([
+  'pending',
+  'paid',
+  'shipped',
+  'delivered',
+  'cancelled',
+]);
 
 export const OrderSchema = z.object({
   id: z.uuid(),

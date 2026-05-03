@@ -50,6 +50,10 @@ export class RefreshTokenUseCase {
       expiresAt: next.expiresAt,
     });
 
-    return { accessToken, refreshToken: next.token, refreshExpiresAt: next.expiresAt };
+    return {
+      accessToken,
+      refreshToken: next.token,
+      refreshExpiresAt: next.expiresAt,
+    };
   }
 }

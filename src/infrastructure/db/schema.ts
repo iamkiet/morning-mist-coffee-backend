@@ -66,7 +66,9 @@ export const productTypes = pgTable(
       .defaultNow()
       .$onUpdate(() => sql`now()`),
   },
-  (t) => [uniqueIndex('product_types_name_lower_idx').on(sql`lower(${t.name})`)],
+  (t) => [
+    uniqueIndex('product_types_name_lower_idx').on(sql`lower(${t.name})`),
+  ],
 );
 
 export const products = pgTable(
@@ -88,7 +90,10 @@ export const products = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => [
-    index('products_product_type_id_created_at_idx').on(t.productTypeId, t.createdAt.desc()),
+    index('products_product_type_id_created_at_idx').on(
+      t.productTypeId,
+      t.createdAt.desc(),
+    ),
     index('products_created_at_idx').on(t.createdAt.desc()),
     check('products_price_cents_nonneg', sql`${t.priceCents} >= 0`),
   ],
@@ -129,7 +134,10 @@ export const orders = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => [
-    index('orders_customer_id_created_at_idx').on(t.customerId, t.createdAt.desc()),
+    index('orders_customer_id_created_at_idx').on(
+      t.customerId,
+      t.createdAt.desc(),
+    ),
     index('orders_status_created_at_idx').on(t.status, t.createdAt.desc()),
     index('orders_created_at_idx').on(t.createdAt.desc()),
   ],

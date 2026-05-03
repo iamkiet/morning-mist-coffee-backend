@@ -12,7 +12,11 @@ import {
   clearAuthCookies,
   setAuthCookies,
 } from '../middlewares/auth-cookies.js';
-import type { LoginBody, RefreshBody, RegisterBody } from '../schemas/auth.schema.js';
+import type {
+  LoginBody,
+  RefreshBody,
+  RegisterBody,
+} from '../schemas/auth.schema.js';
 import { toUserDTO } from '../serializers/auth.serializer.js';
 
 export interface AuthUseCases {
@@ -31,7 +35,9 @@ function toAuthPayload(result: AuthResult) {
   };
 }
 
-function resolveRefreshToken(req: FastifyRequest<{ Body: z.infer<typeof RefreshBody> }>): string {
+function resolveRefreshToken(
+  req: FastifyRequest<{ Body: z.infer<typeof RefreshBody> }>,
+): string {
   const fromBody = req.body?.refreshToken;
   if (fromBody && fromBody.length > 0) return fromBody;
   const fromCookie = req.cookies[REFRESH_COOKIE];
@@ -48,14 +54,22 @@ export class AuthController {
   ) => {
     try {
       const result = await this.uc.register.execute(req.body);
-      setAuthCookies(reply, result.accessToken, result.refreshToken, result.refreshExpiresAt);
+      setAuthCookies(
+        reply,
+        result.accessToken,
+        result.refreshToken,
+        result.refreshExpiresAt,
+      );
       req.log.info(
         { event: 'auth.register.success', userId: result.user.id },
         'register success',
       );
       return reply.code(201).send(toAuthPayload(result));
     } catch (err) {
-      req.log.warn({ event: 'auth.register.failed', email: req.body.email }, 'register failed');
+      req.log.warn(
+        { event: 'auth.register.failed', email: req.body.email },
+        'register failed',
+      );
       throw err;
     }
   };
@@ -66,14 +80,22 @@ export class AuthController {
   ) => {
     try {
       const result = await this.uc.login.execute(req.body);
-      setAuthCookies(reply, result.accessToken, result.refreshToken, result.refreshExpiresAt);
+      setAuthCookies(
+        reply,
+        result.accessToken,
+        result.refreshToken,
+        result.refreshExpiresAt,
+      );
       req.log.info(
         { event: 'auth.login.success', userId: result.user.id },
         'login success',
       );
       return reply.send(toAuthPayload(result));
     } catch (err) {
-      req.log.warn({ event: 'auth.login.failed', email: req.body.email }, 'login failed');
+      req.log.warn(
+        { event: 'auth.login.failed', email: req.body.email },
+        'login failed',
+      );
       throw err;
     }
   };
@@ -84,7 +106,12 @@ export class AuthController {
   ) => {
     const refreshToken = resolveRefreshToken(req);
     const result = await this.uc.refresh.execute({ refreshToken });
-    setAuthCookies(reply, result.accessToken, result.refreshToken, result.refreshExpiresAt);
+    setAuthCookies(
+      reply,
+      result.accessToken,
+      result.refreshToken,
+      result.refreshExpiresAt,
+    );
     return reply.send({
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,

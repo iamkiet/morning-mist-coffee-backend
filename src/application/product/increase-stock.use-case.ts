@@ -13,8 +13,12 @@ export class IncreaseStockUseCase {
     private readonly stock: ProductStockRepo,
   ) {}
 
-  async execute(productId: string, input: IncreaseStockInput): Promise<ProductStock> {
-    if (input.quantity <= 0) throw new ValidationError('quantity must be positive');
+  async execute(
+    productId: string,
+    input: IncreaseStockInput,
+  ): Promise<ProductStock> {
+    if (input.quantity <= 0)
+      throw new ValidationError('quantity must be positive');
     const product = await this.products.findById(productId);
     if (!product) throw new NotFoundError('Product', productId);
     return this.stock.increase(productId, input.quantity);

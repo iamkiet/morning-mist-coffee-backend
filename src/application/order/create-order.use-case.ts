@@ -1,4 +1,7 @@
-import type { CreateOrderInput, Order } from '../../domain/order/order.entity.js';
+import type {
+  CreateOrderInput,
+  Order,
+} from '../../domain/order/order.entity.js';
 import type { OrderRepo } from '../../domain/order/order.repo.js';
 
 export class CreateOrderUseCase {

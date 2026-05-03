@@ -1,4 +1,7 @@
-import type { CreateProductTypeInput, ProductType } from './product-type.entity.js';
+import type {
+  CreateProductTypeInput,
+  ProductType,
+} from './product-type.entity.js';
 
 export interface ProductTypeRepo {
   list(): Promise<ProductType[]>;

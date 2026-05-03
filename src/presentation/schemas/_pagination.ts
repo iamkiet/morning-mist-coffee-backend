@@ -7,7 +7,9 @@ export const paginationFields = {
   offset: z.coerce.number().int().min(0).default(0),
 };
 
-export function sortFields<const T extends readonly [string, ...string[]]>(allowed: T) {
+export function sortFields<const T extends readonly [string, ...string[]]>(
+  allowed: T,
+) {
   return {
     sortBy: z.enum(allowed).default(allowed[0]),
     sortDir: sortDirection.default('desc'),

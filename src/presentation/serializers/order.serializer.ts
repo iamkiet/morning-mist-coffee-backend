@@ -1,5 +1,8 @@
 import type { Order } from '../../domain/order/order.entity.js';
-import { mapPaginated, type Paginated } from '../../domain/shared/pagination.js';
+import {
+  mapPaginated,
+  type Paginated,
+} from '../../domain/shared/pagination.js';
 import type { OrderDTO } from '../schemas/order.schema.js';
 
 export function toOrderDTO(order: Order): OrderDTO {
@@ -14,6 +17,8 @@ export function toOrderDTO(order: Order): OrderDTO {
   };
 }
 
-export function toOrderListPayload(result: Paginated<Order>): Paginated<OrderDTO> {
+export function toOrderListPayload(
+  result: Paginated<Order>,
+): Paginated<OrderDTO> {
   return mapPaginated(result, toOrderDTO);
 }

@@ -36,14 +36,22 @@ export class PostgresProductStockRepository implements ProductStockRepo {
     return rowToStock(row);
   }
 
-  async tryDecrease(productId: string, qty: number): Promise<ProductStock | null> {
+  async tryDecrease(
+    productId: string,
+    qty: number,
+  ): Promise<ProductStock | null> {
     const [row] = await this.db
       .update(productStock)
       .set({
         quantity: sql`${productStock.quantity} - ${qty}`,
         updatedAt: sql`now()`,
       })
-      .where(and(eq(productStock.productId, productId), gte(productStock.quantity, qty)))
+      .where(
+        and(
+          eq(productStock.productId, productId),
+          gte(productStock.quantity, qty),
+        ),
+      )
       .returning();
     return row ? rowToStock(row) : null;
   }

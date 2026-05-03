@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { CURRENCIES } from '../../domain/shared/currency.js';
-import { paginatedResponse, paginationFields, sortFields } from './_pagination.js';
+import {
+  paginatedResponse,
+  paginationFields,
+  sortFields,
+} from './_pagination.js';
 
 export const CurrencySchema = z.enum(CURRENCIES);
 
@@ -34,7 +38,9 @@ export const UpdateProductBody = z
     image: z.string().url().max(2048).nullable().optional(),
     productTypeId: z.uuid().optional(),
   })
-  .refine((v) => Object.keys(v).length > 0, { message: 'At least one field required' });
+  .refine((v) => Object.keys(v).length > 0, {
+    message: 'At least one field required',
+  });
 
 export const ProductIdParam = z.object({ id: z.uuid() });
 

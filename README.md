@@ -51,10 +51,10 @@ npm run dev                # http://localhost:3000  ·  docs at /docs
 
 The app refuses to boot if any of these are missing or too short. Generate fresh values per environment — never reuse dev secrets in prod.
 
-| Env var                 | Purpose                                                                 | How to generate                                                                          | Requirement      |
-| ----------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------- |
-| `AUTH_JWT_SECRET`       | HMAC key for signing access + refresh JWTs (HS256)                      | `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`         | min 32 chars     |
-| `USER_REGISTRATION_KEY` | Gate for `POST /api/v1/auth/register` via `X-User-Registration-Key` header | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`         | min 32 chars     |
+| Env var                 | Purpose                                                                    | How to generate                                                                  | Requirement  |
+| ----------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------ |
+| `AUTH_JWT_SECRET`       | HMAC key for signing access + refresh JWTs (HS256)                         | `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` | min 32 chars |
+| `USER_REGISTRATION_KEY` | Gate for `POST /api/v1/auth/register` via `X-User-Registration-Key` header | `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"` | min 32 chars |
 
 Both use `crypto.randomBytes` → cryptographically random, base64url encoded (URL/header-safe, no padding). 32 bytes = 256-bit entropy.
 
@@ -62,16 +62,16 @@ Comparison is timing-safe (`crypto.timingSafeEqual`) for the registration key, a
 
 ## Scripts
 
-| Script               | Purpose                              |
-| -------------------- | ------------------------------------ |
-| `npm run dev`        | tsx watch mode                       |
-| `npm run build`      | TypeScript build to `dist/`          |
-| `npm start`          | run compiled `dist/server.js`        |
-| `npm run typecheck`  | `tsc --noEmit`                       |
-| `npm run db:generate`| generate SQL migrations from schema  |
-| `npm run db:migrate` | apply migrations                     |
-| `npm run db:push`    | push schema directly (dev)           |
-| `npm run db:studio`  | drizzle studio                       |
+| Script                | Purpose                             |
+| --------------------- | ----------------------------------- |
+| `npm run dev`         | tsx watch mode                      |
+| `npm run build`       | TypeScript build to `dist/`         |
+| `npm start`           | run compiled `dist/server.js`       |
+| `npm run typecheck`   | `tsc --noEmit`                      |
+| `npm run db:generate` | generate SQL migrations from schema |
+| `npm run db:migrate`  | apply migrations                    |
+| `npm run db:push`     | push schema directly (dev)          |
+| `npm run db:studio`   | drizzle studio                      |
 
 ## Endpoints
 

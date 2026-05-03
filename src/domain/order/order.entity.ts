@@ -1,7 +1,12 @@
 import type { Currency } from '../shared/currency.js';
 import type { SortDirection } from '../shared/pagination.js';
 
-export type OrderStatus = 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus =
+  | 'pending'
+  | 'paid'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled';
 
 export interface Order {
   id: string;

@@ -26,7 +26,10 @@ function extractAccessToken(req: FastifyRequest): string | null {
   return null;
 }
 
-export async function authenticate(req: FastifyRequest, _reply: FastifyReply): Promise<void> {
+export async function authenticate(
+  req: FastifyRequest,
+  _reply: FastifyReply,
+): Promise<void> {
   const token = extractAccessToken(req);
   if (!token) throw new UnauthorizedError('Missing access token');
 

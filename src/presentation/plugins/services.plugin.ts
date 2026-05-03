@@ -64,9 +64,23 @@ export const servicesPlugin = fp(
 
     const useCases: AppUseCases = {
       auth: {
-        register: new RegisterUserUseCase(userRepo, refreshTokenRepo, passwordHasher, tokenSigner),
-        login: new LoginUserUseCase(userRepo, refreshTokenRepo, passwordHasher, tokenSigner),
-        refresh: new RefreshTokenUseCase(userRepo, refreshTokenRepo, tokenSigner),
+        register: new RegisterUserUseCase(
+          userRepo,
+          refreshTokenRepo,
+          passwordHasher,
+          tokenSigner,
+        ),
+        login: new LoginUserUseCase(
+          userRepo,
+          refreshTokenRepo,
+          passwordHasher,
+          tokenSigner,
+        ),
+        refresh: new RefreshTokenUseCase(
+          userRepo,
+          refreshTokenRepo,
+          tokenSigner,
+        ),
         logout: new LogoutUseCase(refreshTokenRepo, tokenSigner),
         me: new GetCurrentUserUseCase(userRepo),
       },

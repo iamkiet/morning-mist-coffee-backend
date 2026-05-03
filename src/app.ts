@@ -82,7 +82,9 @@ export async function buildApp() {
     return reply.code(status).send({
       error: status >= 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR',
       message:
-        status >= 500 && !env.EXPOSE_INTERNAL_ERRORS ? 'Internal server error' : error.message,
+        status >= 500 && !env.EXPOSE_INTERNAL_ERRORS
+          ? 'Internal server error'
+          : error.message,
     });
   });
 

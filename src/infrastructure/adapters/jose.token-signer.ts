@@ -14,7 +14,9 @@ const REFRESH_TYPE = 'refresh';
 const ROLES: readonly UserRole[] = ['user', 'admin'];
 
 function isUserRole(value: unknown): value is UserRole {
-  return typeof value === 'string' && (ROLES as readonly string[]).includes(value);
+  return (
+    typeof value === 'string' && (ROLES as readonly string[]).includes(value)
+  );
 }
 
 export class JoseTokenSigner implements TokenSigner {
@@ -29,7 +31,11 @@ export class JoseTokenSigner implements TokenSigner {
   }
 
   async signAccess(claims: AccessTokenClaims): Promise<string> {
-    return new SignJWT({ email: claims.email, role: claims.role, type: ACCESS_TYPE })
+    return new SignJWT({
+      email: claims.email,
+      role: claims.role,
+      type: ACCESS_TYPE,
+    })
       .setProtectedHeader({ alg: 'HS256' })
       .setSubject(claims.sub)
       .setIssuer(ISSUER)

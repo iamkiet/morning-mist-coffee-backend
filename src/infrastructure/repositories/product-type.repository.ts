@@ -20,7 +20,10 @@ export class PostgresProductTypeRepository implements ProductTypeRepo {
   constructor(private readonly db: DB) {}
 
   async list(): Promise<ProductType[]> {
-    const rows = await this.db.select().from(productTypes).orderBy(asc(productTypes.name));
+    const rows = await this.db
+      .select()
+      .from(productTypes)
+      .orderBy(asc(productTypes.name));
     return rows.map(rowToProductType);
   }
 

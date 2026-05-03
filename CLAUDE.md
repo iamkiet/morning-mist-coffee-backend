@@ -37,6 +37,7 @@ presentation/    Fastify routes/controllers/schemas/serializers/plugins — the 
 **Domains:** `user`, `auth` (refresh token), `product`, `product-type`, `order`
 
 **Fastify plugin wiring** (src/presentation/plugins/):
+
 - `dbPlugin` → decorates `app.db`
 - `authPlugin` → decorates `app.authenticate` and `app.requireRole`
 - `servicesPlugin` (depends on db) → instantiates all repos, adapters, use cases; decorates `app.useCases` and `app.tokenSigner`
