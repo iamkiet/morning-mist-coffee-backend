@@ -10,6 +10,7 @@ ENV TZ=UTC
 FROM base AS deps
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=package-lock.json,target=package-lock.json \
+    --mount=type=bind,source=.npmrc,target=.npmrc \
     --mount=type=cache,target=/root/.npm,sharing=locked \
     npm ci --include=dev
 
@@ -22,6 +23,7 @@ RUN npm run build
 FROM base AS prod-deps
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=package-lock.json,target=package-lock.json \
+    --mount=type=bind,source=.npmrc,target=.npmrc \
     --mount=type=cache,target=/root/.npm,sharing=locked \
     npm ci --omit=dev
 
