@@ -45,6 +45,7 @@ Create a new user account. Requires the `x-user-registration-key` header.
     "lastName": "string",
     "email": "string",
     "role": "user | admin",
+    "status": "active | inactive | banned",
     "createdAt": "ISO datetime",
     "updatedAt": "ISO datetime"
   },
@@ -120,8 +121,53 @@ Returns the currently authenticated user. Requires Bearer token.
   "lastName": "string",
   "email": "string",
   "role": "user | admin",
+  "status": "active | inactive | banned",
   "createdAt": "ISO datetime",
   "updatedAt": "ISO datetime"
+}
+```
+
+---
+
+## Users
+
+All endpoints require Bearer token with `admin` role.
+
+### GET /api/v1/users
+
+List all users with optional filtering, sorting, and pagination.
+
+**Query parameters**
+
+| Param | Type | Description | Default |
+|-------|------|-------------|---------|
+| `role` | `user` \| `admin` | Filter by role | — |
+| `status` | `active` \| `inactive` \| `banned` | Filter by status | — |
+| `q` | string | Keyword search (firstName, lastName, email) | — |
+| `sortBy` | `createdAt` \| `firstName` \| `lastName` \| `email` | Sort field | `createdAt` |
+| `sortDir` | `asc` \| `desc` | Sort direction | `desc` |
+| `limit` | integer (1–100) | Page size | `20` |
+| `offset` | integer (≥ 0) | Page offset | `0` |
+
+**Response `200`**
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "firstName": "string",
+      "lastName": "string",
+      "email": "string",
+      "role": "user | admin",
+      "status": "active | inactive | banned",
+      "createdAt": "ISO datetime",
+      "updatedAt": "ISO datetime"
+    }
+  ],
+  "total": "integer",
+  "limit": "integer",
+  "offset": "integer"
 }
 ```
 

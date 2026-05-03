@@ -9,14 +9,14 @@ const REFRESH_PATH = '/api/v1/auth';
 const accessCookieOpts: CookieSerializeOptions = {
   httpOnly: true,
   secure: env.COOKIE_SECURE,
-  sameSite: 'lax',
+  sameSite: env.COOKIE_SAME_SITE,
   path: '/',
 };
 
 const refreshCookieOpts: CookieSerializeOptions = {
   httpOnly: true,
   secure: env.COOKIE_SECURE,
-  sameSite: 'strict',
+  sameSite: env.COOKIE_SAME_SITE,
   path: REFRESH_PATH,
 };
 

@@ -21,6 +21,7 @@ const EnvSchema = z.object({
   AUTH_LOGIN_RATE_WINDOW: z.string().min(1),
 
   COOKIE_SECURE: booleanString,
+  COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']),
   EXPOSE_INTERNAL_ERRORS: booleanString,
 });
 
