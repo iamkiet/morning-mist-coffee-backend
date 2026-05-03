@@ -16,8 +16,6 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
   const controller = new ProductController(app.useCases.product);
 
-  fastify.addHook('onRequest', app.authenticate);
-
   fastify.get('/', {
     schema: {
       tags: ['products'],
@@ -37,6 +35,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/', {
+    onRequest: app.authenticate,
     schema: {
       tags: ['products'],
       body: CreateProductBody,
@@ -46,6 +45,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id', {
+    onRequest: app.authenticate,
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -56,6 +56,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.delete('/:id', {
+    onRequest: app.authenticate,
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -65,6 +66,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/:id/stock', {
+    onRequest: app.authenticate,
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -74,6 +76,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/:id/stock/increase', {
+    onRequest: app.authenticate,
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -84,6 +87,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/:id/stock/decrease', {
+    onRequest: app.authenticate,
     schema: {
       tags: ['products'],
       params: ProductIdParam,
