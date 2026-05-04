@@ -8,7 +8,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
   const controller = new UserController(app.useCases.user);
 
   fastify.get('/', {
-    onRequest: app.requireRole('admin'),
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['users'],
       querystring: ListUsersQuery,
