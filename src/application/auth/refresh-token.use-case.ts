@@ -50,6 +50,8 @@ export class RefreshTokenUseCase {
       expiresAt: next.expiresAt,
     });
 
+    void this.refreshTokens.deleteStale(new Date());
+
     return {
       accessToken,
       refreshToken: next.token,

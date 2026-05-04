@@ -7,4 +7,5 @@ export interface RefreshTokenRepo {
   create(input: CreateRefreshTokenInput): Promise<RefreshToken>;
   findById(id: string): Promise<RefreshToken | null>;
   revoke(id: string): Promise<void>;
+  deleteStale(now: Date): Promise<void>;
 }

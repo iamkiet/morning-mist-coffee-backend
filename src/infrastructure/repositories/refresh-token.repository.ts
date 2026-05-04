@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, or, lt, isNotNull } from 'drizzle-orm';
 import type {
   CreateRefreshTokenInput,
   RefreshToken,
@@ -47,5 +47,11 @@ export class PostgresRefreshTokenRepository implements RefreshTokenRepo {
       .update(refreshTokens)
       .set({ revokedAt: new Date() })
       .where(eq(refreshTokens.id, id));
+  }
+
+  async deleteStale(now: Date): Promise<void> {
+    await this.db
+      .delete(refreshTokens)
+      .where(or(lt(refreshTokens.expiresAt, now), isNotNull(refreshTokens.revokedAt)));
   }
 }
