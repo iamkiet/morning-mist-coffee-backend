@@ -14,6 +14,7 @@ export function toProductDTO(p: Product): ProductDTO {
     currency: p.currency,
     image: p.image,
     productTypeId: p.productTypeId,
+    stockQuantity: p.stockQuantity,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };

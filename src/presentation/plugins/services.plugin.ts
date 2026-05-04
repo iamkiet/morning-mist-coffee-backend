@@ -90,11 +90,11 @@ export const servicesPlugin = fp(
       order: {
         list: new ListOrdersUseCase(orderRepo),
         getById: new GetOrderByIdUseCase(orderRepo),
-        create: new CreateOrderUseCase(orderRepo),
+        create: new CreateOrderUseCase(orderRepo, productStockRepo),
         updateStatus: new UpdateOrderStatusUseCase(orderRepo),
       },
       product: {
-        list: new ListProductsUseCase(productRepo),
+        list: new ListProductsUseCase(productRepo, productStockRepo),
         getById: new GetProductByIdUseCase(productRepo),
         create: new CreateProductUseCase(productRepo, productTypeRepo),
         update: new UpdateProductUseCase(productRepo, productTypeRepo),

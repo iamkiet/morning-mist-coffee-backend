@@ -142,8 +142,25 @@ export const orders = pgTable(
   ],
 );
 
+export const orderItems = pgTable(
+  'order_items',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    orderId: uuid()
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    productId: uuid(),
+    name: text().notNull(),
+    priceCents: integer().notNull(),
+    quantity: integer().notNull(),
+  },
+  (t) => [index('order_items_order_id_idx').on(t.orderId)],
+);
+
 export type OrderRow = typeof orders.$inferSelect;
 export type NewOrderRow = typeof orders.$inferInsert;
+export type OrderItemRow = typeof orderItems.$inferSelect;
+export type NewOrderItemRow = typeof orderItems.$inferInsert;
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type RefreshTokenRow = typeof refreshTokens.$inferSelect;

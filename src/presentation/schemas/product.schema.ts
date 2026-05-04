@@ -16,6 +16,7 @@ export const ProductSchema = z.object({
   currency: CurrencySchema,
   image: z.string().nullable(),
   productTypeId: z.uuid(),
+  stockQuantity: z.number().int().min(0),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

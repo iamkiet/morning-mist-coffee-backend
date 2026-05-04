@@ -14,20 +14,37 @@ export const OrderStatus = z.enum([
   'cancelled',
 ]);
 
+export const OrderItemSchema = z.object({
+  id: z.uuid(),
+  productId: z.uuid().nullable(),
+  name: z.string(),
+  priceCents: z.number().int().min(0),
+  quantity: z.number().int().min(1),
+});
+
 export const OrderSchema = z.object({
   id: z.uuid(),
   email: z.email(),
   status: OrderStatus,
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
+  items: z.array(OrderItemSchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
+});
+
+export const CreateOrderItemBody = z.object({
+  productId: z.uuid().optional(),
+  name: z.string().min(1),
+  priceCents: z.number().int().min(0),
+  quantity: z.number().int().min(1),
 });
 
 export const CreateOrderBody = z.object({
   email: z.email(),
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
+  items: z.array(CreateOrderItemBody).min(1),
 });
 
 export const UpdateOrderStatusBody = z.object({

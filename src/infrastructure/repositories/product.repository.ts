@@ -52,6 +52,7 @@ function rowToProduct(row: ProductRow): Product {
     currency: row.currency,
     image: row.image,
     productTypeId: row.productTypeId,
+    stockQuantity: 0,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

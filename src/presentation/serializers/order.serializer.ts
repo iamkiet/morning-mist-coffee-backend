@@ -12,6 +12,13 @@ export function toOrderDTO(order: Order): OrderDTO {
     status: order.status,
     totalCents: order.totalCents,
     currency: order.currency,
+    items: order.items.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      name: item.name,
+      priceCents: item.priceCents,
+      quantity: item.quantity,
+    })),
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
   };

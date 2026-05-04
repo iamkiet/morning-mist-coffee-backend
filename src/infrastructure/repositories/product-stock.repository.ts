@@ -1,6 +1,9 @@
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 import type { ProductStock } from '../../domain/product/product-stock.entity.js';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.js';
+import type {
+  ProductStockRepo,
+  StockDecreaseItem,
+} from '../../domain/product/product-stock.repo.js';
 import type { DB } from '../db/client.js';
 import { productStock, type ProductStockRow } from '../db/schema.js';
 
@@ -36,6 +39,19 @@ export class PostgresProductStockRepository implements ProductStockRepo {
     return rowToStock(row);
   }
 
+  async getByProductIds(ids: string[]): Promise<Map<string, number>> {
+    if (ids.length === 0) return new Map();
+    const rows = await this.db
+      .select()
+      .from(productStock)
+      .where(inArray(productStock.productId, ids));
+    const map = new Map<string, number>();
+    for (const row of rows) {
+      map.set(row.productId, row.quantity);
+    }
+    return map;
+  }
+
   async tryDecrease(
     productId: string,
     qty: number,
@@ -54,5 +70,34 @@ export class PostgresProductStockRepository implements ProductStockRepo {
       )
       .returning();
     return row ? rowToStock(row) : null;
+  }
+
+  async tryDecreaseBatch(items: StockDecreaseItem[]): Promise<boolean> {
+    if (items.length === 0) return true;
+    try {
+      await this.db.transaction(async (tx) => {
+        for (const { productId, qty } of items) {
+          const [row] = await tx
+            .update(productStock)
+            .set({
+              quantity: sql`${productStock.quantity} - ${qty}`,
+              updatedAt: sql`now()`,
+            })
+            .where(
+              and(
+                eq(productStock.productId, productId),
+                gte(productStock.quantity, qty),
+              ),
+            )
+            .returning({ id: productStock.productId });
+          if (!row) throw new Error('INSUFFICIENT_STOCK');
+        }
+      });
+      return true;
+    } catch (err) {
+      if (err instanceof Error && err.message === 'INSUFFICIENT_STOCK')
+        return false;
+      throw err;
+    }
   }
 }

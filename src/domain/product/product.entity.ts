@@ -9,6 +9,7 @@ export interface Product {
   currency: Currency;
   image: string | null;
   productTypeId: string;
+  stockQuantity: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -62,7 +62,12 @@ export class OrderController {
     req: FastifyRequest<{ Body: z.infer<typeof CreateOrderBody> }>,
     reply: FastifyReply,
   ) => {
-    const order = await this.uc.create.execute(req.body);
+    const order = await this.uc.create.execute({
+      email: req.body.email,
+      totalCents: req.body.totalCents,
+      currency: req.body.currency,
+      items: req.body.items,
+    });
     return reply.code(201).send(toOrderDTO(order));
   };
 

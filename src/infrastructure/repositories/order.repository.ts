@@ -3,6 +3,7 @@ import type {
   CreateOrderInput,
   ListOrdersFilter,
   Order,
+  OrderItem,
   OrderSortField,
   OrderStatus,
 } from '../../domain/order/order.entity.js';
@@ -11,7 +12,12 @@ import type {
   OrderRepo,
 } from '../../domain/order/order.repo.js';
 import type { DB } from '../db/client.js';
-import { orders, type OrderRow } from '../db/schema.js';
+import {
+  orderItems,
+  orders,
+  type OrderItemRow,
+  type OrderRow,
+} from '../db/schema.js';
 
 const SORT_COLUMNS = {
   createdAt: orders.createdAt,
@@ -30,13 +36,24 @@ function buildFilters(filter: OrderFilterCriteria): SQL[] {
   return filters;
 }
 
-function rowToOrder(row: OrderRow): Order {
+function rowToItem(row: OrderItemRow): OrderItem {
+  return {
+    id: row.id,
+    productId: row.productId,
+    name: row.name,
+    priceCents: row.priceCents,
+    quantity: row.quantity,
+  };
+}
+
+function rowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
   return {
     id: row.id,
     email: row.email,
     status: row.status,
     totalCents: row.totalCents,
     currency: row.currency,
+    items,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -58,12 +75,26 @@ export class PostgresOrderRepository implements OrderRepo {
       .limit(filter.limit)
       .offset(filter.offset);
 
-    return rows.map(rowToOrder);
+    if (rows.length === 0) return [];
+
+    const ids = rows.map((r) => r.id);
+    const itemRows = await this.db
+      .select()
+      .from(orderItems)
+      .where(sql`${orderItems.orderId} = ANY(${sql.raw(`ARRAY[${ids.map((id) => `'${id}'`).join(',')}]::uuid[]`)})`)
+
+    const itemsByOrder = new Map<string, OrderItem[]>();
+    for (const item of itemRows) {
+      const list = itemsByOrder.get(item.orderId) ?? [];
+      list.push(rowToItem(item));
+      itemsByOrder.set(item.orderId, list);
+    }
+
+    return rows.map((r) => rowToOrder(r, itemsByOrder.get(r.id) ?? []));
   }
 
   async count(filter: OrderFilterCriteria): Promise<number> {
     const filters = buildFilters(filter);
-
     const [row] = await this.db
       .select({ count: sql<number>`count(*)::int` })
       .from(orders)
@@ -77,7 +108,14 @@ export class PostgresOrderRepository implements OrderRepo {
       .from(orders)
       .where(eq(orders.id, id))
       .limit(1);
-    return row ? rowToOrder(row) : null;
+    if (!row) return null;
+
+    const items = await this.db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, id));
+
+    return rowToOrder(row, items.map(rowToItem));
   }
 
   async create(input: CreateOrderInput): Promise<Order> {
@@ -90,7 +128,24 @@ export class PostgresOrderRepository implements OrderRepo {
       })
       .returning();
     if (!row) throw new Error('Failed to create order');
-    return rowToOrder(row);
+
+    const items =
+      input.items.length > 0
+        ? await this.db
+            .insert(orderItems)
+            .values(
+              input.items.map((item) => ({
+                orderId: row.id,
+                productId: item.productId ?? null,
+                name: item.name,
+                priceCents: item.priceCents,
+                quantity: item.quantity,
+              })),
+            )
+            .returning()
+        : [];
+
+    return rowToOrder(row, items.map(rowToItem));
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<Order | null> {
@@ -99,6 +154,13 @@ export class PostgresOrderRepository implements OrderRepo {
       .set({ status })
       .where(eq(orders.id, id))
       .returning();
-    return row ? rowToOrder(row) : null;
+    if (!row) return null;
+
+    const items = await this.db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, id));
+
+    return rowToOrder(row, items.map(rowToItem));
   }
 }
