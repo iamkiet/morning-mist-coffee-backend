@@ -23,6 +23,9 @@ const EnvSchema = z.object({
   COOKIE_SECURE: booleanString,
   COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']),
   EXPOSE_INTERNAL_ERRORS: booleanString,
+
+  RESEND_API_KEY: z.string().min(1),
+  RESEND_FROM: z.string().min(1),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

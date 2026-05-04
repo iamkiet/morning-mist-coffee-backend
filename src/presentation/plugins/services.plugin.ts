@@ -1,4 +1,5 @@
 import fp from 'fastify-plugin';
+import { ResendEmailSender } from '../../infrastructure/adapters/resend.email-sender.js';
 import { GetCurrentUserUseCase } from '../../application/auth/get-current-user.use-case.js';
 import { LoginUserUseCase } from '../../application/auth/login-user.use-case.js';
 import { LogoutUseCase } from '../../application/auth/logout.use-case.js';
@@ -58,6 +59,7 @@ export const servicesPlugin = fp(
     const productRepo = new PostgresProductRepository(app.db);
     const productTypeRepo = new PostgresProductTypeRepository(app.db);
     const productStockRepo = new PostgresProductStockRepository(app.db);
+    const emailSender = new ResendEmailSender(env.RESEND_API_KEY, env.RESEND_FROM);
     const passwordHasher = new BcryptPasswordHasher();
     const tokenSigner = new JoseTokenSigner(
       env.AUTH_JWT_SECRET,
@@ -90,7 +92,7 @@ export const servicesPlugin = fp(
       order: {
         list: new ListOrdersUseCase(orderRepo),
         getById: new GetOrderByIdUseCase(orderRepo),
-        create: new CreateOrderUseCase(orderRepo, productStockRepo),
+        create: new CreateOrderUseCase(orderRepo, productStockRepo, emailSender),
         updateStatus: new UpdateOrderStatusUseCase(orderRepo),
       },
       product: {
