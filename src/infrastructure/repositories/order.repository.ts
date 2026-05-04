@@ -20,7 +20,7 @@ const SORT_COLUMNS = {
 
 function buildFilters(filter: OrderFilterCriteria): SQL[] {
   const filters: SQL[] = [];
-  if (filter.customerId) filters.push(eq(orders.customerId, filter.customerId));
+  if (filter.email) filters.push(eq(orders.email, filter.email));
   if (filter.status) filters.push(eq(orders.status, filter.status));
   if (filter.currency) filters.push(eq(orders.currency, filter.currency));
   if (filter.totalMin !== undefined)
@@ -33,7 +33,7 @@ function buildFilters(filter: OrderFilterCriteria): SQL[] {
 function rowToOrder(row: OrderRow): Order {
   return {
     id: row.id,
-    customerId: row.customerId,
+    email: row.email,
     status: row.status,
     totalCents: row.totalCents,
     currency: row.currency,
@@ -84,7 +84,7 @@ export class PostgresOrderRepository implements OrderRepo {
     const [row] = await this.db
       .insert(orders)
       .values({
-        customerId: input.customerId,
+        email: input.email,
         totalCents: input.totalCents,
         currency: input.currency,
       })

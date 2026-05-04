@@ -10,7 +10,7 @@ export type OrderStatus =
 
 export interface Order {
   id: string;
-  customerId: string;
+  email: string;
   status: OrderStatus;
   totalCents: number;
   currency: Currency;
@@ -19,7 +19,7 @@ export interface Order {
 }
 
 export interface CreateOrderInput {
-  customerId: string;
+  email: string;
   totalCents: number;
   currency: Currency;
 }
@@ -31,7 +31,7 @@ export interface UpdateOrderStatusInput {
 export type OrderSortField = 'createdAt' | 'totalCents';
 
 export interface ListOrdersFilter {
-  customerId?: string;
+  email?: string;
   status?: OrderStatus;
   currency?: Currency;
   totalMin?: number;

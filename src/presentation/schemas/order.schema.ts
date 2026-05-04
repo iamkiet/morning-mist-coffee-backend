@@ -16,7 +16,7 @@ export const OrderStatus = z.enum([
 
 export const OrderSchema = z.object({
   id: z.uuid(),
-  customerId: z.uuid(),
+  email: z.email(),
   status: OrderStatus,
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
@@ -25,7 +25,7 @@ export const OrderSchema = z.object({
 });
 
 export const CreateOrderBody = z.object({
-  customerId: z.uuid(),
+  email: z.email(),
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
 });
@@ -39,7 +39,7 @@ export const OrderIdParam = z.object({
 });
 
 export const ListOrdersQuery = z.object({
-  customerId: z.uuid().optional(),
+  email: z.email().optional(),
   status: OrderStatus.optional(),
   currency: CurrencySchema.optional(),
   totalMin: z.coerce.number().int().min(0).optional(),
@@ -49,5 +49,13 @@ export const ListOrdersQuery = z.object({
 });
 
 export const OrderListResponse = paginatedResponse(OrderSchema);
+
+export const LookupOrdersQuery = z.object({
+  email: z.email(),
+});
+
+export const OrderLookupResponse = z.object({
+  items: z.array(OrderSchema),
+});
 
 export type OrderDTO = z.infer<typeof OrderSchema>;

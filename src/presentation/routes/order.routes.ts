@@ -4,8 +4,10 @@ import { OrderController } from '../controllers/order.controller.js';
 import {
   CreateOrderBody,
   ListOrdersQuery,
+  LookupOrdersQuery,
   OrderIdParam,
   OrderListResponse,
+  OrderLookupResponse,
   OrderSchema,
   UpdateOrderStatusBody,
 } from '../schemas/order.schema.js';
@@ -14,9 +16,8 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
   const controller = new OrderController(app.useCases.order);
 
-  fastify.addHook('onRequest', app.authenticate);
-
   fastify.get('/', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['orders'],
       querystring: ListOrdersQuery,
@@ -26,12 +27,22 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/:id', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['orders'],
       params: OrderIdParam,
       response: { 200: OrderSchema },
     },
     handler: controller.getById,
+  });
+
+  fastify.get('/lookup', {
+    schema: {
+      tags: ['orders'],
+      querystring: LookupOrdersQuery,
+      response: { 200: OrderLookupResponse },
+    },
+    handler: controller.lookup,
   });
 
   fastify.post('/', {
@@ -44,6 +55,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id/status', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['orders'],
       params: OrderIdParam,

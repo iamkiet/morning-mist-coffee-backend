@@ -8,7 +8,7 @@ import type { OrderDTO } from '../schemas/order.schema.js';
 export function toOrderDTO(order: Order): OrderDTO {
   return {
     id: order.id,
-    customerId: order.customerId,
+    email: order.email,
     status: order.status,
     totalCents: order.totalCents,
     currency: order.currency,

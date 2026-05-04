@@ -125,7 +125,7 @@ export const orders = pgTable(
   'orders',
   {
     id: uuid().primaryKey().defaultRandom(),
-    customerId: uuid().notNull(),
+    email: text().notNull(),
     status: orderStatus().notNull().default('pending'),
     totalCents: integer().notNull(),
     currency: currency().notNull().default('USD'),
@@ -136,10 +136,7 @@ export const orders = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => [
-    index('orders_customer_id_created_at_idx').on(
-      t.customerId,
-      t.createdAt.desc(),
-    ),
+    index('orders_email_created_at_idx').on(t.email, t.createdAt.desc()),
     index('orders_status_created_at_idx').on(t.status, t.createdAt.desc()),
     index('orders_created_at_idx').on(t.createdAt.desc()),
   ],
