@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import type {
   CreateUserInput,
   ListUsersFilter,
+  UpdateUserInput,
   User,
   UserFilterCriteria,
 } from '../../domain/user/user.entity.js';
@@ -81,6 +82,15 @@ export class PostgresUserRepository implements UserRepo {
       .returning();
     if (!row) throw new Error('Failed to create user');
     return rowToUser(row);
+  }
+
+  async update(id: string, input: UpdateUserInput): Promise<User | null> {
+    const [row] = await this.db
+      .update(users)
+      .set({ ...(input.role !== undefined ? { role: input.role } : {}), ...(input.status !== undefined ? { status: input.status } : {}), updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return row ? rowToUser(row) : null;
   }
 
   async list(filter: ListUsersFilter): Promise<User[]> {

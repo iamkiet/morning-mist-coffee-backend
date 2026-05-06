@@ -1,7 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { UserController } from '../controllers/user.controller.js';
-import { ListUsersQuery, UserListResponse } from '../schemas/user.schema.js';
+import {
+  ListUsersQuery,
+  UpdateUserBody,
+  UserIdParam,
+  UserListResponse,
+  UserSchema,
+} from '../schemas/user.schema.js';
 
 export async function userRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
@@ -16,5 +22,17 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       security: [{ bearerAuth: [] }],
     },
     handler: controller.list,
+  });
+
+  fastify.patch('/:id', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['users'],
+      params: UserIdParam,
+      body: UpdateUserBody,
+      response: { 200: UserSchema },
+      security: [{ bearerAuth: [] }],
+    },
+    handler: controller.update,
   });
 }

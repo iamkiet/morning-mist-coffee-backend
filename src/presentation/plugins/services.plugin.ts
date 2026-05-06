@@ -6,6 +6,7 @@ import { LogoutUseCase } from '../../application/auth/logout.use-case.js';
 import { RefreshTokenUseCase } from '../../application/auth/refresh-token.use-case.js';
 import { RegisterUserUseCase } from '../../application/auth/register-user.use-case.js';
 import { ListUsersUseCase } from '../../application/user/list-users.use-case.js';
+import { UpdateUserUseCase } from '../../application/user/update-user.use-case.js';
 import { CreateOrderUseCase } from '../../application/order/create-order.use-case.js';
 import { GetOrderByIdUseCase } from '../../application/order/get-order-by-id.use-case.js';
 import { ListOrdersUseCase } from '../../application/order/list-orders.use-case.js';
@@ -111,6 +112,7 @@ export const servicesPlugin = fp(
       },
       user: {
         list: new ListUsersUseCase(userRepo),
+        update: new UpdateUserUseCase(userRepo),
       },
     };
 

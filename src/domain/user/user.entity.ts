@@ -21,6 +21,11 @@ export interface CreateUserInput {
   role?: UserRole;
 }
 
+export interface UpdateUserInput {
+  role?: UserRole;
+  status?: UserStatus;
+}
+
 export interface UserFilterCriteria {
   role?: UserRole;
   status?: UserStatus;
