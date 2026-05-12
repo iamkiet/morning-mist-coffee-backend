@@ -53,6 +53,35 @@ presentation/    Fastify routes/controllers/schemas/serializers/plugins — the 
 - **Domain purity**: `domain/` must be deterministic — no `Date.now()`, `new Date()` (no args), `Math.random()`, `crypto.randomUUID()`. Pass time/ids in from caller.
 - **DB casing**: schema uses snake_case columns; Drizzle maps to camelCase automatically (`casing: 'snake_case'`).
 
+## Key domain rules
+
+**Order status transitions** — enforced in `canTransition()` in [src/domain/order/order.entity.ts](src/domain/order/order.entity.ts):
+```
+pending → paid | cancelled
+paid    → shipped | cancelled
+shipped → delivered
+```
+Skipping steps (e.g. `pending → shipped`) throws `ConflictError`.
+
+**Product stock** — stored in a separate `product_stock` table (one row per product, upsert on write). `stockQuantity` is joined into `Product` at read time. `UpdateProductInput.stockQuantity` calls `ProductStockRepo.set()` which does an upsert to the exact value — not a delta. `UpdateProductUseCase` takes three constructor args: `(ProductRepo, ProductTypeRepo, ProductStockRepo)`.
+
+**Password update** — `PATCH /api/v1/users/:id/password` (admin-only). Use case hashes the new password via `PasswordHasher` before storing.
+
+## CORS
+
+Configured in [src/app.ts](src/app.ts) with explicit `methods` and `allowedHeaders`:
+
+```ts
+await app.register(cors, {
+  origin: corsOrigin,           // from CORS_ORIGINS env var, comma-separated
+  credentials: true,
+  methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
+```
+
+`CORS_ORIGINS` must include the frontend origin (e.g. `https://todaywegrind.com`). Without explicit `allowedHeaders`, preflight fails for any request with an `Authorization` header.
+
 ## Code style
 
 - Files stay small — split when a file exceeds ~150 lines
