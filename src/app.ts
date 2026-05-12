@@ -38,7 +38,12 @@ export async function buildApp() {
     .filter(Boolean);
 
   await app.register(helmet, { global: true });
-  await app.register(cors, { origin: corsOrigin, credentials: true });
+  await app.register(cors, {
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   await app.register(cookie);
   await app.register(rateLimit, {
     max: 100,
