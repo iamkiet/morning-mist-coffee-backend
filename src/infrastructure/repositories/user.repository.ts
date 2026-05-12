@@ -93,6 +93,15 @@ export class PostgresUserRepository implements UserRepo {
     return row ? rowToUser(row) : null;
   }
 
+  async updatePassword(id: string, passwordHash: string): Promise<User | null> {
+    const [row] = await this.db
+      .update(users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return row ? rowToUser(row) : null;
+  }
+
   async list(filter: ListUsersFilter): Promise<User[]> {
     const { sortBy, sortDir, limit, offset, ...criteria } = filter;
     const where = buildConditions(criteria);

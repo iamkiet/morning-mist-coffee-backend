@@ -15,6 +15,10 @@ export const UpdateUserBody = z
     message: 'At least one field required',
   });
 
+export const UpdatePasswordBody = z.object({
+  password: z.string().min(8).max(128),
+});
+
 export const ListUsersQuery = z.object({
   role: UserRoleSchema.optional(),
   status: UserStatusSchema.optional(),

@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { UserController } from '../controllers/user.controller.js';
 import {
   ListUsersQuery,
+  UpdatePasswordBody,
   UpdateUserBody,
   UserIdParam,
   UserListResponse,
@@ -34,5 +35,17 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       security: [{ bearerAuth: [] }],
     },
     handler: controller.update,
+  });
+
+  fastify.patch('/:id/password', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['users'],
+      params: UserIdParam,
+      body: UpdatePasswordBody,
+      response: { 204: { type: 'null' } },
+      security: [{ bearerAuth: [] }],
+    },
+    handler: controller.updatePassword,
   });
 }

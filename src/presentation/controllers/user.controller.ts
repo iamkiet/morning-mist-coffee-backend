@@ -2,13 +2,15 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
 import type { ListUsersUseCase } from '../../application/user/list-users.use-case.js';
 import type { UpdateUserUseCase } from '../../application/user/update-user.use-case.js';
+import type { UpdateUserPasswordUseCase } from '../../application/user/update-user-password.use-case.js';
 import { mapPaginated } from '../../domain/shared/pagination.js';
 import { toUserDTO } from '../serializers/auth.serializer.js';
-import type { ListUsersQuery, UpdateUserBody, UserIdParam } from '../schemas/user.schema.js';
+import type { ListUsersQuery, UpdateUserBody, UpdatePasswordBody, UserIdParam } from '../schemas/user.schema.js';
 
 export interface UserUseCases {
   list: ListUsersUseCase;
   update: UpdateUserUseCase;
+  updatePassword: UpdateUserPasswordUseCase;
 }
 
 export class UserController {
@@ -31,5 +33,16 @@ export class UserController {
   ) => {
     const user = await this.uc.update.execute(req.params.id, req.body);
     return reply.send(toUserDTO(user));
+  };
+
+  updatePassword = async (
+    req: FastifyRequest<{
+      Params: z.infer<typeof UserIdParam>;
+      Body: z.infer<typeof UpdatePasswordBody>;
+    }>,
+    reply: FastifyReply,
+  ) => {
+    await this.uc.updatePassword.execute(req.params.id, req.body.password);
+    return reply.code(204).send();
   };
 }
