@@ -100,7 +100,7 @@ export const servicesPlugin = fp(
         list: new ListProductsUseCase(productRepo, productStockRepo),
         getById: new GetProductByIdUseCase(productRepo),
         create: new CreateProductUseCase(productRepo, productTypeRepo),
-        update: new UpdateProductUseCase(productRepo, productTypeRepo),
+        update: new UpdateProductUseCase(productRepo, productTypeRepo, productStockRepo),
         delete: new DeleteProductUseCase(productRepo),
         getStock: new GetStockUseCase(productRepo, productStockRepo),
         increaseStock: new IncreaseStockUseCase(productRepo, productStockRepo),

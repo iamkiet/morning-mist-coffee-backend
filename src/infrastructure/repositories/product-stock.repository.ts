@@ -52,6 +52,19 @@ export class PostgresProductStockRepository implements ProductStockRepo {
     return map;
   }
 
+  async set(productId: string, qty: number): Promise<ProductStock> {
+    const [row] = await this.db
+      .insert(productStock)
+      .values({ productId, quantity: qty })
+      .onConflictDoUpdate({
+        target: productStock.productId,
+        set: { quantity: qty, updatedAt: sql`now()` },
+      })
+      .returning();
+    if (!row) throw new Error('Failed to set stock');
+    return rowToStock(row);
+  }
+
   async tryDecrease(
     productId: string,
     qty: number,

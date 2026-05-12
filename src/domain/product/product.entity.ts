@@ -30,6 +30,7 @@ export interface UpdateProductInput {
   currency?: Currency;
   image?: string | null;
   productTypeId?: string;
+  stockQuantity?: number;
 }
 
 export type ProductSortField = 'createdAt' | 'name' | 'priceCents';

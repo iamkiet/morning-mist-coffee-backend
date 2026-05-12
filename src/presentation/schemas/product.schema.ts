@@ -38,6 +38,7 @@ export const UpdateProductBody = z
     currency: CurrencySchema.optional(),
     image: z.string().url().max(2048).nullable().optional(),
     productTypeId: z.uuid().optional(),
+    stockQuantity: z.number().int().min(0).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, {
     message: 'At least one field required',
