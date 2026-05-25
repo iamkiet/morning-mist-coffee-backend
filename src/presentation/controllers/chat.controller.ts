@@ -22,7 +22,6 @@ export class ChatController {
     }
 
     const messages = req.body.messages;
-    const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // Build the system prompt
     const systemInstruction = `
@@ -41,6 +40,11 @@ export class ChatController {
     ).join('\n');
 
     const fullSystemInstruction = systemInstruction + '\n\nMenu hiện tại của cửa hàng:\n' + menuContext;
+
+    const model = this.genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      systemInstruction: fullSystemInstruction,
+    });
 
     // Convert messages to Gemini format
     let history = messages.slice(0, -1).map(msg => ({
@@ -71,7 +75,6 @@ export class ChatController {
 
     const chat = model.startChat({
       history,
-      systemInstruction: fullSystemInstruction,
     });
 
     try {
