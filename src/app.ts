@@ -16,6 +16,7 @@ import { dbPlugin } from './presentation/plugins/db.plugin.js';
 import { authPlugin } from './presentation/plugins/auth.plugin.js';
 import { servicesPlugin } from './presentation/plugins/services.plugin.js';
 import { authRoutes } from './presentation/routes/auth.routes.js';
+import { chatRoutes } from './presentation/routes/chat.routes.js';
 import { healthRoutes } from './presentation/routes/health.routes.js';
 import { orderRoutes } from './presentation/routes/order.routes.js';
 import { productRoutes } from './presentation/routes/product.routes.js';
@@ -61,6 +62,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes);
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
+  await app.register(chatRoutes, { prefix: '/api/v1/chat' });
   await app.register(orderRoutes, { prefix: '/api/v1/orders' });
   await app.register(productTypeRoutes, { prefix: '/api/v1/product-types' });
   await app.register(productRoutes, { prefix: '/api/v1/products' });

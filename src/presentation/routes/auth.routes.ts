@@ -21,7 +21,12 @@ const authRateLimit = {
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
-  const controller = new AuthController(app.useCases.auth);
+  
+  // Inject AI Security Service
+  const { AiSecurityService } = await import('../../application/ai/ai-security.service.js');
+  const aiSecurity = new AiSecurityService(app.log);
+  
+  const controller = new AuthController(app.useCases.auth, aiSecurity);
 
   fastify.post('/register', {
     config: authRateLimit,

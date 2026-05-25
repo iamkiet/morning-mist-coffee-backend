@@ -45,14 +45,23 @@ function resolveRefreshToken(
   throw new UnauthorizedError('Missing refresh token');
 }
 
+import type { AiSecurityService } from '../../application/ai/ai-security.service.js';
+
 export class AuthController {
-  constructor(private readonly uc: AuthUseCases) {}
+  constructor(
+    private readonly uc: AuthUseCases,
+    private readonly aiSecurity: AiSecurityService,
+  ) {}
 
   register = async (
     req: FastifyRequest<{ Body: z.infer<typeof RegisterBody> }>,
     reply: FastifyReply,
   ) => {
     try {
+      // Kích hoạt AI Security phân tích chạy ngầm (Asynchronous)
+      // Không dùng await để tránh block luồng phản hồi cho user
+      this.aiSecurity.auditPayloadAsync('/register', req.ip, req.body).catch(() => {});
+
       const result = await this.uc.register.execute(req.body);
       setAuthCookies(
         reply,
@@ -79,6 +88,9 @@ export class AuthController {
     reply: FastifyReply,
   ) => {
     try {
+      // Kích hoạt AI Security phân tích chạy ngầm
+      this.aiSecurity.auditPayloadAsync('/login', req.ip, req.body).catch(() => {});
+
       const result = await this.uc.login.execute(req.body);
       setAuthCookies(
         reply,
