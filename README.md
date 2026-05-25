@@ -87,3 +87,20 @@ All routes require `Authorization: Bearer <AUTH_JWT_SECRET>` (placeholder verifi
 ## Swapping HTTP layer
 
 The HTTP boundary (`server.ts`, `app.ts`, `routes/`) is the only Fastify-aware code. Controllers receive request/reply types but the underlying logic in `services/` and below is framework-agnostic — port routes to Hono/Express without touching business logic.
+
+---
+
+## AI Chat Assistant
+
+### 🛠️ Structure
+- **Frontend Widget** ([ChatWidget.tsx](file:///Users/kietnguyen/iamkiet/morning-mist-coffee-frontend/components/chat/ChatWidget.tsx)): Quản lý UI khung chat, render tin nhắn Markdown tự động bằng thư viện `react-markdown`.
+- **Frontend Hook** ([useChat.ts](file:///Users/kietnguyen/iamkiet/morning-mist-coffee-frontend/hooks/use-chat.ts)): Quản lý trạng thái và xử lý gửi tin nhắn bất đồng bộ lên `/api/v1/chat`.
+- **Backend Route** ([chat.routes.ts](file:///Users/kietnguyen/iamkiet/morning-mist-coffee-backend/src/presentation/routes/chat.routes.ts)): Đăng ký endpoint nhận tin nhắn POST `/api/v1/chat`.
+- **Backend Controller** ([chat.controller.ts](file:///Users/kietnguyen/iamkiet/morning-mist-coffee-backend/src/presentation/controllers/chat.controller.ts)): Tiếp nhận lịch sử hội thoại, tự động bơm dữ liệu sản phẩm làm ngữ cảnh và gọi Gemini.
+- **AI Model**: Sử dụng mô hình **`gemini-3.5-flash`** thông qua SDK `@google/generative-ai`.
+
+### 💡 Chức năng
+- **Tư vấn sản phẩm thời gian thực (Basic RAG)**: Tự động truy vấn danh sách 50 sản phẩm mới nhất từ cơ sở dữ liệu (tên, mô tả, giá tiền quy đổi) và nạp vào prompt để AI tư vấn giá cả, hương vị chính xác tuyệt đối.
+- **Duy trì ngữ cảnh hội thoại (Contextual History)**: Tự động chuẩn hóa lịch sử chat luân phiên (`user` - `model`), gộp các tin nhắn trùng vai trò để AI nhớ thông tin hội thoại liên tục.
+- **Persona Nhã nhặn & Tối giản**: AI được định hình tính cách ân cần, thanh lịch và tối giản (Organic Minimalism) đúng tinh thần thương hiệu của Morning Mist Coffee.
+
