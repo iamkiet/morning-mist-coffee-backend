@@ -43,12 +43,12 @@ export class AiSecurityService {
         return;
       }
 
-      // Tầng 3: Gọi AI
+      // Phase 3: Query AI
       const prompt = `
-Bạn là hệ thống bảo mật WAF (Web Application Firewall). 
-Phân tích dữ liệu JSON đầu vào tại endpoint: ${endpoint} (IP: ${ip}).
-Tìm các dấu hiệu tấn công như SQL Injection, XSS, Path Traversal, NoSQL Injection.
-Chỉ trả về 1 từ duy nhất: "SAFE" nếu an toàn, hoặc "DANGEROUS" nếu có rủi ro.
+You are a WAF (Web Application Firewall) security system.
+Analyze the input JSON data at endpoint: ${endpoint} (IP: ${ip}).
+Look for attack signatures such as SQL Injection, XSS, Path Traversal, NoSQL Injection.
+Return ONLY one of the following words: "SAFE" if it is safe, or "DANGEROUS" if there is a risk.
 
 Payload:
 ${payloadString}
@@ -58,10 +58,10 @@ ${payloadString}
       const text = result.response.text().trim().toUpperCase();
 
       if (text.includes('DANGEROUS')) {
-        // Cảnh báo đỏ cho Admin (Ghi Log Critical, Ban IP, v.v)
+        // Red alert for Admin (Critical log, IP ban, etc.)
         this.logger.error(
           { event: 'ai_security.alert', ip, endpoint, payload },
-          '🔴 HỆ THỐNG AI PHÁT HIỆN MÃ ĐỘC TẤN CÔNG!',
+          '🔴 AI SYSTEM DETECTED A MALICIOUS ATTACK!',
         );
         // Trong thực tế, gọi hàm ban IP hoặc vô hiệu hóa user tại đây.
       } else {
