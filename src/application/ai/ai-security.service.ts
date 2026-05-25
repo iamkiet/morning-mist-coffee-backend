@@ -18,7 +18,7 @@ export class AiSecurityService {
     // If there is no key, we instantiate but methods will early return
     const apiKey = env.GEMINI_API_KEY || 'dummy';
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
   }
 
   /**

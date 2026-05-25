@@ -42,7 +42,7 @@ export class ChatController {
     const fullSystemInstruction = systemInstruction + '\n\nMenu hiện tại của cửa hàng:\n' + menuContext;
 
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3.5-flash',
       systemInstruction: fullSystemInstruction,
     });
 
