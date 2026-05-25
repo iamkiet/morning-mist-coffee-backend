@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, lte, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from 'drizzle-orm';
 import type {
   CreateOrderInput,
   ListOrdersFilter,
@@ -81,7 +81,7 @@ export class PostgresOrderRepository implements OrderRepo {
     const itemRows = await this.db
       .select()
       .from(orderItems)
-      .where(sql`${orderItems.orderId} = ANY(${sql.raw(`ARRAY[${ids.map((id) => `'${id}'`).join(',')}]::uuid[]`)})`)
+      .where(inArray(orderItems.orderId, ids));
 
     const itemsByOrder = new Map<string, OrderItem[]>();
     for (const item of itemRows) {

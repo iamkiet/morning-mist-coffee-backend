@@ -32,6 +32,7 @@ import { PostgresProductStockRepository } from '../../infrastructure/repositorie
 import { PostgresProductTypeRepository } from '../../infrastructure/repositories/product-type.repository.js';
 import { PostgresRefreshTokenRepository } from '../../infrastructure/repositories/refresh-token.repository.js';
 import { PostgresUserRepository } from '../../infrastructure/repositories/user.repository.js';
+import { AiSecurityService } from '../../application/ai/ai-security.service.js';
 import type { AuthUseCases } from '../controllers/auth.controller.js';
 import type { OrderUseCases } from '../controllers/order.controller.js';
 import type { ProductUseCases } from '../controllers/product.controller.js';
@@ -50,6 +51,7 @@ declare module 'fastify' {
   interface FastifyInstance {
     useCases: AppUseCases;
     tokenSigner: TokenSigner;
+    aiSecurity: AiSecurityService;
   }
 }
 
@@ -62,6 +64,7 @@ export const servicesPlugin = fp(
     const productTypeRepo = new PostgresProductTypeRepository(app.db);
     const productStockRepo = new PostgresProductStockRepository(app.db);
     const emailSender = new ResendEmailSender(env.RESEND_API_KEY, env.RESEND_FROM);
+    const aiSecurity = new AiSecurityService(app.log);
     const passwordHasher = new BcryptPasswordHasher();
     const tokenSigner = new JoseTokenSigner(
       env.AUTH_JWT_SECRET,
@@ -94,7 +97,7 @@ export const servicesPlugin = fp(
       order: {
         list: new ListOrdersUseCase(orderRepo),
         getById: new GetOrderByIdUseCase(orderRepo),
-        create: new CreateOrderUseCase(orderRepo, productStockRepo, emailSender),
+        create: new CreateOrderUseCase(orderRepo, productStockRepo, emailSender, app.log),
         updateStatus: new UpdateOrderStatusUseCase(orderRepo),
       },
       product: {
@@ -120,6 +123,7 @@ export const servicesPlugin = fp(
 
     app.decorate('useCases', useCases);
     app.decorate('tokenSigner', tokenSigner);
+    app.decorate('aiSecurity', aiSecurity);
   },
   { name: 'services', dependencies: ['db'] },
 );

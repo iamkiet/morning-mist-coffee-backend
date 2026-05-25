@@ -26,6 +26,15 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
     handler: controller.list,
   });
 
+  fastify.get('/lookup', {
+    schema: {
+      tags: ['orders'],
+      querystring: LookupOrdersQuery,
+      response: { 200: OrderLookupResponse },
+    },
+    handler: controller.lookup,
+  });
+
   fastify.get('/:id', {
     onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
@@ -34,15 +43,6 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
       response: { 200: OrderSchema },
     },
     handler: controller.getById,
-  });
-
-  fastify.get('/lookup', {
-    schema: {
-      tags: ['orders'],
-      querystring: LookupOrdersQuery,
-      response: { 200: OrderLookupResponse },
-    },
-    handler: controller.lookup,
   });
 
   fastify.post('/', {

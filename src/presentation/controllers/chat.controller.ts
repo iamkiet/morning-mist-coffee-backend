@@ -3,12 +3,13 @@ import type { z } from 'zod';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ChatRequestSchema } from '../schemas/chat.schema.js';
 import type { ProductUseCases } from './product.controller.js';
+import { env } from '../../config/env.js';
 
 export class ChatController {
   private genAI: GoogleGenerativeAI;
 
   constructor(private readonly productUc: ProductUseCases) {
-    const apiKey = process.env.GEMINI_API_KEY || '';
+    const apiKey = env.GEMINI_API_KEY || '';
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
@@ -16,7 +17,7 @@ export class ChatController {
     req: FastifyRequest<{ Body: z.infer<typeof ChatRequestSchema> }>,
     reply: FastifyReply,
   ) => {
-    if (!process.env.GEMINI_API_KEY) {
+    if (!env.GEMINI_API_KEY) {
       return reply.code(503).send({ error: 'AI_NOT_CONFIGURED', message: 'Gemini API is not configured' });
     }
 
@@ -42,10 +43,29 @@ export class ChatController {
     const fullSystemInstruction = systemInstruction + '\n\nMenu hiện tại của cửa hàng:\n' + menuContext;
 
     // Convert messages to Gemini format
-    const history = messages.slice(0, -1).map(msg => ({
+    let history = messages.slice(0, -1).map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }],
     }));
+
+    // 1. Ensure history starts with 'user'
+    const firstUserIndex = history.findIndex(h => h.role === 'user');
+    if (firstUserIndex > 0) {
+      history = history.slice(firstUserIndex);
+    } else if (firstUserIndex === -1 && history.length > 0) {
+      history = [];
+    }
+
+    // 2. Merge consecutive messages from the same role to ensure alternation
+    const alternatingHistory: typeof history = [];
+    for (const msg of history) {
+      if (alternatingHistory.length > 0 && alternatingHistory[alternatingHistory.length - 1]!.role === msg.role) {
+        alternatingHistory[alternatingHistory.length - 1]!.parts[0]!.text += '\n' + msg.parts[0]!.text;
+      } else {
+        alternatingHistory.push(msg);
+      }
+    }
+    history = alternatingHistory;
     
     const lastMessage = messages[messages.length - 1]?.content || '';
 

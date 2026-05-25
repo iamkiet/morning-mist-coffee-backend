@@ -6,7 +6,7 @@ export class ListUsersUseCase {
   constructor(private readonly repo: UserRepo) {}
 
   async execute(filter: ListUsersFilter): Promise<Paginated<User>> {
-    const { sortBy, sortDir, limit, offset, ...criteria } = filter;
+    const { sortBy: _sortBy, sortDir: _sortDir, limit, offset, ...criteria } = filter;
     const [items, total] = await Promise.all([
       this.repo.list(filter),
       this.repo.count(criteria as UserFilterCriteria),

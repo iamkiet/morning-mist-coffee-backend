@@ -18,6 +18,7 @@ import type {
   RegisterBody,
 } from '../schemas/auth.schema.js';
 import { toUserDTO } from '../serializers/auth.serializer.js';
+import type { AiSecurityService } from '../../application/ai/ai-security.service.js';
 
 export interface AuthUseCases {
   register: RegisterUserUseCase;
@@ -45,7 +46,6 @@ function resolveRefreshToken(
   throw new UnauthorizedError('Missing refresh token');
 }
 
-import type { AiSecurityService } from '../../application/ai/ai-security.service.js';
 
 export class AuthController {
   constructor(

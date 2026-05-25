@@ -7,10 +7,12 @@ export const REFRESH_COOKIE = 'refresh_token';
 const REFRESH_PATH = '/api/v1/auth';
 
 function parseTtlSeconds(ttl: string): number {
-  const units: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
-  const match = /^(\d+)([smhd])$/.exec(ttl);
+  const units: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400, w: 604800 };
+  const match = /^(\d+)([smhdw])$/.exec(ttl);
   if (!match) throw new Error(`Invalid TTL format: ${ttl}`);
-  return parseInt(match[1]!, 10) * (units[match[2]!] ?? 1);
+  const unitValue = units[match[2]!];
+  if (unitValue === undefined) throw new Error(`Unsupported TTL unit: ${match[2]}`);
+  return parseInt(match[1]!, 10) * unitValue;
 }
 
 const accessCookieOpts: CookieSerializeOptions = {

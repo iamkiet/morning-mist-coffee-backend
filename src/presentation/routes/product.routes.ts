@@ -35,7 +35,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/', {
-    onRequest: app.authenticate,
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       body: CreateProductBody,
@@ -45,7 +45,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id', {
-    onRequest: app.authenticate,
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -56,7 +56,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.delete('/:id', {
-    onRequest: app.authenticate,
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -66,7 +66,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/:id/stock', {
-    onRequest: app.authenticate,
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -76,7 +76,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/:id/stock/increase', {
-    onRequest: app.authenticate,
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -87,7 +87,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/:id/stock/decrease', {
-    onRequest: app.authenticate,
+    onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       params: ProductIdParam,

@@ -26,6 +26,7 @@ const EnvSchema = z.object({
 
   RESEND_API_KEY: z.string().min(1),
   RESEND_FROM: z.string().min(1),
+  GEMINI_API_KEY: z.string().min(1).optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

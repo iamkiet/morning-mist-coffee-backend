@@ -1,17 +1,22 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, type GenerativeModel } from '@google/generative-ai';
 import { env } from '../../config/env.js';
-import type { FastifyBaseLogger } from 'fastify';
+
+export interface Logger {
+  debug(msg: string): void;
+  warn(obj: Record<string, unknown>, msg: string): void;
+  error(obj: Record<string, unknown>, msg: string): void;
+}
 
 // Lớp lưu trữ tạm (Cache) để ghi nhớ các payload đã duyệt
 const safePayloadCache = new Set<string>();
 
 export class AiSecurityService {
   private genAI: GoogleGenerativeAI;
-  private model: any;
+  private model: GenerativeModel;
 
-  constructor(private logger: FastifyBaseLogger) {
+  constructor(private logger: Logger) {
     // If there is no key, we instantiate but methods will early return
-    const apiKey = process.env.GEMINI_API_KEY || 'dummy';
+    const apiKey = env.GEMINI_API_KEY || 'dummy';
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   }
@@ -25,7 +30,7 @@ export class AiSecurityService {
     ip: string,
     payload: unknown,
   ): Promise<void> {
-    if (!process.env.GEMINI_API_KEY) {
+    if (!env.GEMINI_API_KEY) {
       this.logger.debug('AI Security skipped: GEMINI_API_KEY not found');
       return;
     }
