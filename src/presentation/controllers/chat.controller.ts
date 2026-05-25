@@ -25,10 +25,11 @@ export class ChatController {
 
     // Build the system prompt
     const systemInstruction = `
-      Bạn là nhân viên tư vấn ảo tại cửa hàng cà phê cao cấp "Morning Mist Coffee".
-      Phong cách trò chuyện: Nhã nhặn, thanh lịch, ân cần và tối giản (Organic Minimalism).
-      Không trả lời dài dòng quá. Tập trung tư vấn các món cà phê có sẵn.
-      Nếu khách hỏi về danh sách sản phẩm, hãy gọi công cụ để xem danh sách.
+      You are a virtual assistant at the high-end coffee shop "Morning Mist Coffee".
+      Converse in Vietnamese.
+      Conversation style: Courteous, elegant, attentive, and organic minimalist.
+      Do not make responses too long. Focus on recommending available coffee items.
+      If the customer asks about the product list, call the tool to view the list.
     `;
 
     // Fetch products to give context to the AI (Basic RAG/Context Injection)
@@ -38,11 +39,11 @@ export class ChatController {
     const productListContext = productResult.items.map(p => {
       const desc = p.description 
         ? (p.description.length > 100 ? p.description.slice(0, 100) + '...' : p.description) 
-        : 'Không có mô tả';
+        : 'No description';
       return `- ${p.name}: ${(p.priceCents / 100).toFixed(2)}$ (${p.currency}) | ${desc}`;
     }).join('\n');
 
-    const fullSystemInstruction = systemInstruction + '\n\nDanh sách sản phẩm hiện tại của cửa hàng:\n' + productListContext;
+    const fullSystemInstruction = systemInstruction + '\n\nCurrent product list of the shop:\n' + productListContext;
 
     const model = this.genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
@@ -86,7 +87,7 @@ export class ChatController {
       return reply.send({ message: text });
     } catch (error) {
       req.log.error({ err: error }, 'Chat AI error');
-      return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Lỗi khi gọi AI' });
+      return reply.code(500).send({ error: 'INTERNAL_ERROR', message: 'Error calling AI' });
     }
   };
 }

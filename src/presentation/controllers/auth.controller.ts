@@ -58,8 +58,8 @@ export class AuthController {
     reply: FastifyReply,
   ) => {
     try {
-      // Kích hoạt AI Security phân tích chạy ngầm (Asynchronous)
-      // Không dùng await để tránh block luồng phản hồi cho user
+      // Trigger asynchronous AI Security audit in the background
+      // Do not await to avoid blocking the user response thread
       this.aiSecurity.auditPayloadAsync('/register', req.ip, req.body).catch(() => {});
 
       const result = await this.uc.register.execute(req.body);
@@ -88,7 +88,7 @@ export class AuthController {
     reply: FastifyReply,
   ) => {
     try {
-      // Kích hoạt AI Security phân tích chạy ngầm
+      // Trigger asynchronous AI Security audit in the background
       this.aiSecurity.auditPayloadAsync('/login', req.ip, req.body).catch(() => {});
 
       const result = await this.uc.login.execute(req.body);

@@ -7,7 +7,7 @@ export interface Logger {
   error(obj: Record<string, unknown>, msg: string): void;
 }
 
-// Lớp lưu trữ tạm (Cache) để ghi nhớ các payload đã duyệt
+// Temporary storage (Cache) to remember audited safe payloads
 const safePayloadCache = new Set<string>();
 
 export class AiSecurityService {
@@ -22,8 +22,8 @@ export class AiSecurityService {
   }
 
   /**
-   * Phân tích payload dưới nền (Asynchronous)
-   * Không block luồng chạy chính của hệ thống.
+   * Audit payload asynchronously in the background.
+   * Does not block the main application execution thread.
    */
   async auditPayloadAsync(
     endpoint: string,
@@ -38,7 +38,7 @@ export class AiSecurityService {
     try {
       const payloadString = JSON.stringify(payload);
       
-      // Tầng 2: Caching - Nếu payload y hệt đã an toàn, bỏ qua
+      // Phase 2: Caching - Skip if identical payload is already verified as safe
       if (safePayloadCache.has(payloadString)) {
         return;
       }
@@ -63,15 +63,15 @@ ${payloadString}
           { event: 'ai_security.alert', ip, endpoint, payload },
           '🔴 AI SYSTEM DETECTED A MALICIOUS ATTACK!',
         );
-        // Trong thực tế, gọi hàm ban IP hoặc vô hiệu hóa user tại đây.
+        // In production, call IP ban or disable user account functions here.
       } else {
-        // Đánh dấu an toàn vào cache (để các request giống hệt sau không cần check lại)
+        // Mark as safe in cache (so identical subsequent requests won't need recheck)
         if (safePayloadCache.size < 1000) {
           safePayloadCache.add(payloadString);
         }
       }
     } catch (error) {
-      this.logger.warn({ err: error }, 'Lỗi khi AI phân tích payload');
+      this.logger.warn({ err: error }, 'Error when AI analyzed payload');
     }
   }
 }
