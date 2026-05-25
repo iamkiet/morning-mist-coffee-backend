@@ -28,18 +28,18 @@ export class ChatController {
       Bạn là nhân viên tư vấn ảo tại cửa hàng cà phê cao cấp "Morning Mist Coffee".
       Phong cách trò chuyện: Nhã nhặn, thanh lịch, ân cần và tối giản (Organic Minimalism).
       Không trả lời dài dòng quá. Tập trung tư vấn các món cà phê có sẵn.
-      Nếu khách hỏi về menu, hãy gọi công cụ để xem danh sách.
+      Nếu khách hỏi về danh sách sản phẩm, hãy gọi công cụ để xem danh sách.
     `;
 
     // Fetch products to give context to the AI (Basic RAG/Context Injection)
-    // Instead of full function calling for simplicity, we inject the menu into the prompt
+    // Instead of full function calling for simplicity, we inject the products into the prompt
     // if the list of products is small enough.
     const productResult = await this.productUc.list.execute({ limit: 50, offset: 0, sortBy: 'createdAt', sortDir: 'desc' });
-    const menuContext = productResult.items.map(p => 
+    const productListContext = productResult.items.map(p => 
       `- ${p.name}: ${(p.priceCents / 100).toFixed(2)}$ (${p.currency}) - ${p.description || 'Không có mô tả'}`
     ).join('\n');
 
-    const fullSystemInstruction = systemInstruction + '\n\nMenu hiện tại của cửa hàng:\n' + menuContext;
+    const fullSystemInstruction = systemInstruction + '\n\nDanh sách sản phẩm hiện tại của cửa hàng:\n' + productListContext;
 
     const model = this.genAI.getGenerativeModel({
       model: 'gemini-3.5-flash',
