@@ -359,7 +359,7 @@ All fields optional; at least one required.
 
 ## Orders
 
-All endpoints require Bearer token.
+`POST /api/v1/orders` is public — no authentication required. All other order endpoints require Bearer token.
 
 ### GET /api/v1/orders
 
@@ -367,7 +367,7 @@ All endpoints require Bearer token.
 
 | Param | Type | Description | Default |
 |-------|------|-------------|---------|
-| `customerId` | uuid | Filter by customer | — |
+| `email` | string | Filter by customer email | — |
 | `status` | string | Filter by status (see below) | — |
 | `currency` | `USD` \| `VND` | Filter by currency | — |
 | `totalMin` | integer | Min total in cents | — |
@@ -386,10 +386,19 @@ Order statuses: `pending`, `paid`, `shipped`, `delivered`, `cancelled`
   "items": [
     {
       "id": "uuid",
-      "customerId": "uuid",
+      "email": "string",
       "status": "pending | paid | shipped | delivered | cancelled",
       "totalCents": "integer",
       "currency": "USD | VND",
+      "items": [
+        {
+          "id": "uuid",
+          "productId": "uuid | null",
+          "name": "string",
+          "priceCents": "integer",
+          "quantity": "integer"
+        }
+      ],
       "createdAt": "ISO datetime",
       "updatedAt": "ISO datetime"
     }
@@ -397,6 +406,45 @@ Order statuses: `pending`, `paid`, `shipped`, `delivered`, `cancelled`
   "total": "integer",
   "limit": "integer",
   "offset": "integer"
+}
+```
+
+---
+
+### GET /api/v1/orders/lookup
+
+Look up orders by customer email. Requires Bearer token. Users can only lookup their own email; admins can lookup any email.
+
+**Query parameters**
+
+| Param | Type | Description | Required |
+|-------|------|-------------|----------|
+| `email` | string | The customer email address to look up | Yes |
+
+**Response `200`**
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "email": "string",
+      "status": "pending | paid | shipped | delivered | cancelled",
+      "totalCents": "integer",
+      "currency": "USD | VND",
+      "items": [
+        {
+          "id": "uuid",
+          "productId": "uuid | null",
+          "name": "string",
+          "priceCents": "integer",
+          "quantity": "integer"
+        }
+      ],
+      "createdAt": "ISO datetime",
+      "updatedAt": "ISO datetime"
+    }
+  ]
 }
 ```
 
@@ -410,13 +458,23 @@ Order statuses: `pending`, `paid`, `shipped`, `delivered`, `cancelled`
 
 ### POST /api/v1/orders
 
+Submit a new order. The backend automatically re-evaluates all item prices using database product records to guarantee price integrity.
+
 **Body**
 
 ```json
 {
-  "customerId": "uuid",
+  "email": "string",
   "totalCents": "integer (≥ 0)",
-  "currency": "USD | VND"
+  "currency": "USD | VND",
+  "items": [
+    {
+      "productId": "uuid",
+      "name": "string",
+      "priceCents": "integer",
+      "quantity": "integer (≥ 1)"
+    }
+  ]
 }
 ```
 
