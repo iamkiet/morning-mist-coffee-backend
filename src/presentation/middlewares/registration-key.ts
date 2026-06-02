@@ -14,7 +14,12 @@ export async function checkRegistrationKey(req: FastifyRequest): Promise<void> {
   const a = Buffer.from(provided);
   const b = Buffer.from(env.USER_REGISTRATION_KEY);
 
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+  const lengthMatch = a.length === b.length;
+  const compareWith = lengthMatch ? b : a;
+  const equal = timingSafeEqual(a, compareWith);
+
+  if (!lengthMatch || !equal) {
     throw new ForbiddenError('Invalid registration key');
   }
 }
+

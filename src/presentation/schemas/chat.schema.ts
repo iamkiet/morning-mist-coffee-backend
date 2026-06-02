@@ -6,7 +6,7 @@ export const ChatMessageSchema = z.object({
 });
 
 export const ChatRequestSchema = z.object({
-  messages: z.array(ChatMessageSchema),
+  messages: z.array(ChatMessageSchema).min(1, 'At least one message is required'),
 });
 
 export const ChatResponseSchema = z.object({

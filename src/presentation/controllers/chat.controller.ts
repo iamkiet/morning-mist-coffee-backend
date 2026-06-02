@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ChatRequestSchema } from '../schemas/chat.schema.js';
 import type { ProductUseCases } from './product.controller.js';
 import { env } from '../../config/env.js';
+import { ValidationError } from '../../lib/errors.js';
 
 export class ChatController {
   private genAI: GoogleGenerativeAI;
@@ -22,6 +23,10 @@ export class ChatController {
     }
 
     const messages = req.body.messages;
+    const lastMsg = messages.at(-1);
+    if (!lastMsg || lastMsg.role !== 'user') {
+      throw new ValidationError('Last message must be from user');
+    }
 
     // Build the system prompt
     const systemInstruction = `
@@ -67,15 +72,15 @@ export class ChatController {
     // 2. Merge consecutive messages from the same role to ensure alternation
     const alternatingHistory: typeof history = [];
     for (const msg of history) {
-      if (alternatingHistory.length > 0 && alternatingHistory[alternatingHistory.length - 1]!.role === msg.role) {
-        alternatingHistory[alternatingHistory.length - 1]!.parts[0]!.text += '\n' + msg.parts[0]!.text;
+      if (alternatingHistory.length > 0 && alternatingHistory.at(-1)!.role === msg.role) {
+        alternatingHistory.at(-1)!.parts[0]!.text += '\n' + msg.parts[0]!.text;
       } else {
         alternatingHistory.push(msg);
       }
     }
     history = alternatingHistory;
     
-    const lastMessage = messages[messages.length - 1]?.content || '';
+    const lastMessage = messages.at(-1)?.content || '';
 
     const chat = model.startChat({
       history,

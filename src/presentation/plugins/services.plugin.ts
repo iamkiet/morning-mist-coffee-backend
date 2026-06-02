@@ -97,7 +97,7 @@ export const servicesPlugin = fp(
       order: {
         list: new ListOrdersUseCase(orderRepo),
         getById: new GetOrderByIdUseCase(orderRepo),
-        create: new CreateOrderUseCase(orderRepo, productStockRepo, emailSender, app.log),
+        create: new CreateOrderUseCase(orderRepo, productRepo, productStockRepo, emailSender, app.log),
         updateStatus: new UpdateOrderStatusUseCase(orderRepo),
       },
       product: {
