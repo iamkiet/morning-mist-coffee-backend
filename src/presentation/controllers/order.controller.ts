@@ -16,7 +16,6 @@ import type {
   UpdateOrderStatusBody,
 } from '../schemas/order.schema.js';
 import { normalizeEmail } from '../../domain/user/user.entity.js';
-import { ForbiddenError, UnauthorizedError } from '../../lib/errors.js';
 
 export interface OrderUseCases {
   list: ListOrdersUseCase;
@@ -48,11 +47,7 @@ export class OrderController {
     req: FastifyRequest<{ Querystring: z.infer<typeof LookupOrdersQuery> }>,
     reply: FastifyReply,
   ) => {
-    if (!req.user) throw new UnauthorizedError();
     const email = normalizeEmail(req.query.email);
-    if (req.user.role !== 'admin' && normalizeEmail(req.user.email) !== email) {
-      throw new ForbiddenError('You can only lookup your own orders');
-    }
     const result = await this.uc.list.execute({
       email,
       sortBy: 'createdAt',

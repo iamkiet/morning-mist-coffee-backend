@@ -27,7 +27,6 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/lookup', {
-    onRequest: [app.authenticate],
     schema: {
       tags: ['orders'],
       querystring: LookupOrdersQuery,

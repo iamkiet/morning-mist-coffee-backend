@@ -104,3 +104,57 @@ The HTTP boundary (`server.ts`, `app.ts`, `routes/`) is the only Fastify-aware c
 - **Duy trì ngữ cảnh hội thoại (Contextual History)**: Tự động chuẩn hóa lịch sử chat luân phiên (`user` - `model`), gộp các tin nhắn trùng vai trò để AI nhớ thông tin hội thoại liên tục.
 - **Persona Nhã nhặn & Tối giản**: AI được định hình tính cách ân cần, thanh lịch và tối giản (Organic Minimalism) đúng tinh thần thương hiệu của Morning Mist Coffee.
 
+---
+
+## AI Security Check (WAF)
+
+Hệ thống tích hợp một lớp kiểm duyệt bảo mật bằng AI (`AiSecurityService`) chạy bất đồng bộ để phân tích payloads đăng ký và đăng nhập, phát hiện các cuộc tấn công phổ biến như SQL Injection, XSS, Path Traversal.
+
+### 🛠️ Cơ chế hoạt động
+1. **Background Job (Non-blocking)**: Hoạt động song song và bất đồng bộ, không ảnh hưởng đến thời gian phản hồi của client.
+2. **Safe Payload Caching**: Lưu trữ các payload an toàn đã được kiểm duyệt vào cache (tối đa 1000 items) nhằm giảm thiểu chi phí và tối ưu hóa tốc độ bằng cách bỏ qua các request trùng lặp.
+3. **Cảnh báo (Red Alert)**: Ghi nhận log level `error` kèm chuỗi cảnh báo sinh động `🔴 AI SYSTEM DETECTED A MALICIOUS ATTACK!` nếu phát hiện nguy hại.
+
+### 🧪 Kịch bản kiểm thử (Test Scenarios)
+
+#### 1. Kiểm thử Unit/Service độc lập qua Script
+Hệ thống cung cấp một script chạy trực tiếp để kiểm tra logic lọc của Gemini WAF:
+```bash
+npx tsx --env-file=.env src/test-ai-security.ts
+```
+**Kết quả mong đợi:**
+- **Safe Payload**: Không phát sinh cảnh báo.
+- **SQL Injection / XSS Payload**: In ra log `[ERROR] 🔴 AI SYSTEM DETECTED A MALICIOUS ATTACK!` kèm thông tin IP và payload tương ứng.
+
+#### 2. Kiểm thử Tích hợp (API Integration Test)
+Khởi động backend server bằng `npm run dev` và gửi request mẫu bằng `curl` để theo dõi log thực tế:
+
+- **Test Case 1: Đăng nhập An toàn (SAFE)**
+  ```bash
+  curl -X POST http://localhost:3000/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email": "customer@morningmist.com", "password": "SecurePassword123!"}'
+  ```
+  *Kết quả: Server trả về token bình thường, không sinh log cảnh báo bảo mật.*
+
+- **Test Case 2: Tấn công SQL Injection (DANGEROUS)**
+  ```bash
+  curl -X POST http://localhost:3000/api/v1/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email": "admin@morningmist.com'\'' OR '\''1'\''='\''1", "password": "any"}'
+  ```
+  *Kết quả: Log của server xuất hiện dòng cảnh báo: `🔴 AI SYSTEM DETECTED A MALICIOUS ATTACK!`.*
+
+- **Test Case 3: Đăng ký với XSS Payload (DANGEROUS)**
+  ```bash
+  curl -X POST http://localhost:3000/api/v1/auth/register \
+    -H "Content-Type: application/json" \
+    -d '{
+      "firstName": "<script>alert('\''xss'\'')</script>",
+      "lastName": "Nguyen",
+      "email": "hacker@morningmist.com",
+      "password": "Password123!"
+    }'
+  ```
+  *Kết quả: Server in ra log cảnh báo bảo mật.*
+
