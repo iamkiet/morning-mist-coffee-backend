@@ -35,10 +35,12 @@ Analyze the input context and return a structured JSON response.`,
           properties: {
             verdict: {
               type: SchemaType.STRING,
+              format: 'enum',
               enum: ['SAFE', 'SUSPICIOUS', 'DANGEROUS'],
             },
             threatType: {
               type: SchemaType.STRING,
+              format: 'enum',
               enum: ['SQL_INJECTION', 'XSS', 'PROMPT_INJECTION', 'BOT_SIGNATURE', 'NONE'],
             },
             confidence: {
