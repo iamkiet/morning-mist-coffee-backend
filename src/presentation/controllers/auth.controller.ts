@@ -18,7 +18,6 @@ import type {
   RegisterBody,
 } from '../schemas/auth.schema.js';
 import { toUserDTO } from '../serializers/auth.serializer.js';
-import type { AiSecurityService } from '../../application/ai/ai-security.service.js';
 
 export interface AuthUseCases {
   register: RegisterUserUseCase;
@@ -50,7 +49,6 @@ function resolveRefreshToken(
 export class AuthController {
   constructor(
     private readonly uc: AuthUseCases,
-    private readonly aiSecurity: AiSecurityService,
   ) {}
 
   register = async (
@@ -58,10 +56,6 @@ export class AuthController {
     reply: FastifyReply,
   ) => {
     try {
-      // Trigger asynchronous AI Security audit in the background
-      // Do not await to avoid blocking the user response thread
-      this.aiSecurity.auditPayloadAsync('/register', req.ip, req.body).catch(() => {});
-
       const result = await this.uc.register.execute(req.body);
       setAuthCookies(
         reply,
@@ -88,9 +82,6 @@ export class AuthController {
     reply: FastifyReply,
   ) => {
     try {
-      // Trigger asynchronous AI Security audit in the background
-      this.aiSecurity.auditPayloadAsync('/login', req.ip, req.body).catch(() => {});
-
       const result = await this.uc.login.execute(req.body);
       setAuthCookies(
         reply,

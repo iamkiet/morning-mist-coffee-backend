@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { env } from '../../config/env.js';
 import { AuthController } from '../controllers/auth.controller.js';
 import { checkRegistrationKey } from '../middlewares/registration-key.js';
+import { aiSecurityGuard } from '../middlewares/ai-security.middleware.js';
 import {
   AuthResponse,
   LoginBody,
@@ -21,7 +22,7 @@ const authRateLimit = {
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
-  const controller = new AuthController(app.useCases.auth, app.aiSecurity);
+  const controller = new AuthController(app.useCases.auth);
 
   fastify.post('/register', {
     config: authRateLimit,
@@ -30,7 +31,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       body: RegisterBody,
       response: { 201: AuthResponse },
     },
-    preHandler: checkRegistrationKey,
+    preHandler: [checkRegistrationKey, aiSecurityGuard('/register')],
     handler: controller.register,
   });
 
@@ -41,6 +42,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       body: LoginBody,
       response: { 200: AuthResponse },
     },
+    preHandler: [aiSecurityGuard('/login')],
     handler: controller.login,
   });
 
