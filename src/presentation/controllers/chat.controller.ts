@@ -51,7 +51,7 @@ export class ChatController {
     const fullSystemInstruction = systemInstruction + '\n\nCurrent product list of the shop:\n' + productListContext;
 
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       systemInstruction: fullSystemInstruction,
     });
 

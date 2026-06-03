@@ -11,13 +11,13 @@ Hệ thống "Morning Mist Coffee" ra đời như một giải pháp chuyển đ
 
 ### 1.2 Mục tiêu của dự án
 1. **Xây dựng Hệ thống Backend Hiện đại:** Thiết lập một kiến trúc mã nguồn sạch (Clean Architecture), hiệu năng cao bằng Node.js, Fastify và TypeScript kết hợp Drizzle ORM truy vấn cơ sở dữ liệu PostgreSQL.
-2. **Tích hợp Trợ lý ảo AI tư vấn (Chatbot):** Ứng dụng mô hình Gemini 1.5 Flash để tương tác tự nhiên, tư vấn thực đơn trực tiếp cho khách hàng bằng tiếng Việt dựa trên danh mục sản phẩm có sẵn trong cơ sở dữ liệu (Context-aware RAG).
+2. **Tích hợp Trợ lý ảo AI tư vấn (Chatbot):** Ứng dụng mô hình Gemini 2.5 Flash để tương tác tự nhiên, tư vấn thực đơn trực tiếp cho khách hàng bằng tiếng Việt dựa trên danh mục sản phẩm có sẵn trong cơ sở dữ liệu (Context-aware RAG).
 3. **Phát triển Cầu nối Dữ liệu MCP (Model Context Protocol):** Tạo cổng kết nối chuẩn hóa giúp các mô hình ngôn ngữ lớn (LLM) bên ngoài có thể tương tác an toàn với tài nguyên hệ thống.
 4. **Tích hợp Tường lửa Bảo mật AI WAF:** Phát triển lớp bảo mật middleware sử dụng AI phân tích sâu các payload đầu vào để chặn đứng các mối đe dọa (SQL Injection, XSS, NoSQL Injection, Bot Spam) trước khi chúng chạm tới cơ sở dữ liệu.
 
 ### 1.3 Phạm vi dự án
 *   **Về mặt Backend:** Triển khai các phân hệ quản lý thực đơn (Products & Product Types), kho hàng (Product Stock), xử lý đơn hàng (Orders & Order Items), và phân hệ xác thực phân quyền người dùng (Users & Refresh Tokens).
-*   **Về mặt AI:** Tích hợp trực tiếp Google Gemini API sử dụng model `gemini-1.5-flash`.
+*   **Về mặt AI:** Tích hợp trực tiếp Google Gemini API sử dụng model `gemini-2.5-flash`.
 *   **Về mặt Bảo mật:** Triển khai và tích hợp bộ kiểm duyệt AI Security Guard dưới dạng `preHandler` middleware cho các endpoint nhạy cảm (`/login`, `/register`).
 
 ---
@@ -52,7 +52,7 @@ Hệ thống được thiết kế theo mô hình kiến trúc phân lớp hư�
 *   **Runtime:** Node.js (phiên bản v22 hoặc mới hơn) kết hợp bộ thông dịch TypeScript (`tsx` watch ở môi trường phát triển).
 *   **Web Framework:** Fastify v5 (nhanh hơn Express gấp 2-3 lần, hỗ trợ phân tích Schema Zod mạnh mẽ).
 *   **Database Tooling:** PostgreSQL làm RDBMS, Drizzle ORM làm trình ánh xạ đối tượng và quản lý lược đồ dữ liệu (Migrations).
-*   **AI Integration:** `@google/generative-ai` SDK để giao tiếp trực tiếp với mô hình Gemini 1.5 Flash.
+*   **AI Integration:** `@google/generative-ai` SDK để giao tiếp trực tiếp với mô hình Gemini 2.5 Flash.
 *   **Security Utilities:** `jose` cho việc ký và giải mã JWT, `bcryptjs` mã hóa mật khẩu, `@fastify/rate-limit` chống spam, `@fastify/helmet` bảo mật header HTTP.
 
 ---
@@ -107,7 +107,7 @@ Phân hệ Chat tư vấn được xây dựng trên `ChatController` của Fast
     > *"Bạn là trợ lý ảo tại quán cà phê cao cấp 'Morning Mist Coffee'. Giao tiếp bằng tiếng Việt. Phong cách trò chuyện: Lịch sự, nhã nhặn, chu đáo, tinh tế mang thiên hướng tối giản tự nhiên. Trả lời ngắn gọn, tập trung vào giới thiệu các loại đồ uống đang có sẵn..."*
 
 ### 3.4 Các mô hình AI được sử dụng
-Hệ thống sử dụng mô hình **Gemini 1.5 Flash** do tính năng vượt trội về tốc độ phản hồi (low latency), chi phí hợp lý, và khả năng hỗ trợ **Structured JSON Output** mạnh mẽ. Mô hình được ứng dụng vào 2 chức năng riêng biệt:
+Hệ thống sử dụng mô hình **Gemini 2.5 Flash** do tính năng vượt trội về tốc độ phản hồi (low latency), chi phí hợp lý, và khả năng hỗ trợ **Structured JSON Output** mạnh mẽ. Mô hình được ứng dụng vào 2 chức năng riêng biệt:
 
 1.  **AI Chatbot tư vấn:** Sử dụng hội thoại dạng Text tự do truyền thống có tiêm ngữ cảnh.
 2.  **AI WAF Security Guard:** Cấu hình định dạng JSON bắt buộc thông qua cấu hình `generationConfig`:
