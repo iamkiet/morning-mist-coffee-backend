@@ -80,7 +80,7 @@ export const products = pgTable(
     name: text().notNull(),
     description: text(),
     priceCents: integer().notNull(),
-    currency: currency().notNull().default('USD'),
+    currency: currency().notNull().default('VND'),
     image: text(),
     productTypeId: uuid()
       .notNull()
@@ -128,7 +128,7 @@ export const orders = pgTable(
     email: text().notNull(),
     status: orderStatus().notNull().default('pending'),
     totalCents: integer().notNull(),
-    currency: currency().notNull().default('USD'),
+    currency: currency().notNull().default('VND'),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

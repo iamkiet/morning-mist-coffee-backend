@@ -17,7 +17,7 @@ const coffeeProducts = [
     name: 'Cà phê Phối Trộn Arabica Morning Mist',
     description:
       'Hỗn hợp Arabica êm dịu, cân bằng với hương vị sô-cô-la đen, caramel và một chút cam quýt. Hoàn hảo cho một buổi sáng thanh lành.',
-    priceCents: 1800,
+    priceCents: 55000,
     stock: 50,
     image: 'https://todaywegrind.com/products/coffee1.png',
   },
@@ -26,7 +26,7 @@ const coffeeProducts = [
     name: 'Cà phê Arabica Nguyên Bản Vùng Cao',
     description:
       'Cà phê Arabica nguyên bản từ vùng cao nguyên Đà Lạt, Việt Nam. Rang mộc nhẹ nhàng với hương hoa thơm ngát và hậu vị sáng, sạch.',
-    priceCents: 2400,
+    priceCents: 65000,
     stock: 30,
     image: 'https://todaywegrind.com/products/coffee2.png',
   },
@@ -35,7 +35,7 @@ const coffeeProducts = [
     name: 'Cà phê Arabica Chế Biến Mật Ong',
     description:
       'Cà phê Arabica chế biến theo phương pháp mật ong với vị ngọt tự nhiên, nốt hương quả mọng và độ chua thấp. Thích hợp cho cả pha phin và cold brew.',
-    priceCents: 2200,
+    priceCents: 60000,
     stock: 40,
     image: 'https://todaywegrind.com/products/coffee3.png',
   },
@@ -44,7 +44,7 @@ const coffeeProducts = [
     name: 'Cà phê Robusta Espresso Đậm Đà',
     description:
       'Cà phê Robusta hàm lượng caffeine cao với hương vị đậm đà, crema dày mịn. Lý tưởng để pha cà phê sữa đá truyền Việt Nam.',
-    priceCents: 1400,
+    priceCents: 45000,
     stock: 60,
     image: 'https://todaywegrind.com/products/coffee4.png',
   },
@@ -53,7 +53,7 @@ const coffeeProducts = [
     name: 'Cà phê Robusta Rang Đậm',
     description:
       'Cà phê Robusta rang đậm đặc trưng với nốt sô-cô-la đắng và hương khói mạnh mẽ. Đậm vị và nguyên bản cho những ai yêu thích vị cà phê truyền thống.',
-    priceCents: 1600,
+    priceCents: 50000,
     stock: 45,
     image: 'https://todaywegrind.com/products/coffee5.png',
   },
@@ -62,7 +62,7 @@ const coffeeProducts = [
     name: 'Cà phê Robusta Rang Bơ',
     description:
       'Cà phê Robusta rang bơ truyền thống của Việt Nam. Thơm ngậy, êm mượt và ngọt dịu — nền tảng kinh điển cho món cà phê sữa đá.',
-    priceCents: 1500,
+    priceCents: 48000,
     stock: 55,
     image: 'https://todaywegrind.com/products/coffee6.png',
   },
@@ -71,7 +71,7 @@ const coffeeProducts = [
     name: 'Cà phê Ethiopian Yirgacheffe',
     description:
       'Cà phê Arabica Ethiopia sống động với nốt hương quả mọng và rượu vang. Hương thơm trà hoa phức hợp, làm bừng sáng mọi buổi sáng.',
-    priceCents: 2500,
+    priceCents: 75000,
     stock: 35,
     image: 'https://todaywegrind.com/products/coffee7.png',
   },
@@ -80,7 +80,7 @@ const coffeeProducts = [
     name: 'Cà phê Colombian Geisha',
     description:
       'Giống cà phê Geisha quý hiếm từ Colombia với hương hoa cỏ và cam quýt đặc sắc. Dòng sản phẩm cao cấp được giới sành cà phê săn đón.',
-    priceCents: 3500,
+    priceCents: 95000,
     stock: 15,
     image: 'https://todaywegrind.com/products/coffee8.png',
   },
@@ -89,7 +89,7 @@ const coffeeProducts = [
     name: 'Cà phê Brazil Chế Biến Tự Nhiên',
     description:
       'Cà phê Arabica Brazil chế biến tự nhiên với nốt hương hạt dẻ, sô-cô-la và hậu vị êm mượt. Hương vị cân bằng, hoàn hảo để pha espresso.',
-    priceCents: 1900,
+    priceCents: 58000,
     stock: 48,
     image: 'https://todaywegrind.com/products/coffee9.png',
   },
@@ -98,7 +98,7 @@ const coffeeProducts = [
     name: 'Cà phê Kenya AA Peaberry',
     description:
       'Hạt cà phê Peaberry Kenya AA với độ chua sáng, hương vị lý chua đen và hương hoa quyến rũ. Một cực phẩm cà phê từ Châu Phi.',
-    priceCents: 2600,
+    priceCents: 80000,
     stock: 28,
     image: 'https://todaywegrind.com/products/coffee10.png',
   },
@@ -107,7 +107,7 @@ const coffeeProducts = [
     name: 'Cà phê Ấn Độ Monsoon Malabar',
     description:
       'Cà phê Robusta phơi gió mùa độc đáo từ vùng Kerala, Ấn Độ. Độ chua cực thấp, đậm đà với thoảng hương gia vị và da thuộc.',
-    priceCents: 1700,
+    priceCents: 52000,
     stock: 38,
     image: 'https://todaywegrind.com/products/coffee11.png',
   },
@@ -116,7 +116,7 @@ const coffeeProducts = [
     name: 'Cà phê Indonesia Sumatra',
     description:
       'Cà phê Robusta Sumatra chế biến ướt với nốt hương thảo mộc sâu lắng và đậm vị đất. Dòng cà phê đặc trưng của Đông Nam Á.',
-    priceCents: 1550,
+    priceCents: 49000,
     stock: 42,
     image: 'https://todaywegrind.com/products/coffee12.png',
   },
@@ -125,7 +125,7 @@ const coffeeProducts = [
     name: 'Cà phê Guatemala Huehuetenango',
     description:
       'Cà phê Arabica vùng cao Guatemala với nốt hương sô-cô-la, gia vị và cam quýt. Cân bằng hoàn hảo giữa độ chua và độ đậm đà.',
-    priceCents: 2100,
+    priceCents: 62000,
     stock: 36,
     image: 'https://todaywegrind.com/products/coffee13.png',
   },
@@ -134,7 +134,7 @@ const coffeeProducts = [
     name: 'Cà phê Costa Rica Tarrazú',
     description:
       'Cà phê Arabica thung lũng Tarrazú với vị ngọt caramel, sô-cô-la và cam quýt dịu nhẹ. Độ chua cân bằng, hậu vị mượt mà.',
-    priceCents: 2050,
+    priceCents: 60000,
     stock: 41,
     image: 'https://todaywegrind.com/products/coffee14.png',
   },
@@ -143,7 +143,7 @@ const coffeeProducts = [
     name: 'Cà phê Robusta Tây Nguyên',
     description:
       'Cà phê Robusta nguyên bản từ thủ phủ cà phê Việt Nam. Đậm vị đất, thoảng nốt hương thuốc lá và sô-cô-la đen.',
-    priceCents: 1450,
+    priceCents: 42000,
     stock: 65,
     image: 'https://todaywegrind.com/products/coffee15.png',
   },
@@ -152,7 +152,7 @@ const coffeeProducts = [
     name: 'Cà phê Panama Geisha',
     description:
       'Cà phê Geisha Panama phiên bản giới hạn với hương hoa phức hợp, nốt hương nhài và hậu vị trái cây nhiệt đới ngọt ngào.',
-    priceCents: 3800,
+    priceCents: 120000,
     stock: 10,
     image: 'https://todaywegrind.com/products/coffee16.png',
   },
@@ -161,7 +161,7 @@ const coffeeProducts = [
     name: 'Cà phê Peru Hữu Cơ Thương Mại Công Bằng',
     description:
       'Cà phê Arabica Peru đạt chứng nhận hữu cơ quốc tế. Hương vị cân bằng giữa sô-cô-la, hạt dẻ và trái cây chín.',
-    priceCents: 1950,
+    priceCents: 58000,
     stock: 44,
     image: 'https://todaywegrind.com/products/coffee17.png',
   },
@@ -170,7 +170,7 @@ const coffeeProducts = [
     name: 'Cà phê Uganda Bugisu',
     description:
       'Cà phê Robusta Đông Phi với vị đậm đà, nốt gia vị cay nhẹ và hậu vị đất. Sự lựa chọn mạnh mẽ cho những ai tìm kiếm sự cá tính.',
-    priceCents: 1650,
+    priceCents: 50000,
     stock: 39,
     image: 'https://todaywegrind.com/products/coffee18.png',
   },
@@ -179,7 +179,7 @@ const coffeeProducts = [
     name: 'Cà phê Tanzania Kilimanjaro',
     description:
       'Được trồng trên sườn núi Kilimanjaro hùng vĩ, dòng Arabica này mang lại độ chua sáng như rượu vang cùng hương vị trái cây phong phú.',
-    priceCents: 2300,
+    priceCents: 70000,
     stock: 33,
     image: 'https://todaywegrind.com/products/coffee19.png',
   },
@@ -188,7 +188,7 @@ const coffeeProducts = [
     name: 'Cà phê Mexico Oaxaca',
     description:
       'Cà phê Arabica vùng cao Mexico với nốt hương gia vị nhẹ nhàng, vị ngọt sô-cô-la và độ chua vừa phải. Dễ uống và thơm ngon.',
-    priceCents: 1850,
+    priceCents: 55000,
     stock: 47,
     image: 'https://todaywegrind.com/products/coffee20.png',
   },
@@ -202,6 +202,11 @@ const coffeeProducts = [
 }[];
 
 async function seed() {
+  logger.info('Clearing old product and stock data...');
+  await db.delete(productStock);
+  await db.delete(products);
+  await db.delete(productTypes);
+
   logger.info('Seeding product types...');
   const insertedTypes = await db
     .insert(productTypes)
@@ -231,7 +236,7 @@ async function seed() {
         name: p.name,
         description: p.description,
         priceCents: p.priceCents,
-        currency: 'USD',
+        currency: 'VND',
         image: p.image,
         productTypeId: typeId,
       })

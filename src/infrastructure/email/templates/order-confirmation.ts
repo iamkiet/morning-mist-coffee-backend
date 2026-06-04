@@ -1,7 +1,8 @@
 import type { OrderConfirmationEmail } from '../../../domain/ports/email-sender.port.js';
 
 function formatCents(cents: number, currency: string): string {
-  return (cents / 100).toLocaleString('en-US', {
+  const isVnd = currency.toUpperCase() === 'VND';
+  return (isVnd ? cents : cents / 100).toLocaleString(isVnd ? 'vi-VN' : 'en-US', {
     style: 'currency',
     currency: currency.toUpperCase(),
   });

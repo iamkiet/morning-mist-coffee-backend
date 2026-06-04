@@ -45,7 +45,10 @@ export class ChatController {
       const desc = p.description 
         ? (p.description.length > 100 ? p.description.slice(0, 100) + '...' : p.description) 
         : 'No description';
-      return `- ${p.name}: ${(p.priceCents / 100).toFixed(2)}$ (${p.currency}) | ${desc}`;
+      const priceStr = p.currency === 'VND'
+        ? `${p.priceCents.toLocaleString('vi-VN')}đ`
+        : `${(p.priceCents / 100).toFixed(2)}$`;
+      return `- ${p.name}: ${priceStr} (${p.currency}) | ${desc}`;
     }).join('\n');
 
     const fullSystemInstruction = systemInstruction + '\n\nCurrent product list of the shop:\n' + productListContext;
