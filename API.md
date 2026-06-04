@@ -231,7 +231,7 @@ All endpoints require Bearer token.
 |-------|------|-------------|---------|
 | `q` | string | Keyword search (1–200 chars) | — |
 | `productTypeId` | uuid | Filter by product type | — |
-| `currency` | `USD` \| `VND` | Filter by currency | — |
+| `currency` | `VND` | Filter by currency | — |
 | `priceMin` | integer | Min price in cents | — |
 | `priceMax` | integer | Max price in cents | — |
 | `sortBy` | `createdAt` \| `name` \| `priceCents` | Sort field | `createdAt` |
@@ -249,7 +249,7 @@ All endpoints require Bearer token.
       "name": "string",
       "description": "string | null",
       "priceCents": "integer",
-      "currency": "USD | VND",
+      "currency": "VND",
       "image": "string | null",
       "productTypeId": "uuid",
       "createdAt": "ISO datetime",
@@ -279,7 +279,7 @@ All endpoints require Bearer token.
   "name": "string (1–200)",
   "description": "string (max 5000) | null",
   "priceCents": "integer (≥ 0)",
-  "currency": "USD | VND",
+  "currency": "VND",
   "image": "url (max 2048) | null",
   "productTypeId": "uuid"
 }
@@ -300,7 +300,7 @@ All fields optional; at least one required.
   "name": "string (1–200)",
   "description": "string (max 5000) | null",
   "priceCents": "integer (≥ 0)",
-  "currency": "USD | VND",
+  "currency": "VND",
   "image": "url (max 2048) | null",
   "productTypeId": "uuid"
 }
@@ -369,7 +369,7 @@ All fields optional; at least one required.
 |-------|------|-------------|---------|
 | `email` | string | Filter by customer email | — |
 | `status` | string | Filter by status (see below) | — |
-| `currency` | `USD` \| `VND` | Filter by currency | — |
+| `currency` | `VND` | Filter by currency | — |
 | `totalMin` | integer | Min total in cents | — |
 | `totalMax` | integer | Max total in cents | — |
 | `sortBy` | `createdAt` \| `totalCents` | Sort field | `createdAt` |
@@ -389,7 +389,7 @@ Order statuses: `pending`, `paid`, `shipped`, `delivered`, `cancelled`
       "email": "string",
       "status": "pending | paid | shipped | delivered | cancelled",
       "totalCents": "integer",
-      "currency": "USD | VND",
+      "currency": "VND",
       "items": [
         {
           "id": "uuid",
@@ -431,7 +431,7 @@ Look up orders by customer email. Requires Bearer token. Users can only lookup t
       "email": "string",
       "status": "pending | paid | shipped | delivered | cancelled",
       "totalCents": "integer",
-      "currency": "USD | VND",
+      "currency": "VND",
       "items": [
         {
           "id": "uuid",
@@ -466,7 +466,7 @@ Submit a new order. The backend automatically re-evaluates all item prices using
 {
   "email": "string",
   "totalCents": "integer (≥ 0)",
-  "currency": "USD | VND",
+  "currency": "VND",
   "items": [
     {
       "productId": "uuid",

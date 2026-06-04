@@ -96,7 +96,7 @@ Cơ sở dữ liệu của dự án "Morning Mist Coffee" được thiết kế 
 | `name` | Text | Not Null | Tên món đồ uống. |
 | `description` | Text | Nullable | Mô tả chi tiết thành phần, hương vị đồ uống. |
 | `priceCents` | Integer | Not Null, `>= 0` | Giá trị sản phẩm (đơn vị Cent để tránh sai số). |
-| `currency` | Enum | Not Null, Default 'USD' | Đơn vị tiền tệ: `USD` hoặc `VND`. |
+| `currency` | Enum | Not Null, Default 'VND' | Đơn vị tiền tệ: `VND`. |
 | `image` | Text | Nullable | Đường dẫn liên kết tới ảnh sản phẩm. |
 | `productTypeId`| UUID | Not Null, FK References | Liên kết tới danh mục nhóm sản phẩm. |
 
@@ -112,7 +112,7 @@ Cơ sở dữ liệu của dự án "Morning Mist Coffee" được thiết kế 
 
 #### 4. Bảng `orders` & `order_items` (Quản lý đơn hàng)
 *   **Mô tả:** Lưu trữ hóa đơn giao dịch và chi tiết các sản phẩm được đặt mua.
-*   **Các trường cốt lõi của bảng `orders`:** `id` (UUID), `email` (Text), `status` (Enum: `pending`, `paid`, `shipped`, `delivered`, `cancelled`), `totalCents` (Integer), `currency` (Enum).
+*   **Các trường cốt lõi của bảng `orders`:** `id` (UUID), `email` (Text), `status` (Enum: `pending`, `paid`, `shipped`, `delivered`, `cancelled`), `totalCents` (Integer), `currency` (Enum: `VND`).
 *   **Các trường bảng `order_items`:** `id` (UUID), `orderId` (FK references `orders.id`), `productId` (UUID), `name` (Text), `priceCents` (Integer), `quantity` (Integer).
 
 ---

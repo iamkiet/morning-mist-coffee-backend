@@ -53,6 +53,8 @@ function rowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
     status: row.status,
     totalCents: row.totalCents,
     currency: row.currency,
+    cashReceivedCents: row.cashReceivedCents,
+    changeCents: row.changeCents,
     items,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -125,6 +127,8 @@ export class PostgresOrderRepository implements OrderRepo {
         email: input.email,
         totalCents: input.totalCents,
         currency: input.currency,
+        cashReceivedCents: input.cashReceivedCents ?? null,
+        changeCents: input.changeCents ?? null,
       })
       .returning();
     if (!row) throw new Error('Failed to create order');

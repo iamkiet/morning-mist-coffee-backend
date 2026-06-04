@@ -56,10 +56,25 @@ export class CreateOrderUseCase {
       0,
     );
 
+    let cashReceivedCents: number | undefined = undefined;
+    let changeCents: number | undefined = undefined;
+
+    if (input.cashReceivedCents !== undefined && input.cashReceivedCents !== null) {
+      if (input.cashReceivedCents < totalCents) {
+        throw new ValidationError(
+          `Cash received (${input.cashReceivedCents}) must be greater than or equal to total amount (${totalCents})`
+        );
+      }
+      cashReceivedCents = input.cashReceivedCents;
+      changeCents = input.cashReceivedCents - totalCents;
+    }
+
     const order = await this.repo.create({
       ...input,
       items: resolvedItems,
       totalCents,
+      cashReceivedCents,
+      changeCents,
       email: normalizeEmail(input.email),
     });
 
@@ -69,6 +84,8 @@ export class CreateOrderUseCase {
         orderId: order.id,
         totalCents: order.totalCents,
         currency: order.currency,
+        cashReceivedCents: order.cashReceivedCents,
+        changeCents: order.changeCents,
         items: order.items.map((item) => ({
           name: item.name,
           quantity: item.quantity,

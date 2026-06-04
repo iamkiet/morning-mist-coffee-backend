@@ -28,6 +28,8 @@ export const OrderSchema = z.object({
   status: OrderStatus,
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
+  cashReceivedCents: z.number().int().min(0).nullable(),
+  changeCents: z.number().int().min(0).nullable(),
   items: z.array(OrderItemSchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -44,6 +46,7 @@ export const CreateOrderBody = z.object({
   email: z.email(),
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
+  cashReceivedCents: z.number().int().min(0).optional(),
   items: z.array(CreateOrderItemBody).min(1),
 });
 

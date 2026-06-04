@@ -29,6 +29,8 @@ export interface Order {
   status: OrderStatus;
   totalCents: number;
   currency: Currency;
+  cashReceivedCents: number | null;
+  changeCents: number | null;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -38,6 +40,8 @@ export interface CreateOrderInput {
   email: string;
   totalCents: number;
   currency: Currency;
+  cashReceivedCents?: number;
+  changeCents?: number;
   items: CreateOrderItemInput[];
 }
 

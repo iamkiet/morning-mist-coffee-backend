@@ -1,11 +1,7 @@
 import type { OrderConfirmationEmail } from '../../../domain/ports/email-sender.port.js';
 
-function formatCents(cents: number, currency: string): string {
-  const isVnd = currency.toUpperCase() === 'VND';
-  return (isVnd ? cents : cents / 100).toLocaleString(isVnd ? 'vi-VN' : 'en-US', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-  });
+function formatCents(cents: number): string {
+  return `${cents.toLocaleString('vi-VN')} ₫`;
 }
 
 export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
@@ -18,7 +14,7 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
       <tr>
         <td style="padding:8px 12px;border-bottom:1px solid #f0ebe3;">${item.name}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #f0ebe3;text-align:center;">${item.quantity}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #f0ebe3;text-align:right;">${formatCents(item.priceCents, data.currency)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f0ebe3;text-align:right;">${formatCents(item.priceCents)}</td>
       </tr>`,
     )
     .join('');
@@ -68,9 +64,19 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
 
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
               <tr>
-                <td style="font-size:15px;font-weight:700;">Total</td>
-                <td style="font-size:15px;font-weight:700;text-align:right;">${formatCents(data.totalCents, data.currency)}</td>
+                <td style="font-size:15px;font-weight:700;padding-bottom:8px;">Total</td>
+                <td style="font-size:15px;font-weight:700;text-align:right;padding-bottom:8px;">${formatCents(data.totalCents)}</td>
               </tr>
+              ${data.cashReceivedCents !== undefined && data.cashReceivedCents !== null ? `
+              <tr>
+                <td style="font-size:14px;color:#7a6055;padding-bottom:4px;">Cash Received</td>
+                <td style="font-size:14px;color:#7a6055;text-align:right;padding-bottom:4px;">${formatCents(data.cashReceivedCents)}</td>
+              </tr>
+              <tr>
+                <td style="font-size:14px;color:#7a6055;">Change</td>
+                <td style="font-size:14px;color:#7a6055;text-align:right;">${formatCents(data.changeCents ?? 0)}</td>
+              </tr>
+              ` : ''}
             </table>
 
             <p style="margin:0;font-size:13px;color:#7a6055;line-height:1.6;">

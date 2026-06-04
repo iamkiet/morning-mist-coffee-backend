@@ -3,6 +3,8 @@ export interface OrderConfirmationEmail {
   orderId: string;
   totalCents: number;
   currency: string;
+  cashReceivedCents?: number | null;
+  changeCents?: number | null;
   items: Array<{ name: string; quantity: number; priceCents: number }>;
   createdAt: Date;
 }

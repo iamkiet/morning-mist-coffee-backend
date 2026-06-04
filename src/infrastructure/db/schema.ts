@@ -55,7 +55,7 @@ export const orderStatus = pgEnum('order_status', [
   'cancelled',
 ]);
 
-export const currency = pgEnum('currency', ['USD', 'VND']);
+export const currency = pgEnum('currency', ['VND']);
 
 export const productTypes = pgTable(
   'product_types',
@@ -129,6 +129,8 @@ export const orders = pgTable(
     status: orderStatus().notNull().default('pending'),
     totalCents: integer().notNull(),
     currency: currency().notNull().default('VND'),
+    cashReceivedCents: integer(),
+    changeCents: integer(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

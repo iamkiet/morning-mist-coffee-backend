@@ -66,6 +66,7 @@ export class OrderController {
       email: req.body.email,
       totalCents: req.body.totalCents,
       currency: req.body.currency,
+      cashReceivedCents: req.body.cashReceivedCents,
       items: req.body.items,
     });
     return reply.code(201).send(toOrderDTO(order));
