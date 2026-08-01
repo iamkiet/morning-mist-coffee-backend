@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   check,
+  halfvec,
   index,
   integer,
   pgEnum,
@@ -10,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { env } from '../../config/env.js';
 
 export const userRole = pgEnum('user_role', ['user', 'admin']);
 export const userStatus = pgEnum('user_status', ['active', 'inactive', 'banned']);
@@ -85,6 +87,7 @@ export const products = pgTable(
     productTypeId: uuid()
       .notNull()
       .references(() => productTypes.id, { onDelete: 'restrict' }),
+    embedding: halfvec({ dimensions: env.EMBEDDING_DIMENSION }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -98,6 +101,10 @@ export const products = pgTable(
     ),
     index('products_created_at_idx').on(t.createdAt.desc()),
     check('products_price_cents_nonneg', sql`${t.priceCents} >= 0`),
+    index('products_embedding_hnsw_idx').using(
+      'hnsw',
+      t.embedding.op('halfvec_cosine_ops'),
+    ),
   ],
 );
 

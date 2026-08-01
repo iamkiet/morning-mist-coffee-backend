@@ -72,6 +72,9 @@ export const OrderListResponse = paginatedResponse(OrderSchema);
 
 export const LookupOrdersQuery = z.object({
   email: z.email(),
+  code: z
+    .string()
+    .regex(/^[0-9a-fA-F]{8}$/, 'Order code must be the 8 characters shown on your receipt'),
 });
 
 export const OrderLookupResponse = z.object({

@@ -1,10 +1,12 @@
 import {
   and,
   asc,
+  cosineDistance,
   desc,
   eq,
   gte,
   ilike,
+  isNotNull,
   lte,
   sql,
   type SQL,
@@ -19,6 +21,7 @@ import type {
 import type {
   ProductFilterCriteria,
   ProductRepo,
+  SimilarProduct,
 } from '../../domain/product/product.repo.js';
 import type { Currency } from '../../domain/shared/currency.js';
 import type { DB } from '../db/client.js';
@@ -148,5 +151,20 @@ export class PostgresProductRepository implements ProductRepo {
         id: products.id,
       });
     return rows.length > 0;
+  }
+
+  async updateEmbedding(id: string, embedding: number[] | null): Promise<void> {
+    await this.db.update(products).set({ embedding }).where(eq(products.id, id));
+  }
+
+  async findSimilarByVector(embedding: number[], limit: number): Promise<SimilarProduct[]> {
+    const similarity = sql<number>`1 - (${cosineDistance(products.embedding, embedding)})`;
+    const rows = await this.db
+      .select({ product: products, score: similarity })
+      .from(products)
+      .where(isNotNull(products.embedding))
+      .orderBy(desc(similarity))
+      .limit(limit);
+    return rows.map((r) => ({ product: rowToProduct(r.product), score: r.score }));
   }
 }

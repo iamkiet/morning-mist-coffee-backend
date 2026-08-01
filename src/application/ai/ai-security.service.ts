@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, SchemaType, type GenerativeModel } from '@google/generative-ai';
 import { env } from '../../config/env.js';
+import type { SecurityEventStore } from '../../domain/security/security-event-store.port.js';
 import { ForbiddenError } from '../../lib/errors.js';
 
 export interface Logger {
@@ -8,15 +9,82 @@ export interface Logger {
   error(obj: Record<string, unknown>, msg: string): void;
 }
 
-// Temporary storage (Cache) to remember audited safe payloads
+type Verdict = 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS';
+type ThreatType = 'SQL_INJECTION' | 'XSS' | 'PROMPT_INJECTION' | 'BOT_SIGNATURE' | 'NONE';
+
+interface Analysis {
+  verdict: Verdict;
+  threatType: ThreatType;
+  confidence: number;
+  reason: string;
+}
+
+const AI_SECURITY_TIMEOUT_MS = 8_000;
+const AI_SECURITY_MAX_ATTEMPTS = 2;
+
+const SQLI_PATTERN =
+  /(\bunion\b\s+\bselect\b)|(\bor\b\s+['"]?1['"]?\s*=\s*['"]?1)|(;\s*drop\s+table\b)|(--\s*$)|(\bxp_cmdshell\b)|(\bsleep\s*\()/i;
+const XSS_PATTERN = /<script[\s>]|javascript:|on(error|load|click|mouseover)\s*=|<iframe[\s>]/i;
+const DISPOSABLE_EMAIL_DOMAINS = [
+  'tempmail.com',
+  'mailinator.com',
+  'guerrillamail.com',
+  '10minutemail.com',
+  'throwawaymail.com',
+  'yopmail.com',
+];
+
+function runHeuristicCheck(payload: unknown): Analysis {
+  const text = JSON.stringify(payload);
+
+  if (SQLI_PATTERN.test(text)) {
+    return {
+      verdict: 'DANGEROUS',
+      threatType: 'SQL_INJECTION',
+      confidence: 0.6,
+      reason: 'Heuristic fallback matched a SQL injection signature',
+    };
+  }
+
+  if (XSS_PATTERN.test(text)) {
+    return {
+      verdict: 'DANGEROUS',
+      threatType: 'XSS',
+      confidence: 0.6,
+      reason: 'Heuristic fallback matched an XSS signature',
+    };
+  }
+
+  if (payload && typeof payload === 'object' && 'email' in payload) {
+    const email = String((payload as Record<string, unknown>).email ?? '').toLowerCase();
+    if (DISPOSABLE_EMAIL_DOMAINS.some((domain) => email.endsWith(`@${domain}`))) {
+      return {
+        verdict: 'DANGEROUS',
+        threatType: 'BOT_SIGNATURE',
+        confidence: 0.5,
+        reason: 'Heuristic fallback matched a disposable email domain',
+      };
+    }
+  }
+
+  return {
+    verdict: 'SAFE',
+    threatType: 'NONE',
+    confidence: 0,
+    reason: 'Heuristic fallback found no known attack signature',
+  };
+}
+
 const safePayloadCache = new Set<string>();
 
 export class AiSecurityService {
   private genAI: GoogleGenerativeAI;
   private model: GenerativeModel;
 
-  constructor(private logger: Logger) {
-    // If there is no key, we instantiate but methods will early return
+  constructor(
+    private logger: Logger,
+    private eventStore: SecurityEventStore,
+  ) {
     const apiKey = env.GEMINI_API_KEY || 'dummy';
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
@@ -56,29 +124,82 @@ Analyze the input context and return a structured JSON response.`,
     });
   }
 
-  /**
-   * Validate payload synchronously-like (blocking request flow).
-   * Throws ForbiddenError if the payload is determined to be DANGEROUS.
-   */
-  async validatePayloadAsync(
-    endpoint: string,
-    ip: string,
-    payload: unknown,
-  ): Promise<void> {
-    if (!env.GEMINI_API_KEY) {
-      this.logger.debug('AI Security skipped: GEMINI_API_KEY not found');
-      return;
-    }
-
+  async validatePayloadAsync(endpoint: string, ip: string, payload: unknown): Promise<void> {
     const payloadString = JSON.stringify(payload);
-    
-    // Caching - Skip if identical payload is already verified as safe
+
     if (safePayloadCache.has(payloadString)) {
       return;
     }
 
-    try {
-      const prompt = `
+    let analysis: Analysis;
+
+    if (!env.GEMINI_API_KEY) {
+      this.logger.warn(
+        { event: 'ai_security.fallback', ip, endpoint, reason: 'missing_api_key' },
+        'AI Security WAF running on heuristic fallback: GEMINI_API_KEY not configured',
+      );
+      analysis = runHeuristicCheck(payload);
+    } else {
+      const geminiAnalysis = await this.analyzeWithGemini(payloadString, ip, endpoint);
+      if (geminiAnalysis === null) {
+        this.logger.warn(
+          { event: 'ai_security.fallback', ip, endpoint, reason: 'gemini_call_failed' },
+          'AI Security WAF running on heuristic fallback: Gemini call failed',
+        );
+        analysis = runHeuristicCheck(payload);
+      } else {
+        analysis = geminiAnalysis;
+      }
+    }
+
+    const email =
+      payload && typeof payload === 'object' && 'email' in payload
+        ? String((payload as Record<string, unknown>).email ?? '')
+        : undefined;
+
+    if (analysis.verdict === 'DANGEROUS') {
+      this.logger.error(
+        { event: 'ai_security.alert', ip, endpoint, analysis, payload },
+        `🔴 AI SYSTEM DETECTED A MALICIOUS ATTACK! Type: ${analysis.threatType}, Reason: ${analysis.reason}`,
+      );
+      this.eventStore.record({
+        type: 'waf_block',
+        ip,
+        endpoint,
+        email,
+        occurredAt: new Date(),
+        detail: `${analysis.threatType}: ${analysis.reason}`,
+      });
+      throw new ForbiddenError(`Request blocked by AI Security WAF. Reason: ${analysis.reason}`);
+    }
+
+    if (analysis.verdict === 'SUSPICIOUS') {
+      this.logger.warn(
+        { event: 'ai_security.suspicious', ip, endpoint, analysis, payload },
+        `⚠️ AI system detected suspicious activity! Type: ${analysis.threatType}, Reason: ${analysis.reason}`,
+      );
+      this.eventStore.record({
+        type: 'waf_suspicious',
+        ip,
+        endpoint,
+        email,
+        occurredAt: new Date(),
+        detail: `${analysis.threatType}: ${analysis.reason}`,
+      });
+      return;
+    }
+
+    if (safePayloadCache.size < 1000) {
+      safePayloadCache.add(payloadString);
+    }
+  }
+
+  private async analyzeWithGemini(
+    payloadString: string,
+    ip: string,
+    endpoint: string,
+  ): Promise<Analysis | null> {
+    const prompt = `
 Analyze the input JSON data at endpoint: ${endpoint} (IP: ${ip}).
 Identify if there are any security vulnerabilities or bot registration anomalies.
 
@@ -89,56 +210,21 @@ ${payloadString}
 </payload>
       `;
 
-      const result = await this.model.generateContent(prompt);
-      const text = result.response.text().trim();
-      
-      const analysis = JSON.parse(text) as {
-        verdict: 'SAFE' | 'SUSPICIOUS' | 'DANGEROUS';
-        threatType: 'SQL_INJECTION' | 'XSS' | 'PROMPT_INJECTION' | 'BOT_SIGNATURE' | 'NONE';
-        confidence: number;
-        reason: string;
-      };
-
-      if (analysis.verdict === 'DANGEROUS') {
-        this.logger.error(
-          { event: 'ai_security.alert', ip, endpoint, analysis, payload },
-          `🔴 AI SYSTEM DETECTED A MALICIOUS ATTACK! Type: ${analysis.threatType}, Reason: ${analysis.reason}`,
-        );
-        throw new ForbiddenError(`Request blocked by AI Security WAF. Reason: ${analysis.reason}`);
-      } else if (analysis.verdict === 'SUSPICIOUS') {
+    for (let attempt = 1; attempt <= AI_SECURITY_MAX_ATTEMPTS; attempt++) {
+      try {
+        const result = await this.model.generateContent(prompt, {
+          timeout: AI_SECURITY_TIMEOUT_MS,
+        });
+        const text = result.response.text().trim();
+        return JSON.parse(text) as Analysis;
+      } catch (error) {
         this.logger.warn(
-          { event: 'ai_security.suspicious', ip, endpoint, analysis, payload },
-          `⚠️ AI system detected suspicious activity! Type: ${analysis.threatType}, Reason: ${analysis.reason}`,
+          { err: error, attempt, endpoint },
+          `AI Security WAF Gemini call failed (attempt ${attempt}/${AI_SECURITY_MAX_ATTEMPTS})`,
         );
-      } else {
-        // SAFE
-        if (safePayloadCache.size < 1000) {
-          safePayloadCache.add(payloadString);
-        }
       }
-    } catch (error) {
-      if (error instanceof ForbiddenError) {
-        throw error;
-      }
-      this.logger.warn({ err: error }, 'Error when AI validated payload');
     }
-  }
 
-  /**
-   * Audit payload asynchronously in the background.
-   * Does not block the main application execution thread.
-   */
-  async auditPayloadAsync(
-    endpoint: string,
-    ip: string,
-    payload: unknown,
-  ): Promise<void> {
-    // Simply run validation in the background and suppress the ForbiddenError
-    this.validatePayloadAsync(endpoint, ip, payload).catch((err) => {
-      if (!(err instanceof ForbiddenError)) {
-        this.logger.warn({ err }, 'Error when AI audited payload in background');
-      }
-    });
+    return null;
   }
 }
-

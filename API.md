@@ -413,13 +413,19 @@ Order statuses: `pending`, `paid`, `shipped`, `delivered`, `cancelled`
 
 ### GET /api/v1/orders/lookup
 
-Look up orders by customer email. Requires Bearer token. Users can only lookup their own email; admins can lookup any email.
+Look up a single order by customer email **and** order code. Public — no authentication required (guest checkout has no account).
+
+Access control on this route (A01 fix):
+
+- Both `email` and `code` are required. `code` is the first 8 characters of the order id, printed on the customer's receipt. Only the order matching both is returned — knowing an email alone is no longer enough to read someone's order history.
+- Rate-limited separately and much tighter than the app default (`ORDER_LOOKUP_RATE_MAX`/`ORDER_LOOKUP_RATE_WINDOW`, default 5 req/minute), keyed on **IP + email** so rotating IPs does not reset the counter for a given email.
 
 **Query parameters**
 
 | Param | Type | Description | Required |
 |-------|------|-------------|----------|
 | `email` | string | The customer email address to look up | Yes |
+| `code` | string | 8-character hex order code from the receipt (first 8 chars of the order id) | Yes |
 
 **Response `200`**
 
@@ -493,6 +499,48 @@ Submit a new order. The backend automatically re-evaluates all item prices using
 ```
 
 **Response `200`** — updated order object.
+
+---
+
+## Search
+
+### POST /api/v1/search/voice
+
+Voice semantic search. Public — no authentication required, but rate-limited separately (see `SEARCH_VOICE_RATE_MAX`/`SEARCH_VOICE_RATE_WINDOW`, default 10 req/minute/IP).
+
+Audio-native: the recorded voice query is embedded directly with `gemini-embedding-2` and matched against product-text embeddings in the same vector space — no transcription step in the primary match path. Transcript is generated separately, only for display.
+
+**Request** — `multipart/form-data`, one file field containing the audio.
+
+- Max size: 10MB
+- Max duration: 60s
+- Accepted content types: `audio/webm`, `audio/wav`, `audio/wave`, `audio/x-wav`, `audio/mpeg`, `audio/mp3`, `audio/ogg`
+
+**Response `200`**
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "name": "string",
+      "description": "string | null",
+      "priceCents": "integer",
+      "currency": "VND",
+      "image": "string | null",
+      "productTypeId": "uuid",
+      "stockQuantity": "integer",
+      "createdAt": "ISO datetime",
+      "updatedAt": "ISO datetime",
+      "score": "number (0-1, cosine similarity)"
+    }
+  ],
+  "transcript": "string | null",
+  "usedFallback": "boolean"
+}
+```
+
+`usedFallback: true` means audio-native similarity was below `SEARCH_VOICE_SIMILARITY_THRESHOLD`, so results came from a keyword search over the transcript instead — `score` is `0` for those items (keyword search has no comparable similarity score).
 
 ---
 

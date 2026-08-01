@@ -2,6 +2,7 @@ import Fastify, { type FastifyError } from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
 import {
@@ -11,7 +12,7 @@ import {
 } from 'fastify-type-provider-zod';
 import { env } from './config/env.js';
 import { logger } from './lib/logger.js';
-import { isAppError } from './lib/errors.js';
+import { ForbiddenError, isAppError } from './lib/errors.js';
 import { dbPlugin } from './presentation/plugins/db.plugin.js';
 import { authPlugin } from './presentation/plugins/auth.plugin.js';
 import { servicesPlugin } from './presentation/plugins/services.plugin.js';
@@ -21,6 +22,7 @@ import { healthRoutes } from './presentation/routes/health.routes.js';
 import { orderRoutes } from './presentation/routes/order.routes.js';
 import { productRoutes } from './presentation/routes/product.routes.js';
 import { productTypeRoutes } from './presentation/routes/product-type.routes.js';
+import { searchRoutes } from './presentation/routes/search.routes.js';
 import { userRoutes } from './presentation/routes/user.routes.js';
 
 export async function buildApp() {
@@ -46,6 +48,9 @@ export async function buildApp() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
   await app.register(cookie);
+  await app.register(multipart, {
+    limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+  });
   await app.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',
@@ -53,6 +58,19 @@ export async function buildApp() {
       error: 'RATE_LIMIT_EXCEEDED',
       message: `Too many requests, retry in ${ctx.after}.`,
     }),
+    onExceeded: (req) => {
+      req.log.warn(
+        { event: 'rate_limit.hit', ip: req.ip, endpoint: req.url },
+        'rate limit exceeded',
+      );
+      app.securityEvents.record({
+        type: 'rate_limit_hit',
+        ip: req.ip,
+        occurredAt: new Date(),
+        endpoint: req.url,
+        userAgent: req.headers['user-agent'],
+      });
+    },
   });
   await app.register(sensible);
 
@@ -60,12 +78,20 @@ export async function buildApp() {
   await app.register(authPlugin);
   await app.register(servicesPlugin);
 
+  app.addHook('onRequest', async (req) => {
+    if (req.url === '/health' || req.url === '/ready') return;
+    if (app.ipBlockList.isBlocked(req.ip)) {
+      throw new ForbiddenError('Temporarily blocked by security agent');
+    }
+  });
+
   await app.register(healthRoutes);
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(chatRoutes, { prefix: '/api/v1/chat' });
   await app.register(orderRoutes, { prefix: '/api/v1/orders' });
   await app.register(productTypeRoutes, { prefix: '/api/v1/product-types' });
   await app.register(productRoutes, { prefix: '/api/v1/products' });
+  await app.register(searchRoutes, { prefix: '/api/v1/search' });
   await app.register(userRoutes, { prefix: '/api/v1/users' });
 
   app.setErrorHandler((error: FastifyError, req, reply) => {

@@ -21,10 +21,14 @@ import { GetProductByIdUseCase } from '../../application/product/get-product-by-
 import { GetStockUseCase } from '../../application/product/get-stock.use-case.js';
 import { IncreaseStockUseCase } from '../../application/product/increase-stock.use-case.js';
 import { ListProductsUseCase } from '../../application/product/list-products.use-case.js';
+import { SearchProductsByVoiceUseCase } from '../../application/product/search-products-by-voice.use-case.js';
 import { UpdateProductUseCase } from '../../application/product/update-product.use-case.js';
 import { env } from '../../config/env.js';
 import type { TokenSigner } from '../../domain/ports/token-signer.port.js';
 import { BcryptPasswordHasher } from '../../infrastructure/adapters/bcrypt.password-hasher.js';
+import { FfmpegAudioConverterAdapter } from '../../infrastructure/adapters/ffmpeg.audio-converter.js';
+import { GeminiMultimodalEmbeddingAdapter } from '../../infrastructure/adapters/gemini.multimodal-embedding.js';
+import { GeminiTranscriptionAdapter } from '../../infrastructure/adapters/gemini.transcription.js';
 import { JoseTokenSigner } from '../../infrastructure/adapters/jose.token-signer.js';
 import { PostgresOrderRepository } from '../../infrastructure/repositories/order.repository.js';
 import { PostgresProductRepository } from '../../infrastructure/repositories/product.repository.js';
@@ -33,11 +37,20 @@ import { PostgresProductTypeRepository } from '../../infrastructure/repositories
 import { PostgresRefreshTokenRepository } from '../../infrastructure/repositories/refresh-token.repository.js';
 import { PostgresUserRepository } from '../../infrastructure/repositories/user.repository.js';
 import { AiSecurityService } from '../../application/ai/ai-security.service.js';
+import { SecurityAgentService } from '../../application/security/security-agent.service.js';
+import type { IpBlockList } from '../../domain/security/ip-block-list.port.js';
+import type { SecurityEventStore } from '../../domain/security/security-event-store.port.js';
+import { GeminiSecurityDecisionAdapter } from '../../infrastructure/adapters/gemini.security-decision.js';
+import { InMemoryIpBlockList } from '../../infrastructure/security/in-memory-ip-block-list.js';
+import { InMemorySecurityEventStore } from '../../infrastructure/security/in-memory-security-event-store.js';
 import type { AuthUseCases } from '../controllers/auth.controller.js';
 import type { OrderUseCases } from '../controllers/order.controller.js';
 import type { ProductUseCases } from '../controllers/product.controller.js';
 import type { ProductTypeUseCases } from '../controllers/product-type.controller.js';
+import type { SearchUseCases } from '../controllers/search.controller.js';
 import type { UserUseCases } from '../controllers/user.controller.js';
+
+const SECURITY_AGENT_CYCLE_MS = 60_000;
 
 export interface AppUseCases {
   auth: AuthUseCases;
@@ -45,6 +58,7 @@ export interface AppUseCases {
   product: ProductUseCases;
   productType: ProductTypeUseCases;
   user: UserUseCases;
+  search: SearchUseCases;
 }
 
 declare module 'fastify' {
@@ -52,6 +66,9 @@ declare module 'fastify' {
     useCases: AppUseCases;
     tokenSigner: TokenSigner;
     aiSecurity: AiSecurityService;
+    securityEvents: SecurityEventStore;
+    ipBlockList: IpBlockList;
+    securityAgent: SecurityAgentService;
   }
 }
 
@@ -64,7 +81,20 @@ export const servicesPlugin = fp(
     const productTypeRepo = new PostgresProductTypeRepository(app.db);
     const productStockRepo = new PostgresProductStockRepository(app.db);
     const emailSender = new ResendEmailSender(env.RESEND_API_KEY, env.RESEND_FROM);
-    const aiSecurity = new AiSecurityService(app.log);
+    const securityEvents = new InMemorySecurityEventStore();
+    const aiSecurity = new AiSecurityService(app.log, securityEvents);
+    const ipBlockList = new InMemoryIpBlockList();
+    const securityDecision = new GeminiSecurityDecisionAdapter(env.GEMINI_API_KEY || 'dummy', app.log);
+    const securityAgent = new SecurityAgentService(
+      securityEvents,
+      ipBlockList,
+      securityDecision,
+      emailSender,
+      app.log,
+    );
+    const multimodalEmbedding = new GeminiMultimodalEmbeddingAdapter(env.GEMINI_API_KEY || 'dummy');
+    const transcription = new GeminiTranscriptionAdapter(env.GEMINI_API_KEY || 'dummy');
+    const audioConverter = new FfmpegAudioConverterAdapter();
     const passwordHasher = new BcryptPasswordHasher();
     const tokenSigner = new JoseTokenSigner(
       env.AUTH_JWT_SECRET,
@@ -103,8 +133,14 @@ export const servicesPlugin = fp(
       product: {
         list: new ListProductsUseCase(productRepo, productStockRepo),
         getById: new GetProductByIdUseCase(productRepo),
-        create: new CreateProductUseCase(productRepo, productTypeRepo),
-        update: new UpdateProductUseCase(productRepo, productTypeRepo, productStockRepo),
+        create: new CreateProductUseCase(productRepo, productTypeRepo, multimodalEmbedding, app.log),
+        update: new UpdateProductUseCase(
+          productRepo,
+          productTypeRepo,
+          productStockRepo,
+          multimodalEmbedding,
+          app.log,
+        ),
         delete: new DeleteProductUseCase(productRepo),
         getStock: new GetStockUseCase(productRepo, productStockRepo),
         increaseStock: new IncreaseStockUseCase(productRepo, productStockRepo),
@@ -119,11 +155,35 @@ export const servicesPlugin = fp(
         update: new UpdateUserUseCase(userRepo),
         updatePassword: new UpdateUserPasswordUseCase(userRepo, passwordHasher),
       },
+      search: {
+        voiceSearch: new SearchProductsByVoiceUseCase(
+          productRepo,
+          productStockRepo,
+          multimodalEmbedding,
+          transcription,
+          audioConverter,
+          env.SEARCH_VOICE_SIMILARITY_THRESHOLD,
+          env.SEARCH_VOICE_MAX_DURATION_SECONDS,
+        ),
+      },
     };
 
     app.decorate('useCases', useCases);
     app.decorate('tokenSigner', tokenSigner);
     app.decorate('aiSecurity', aiSecurity);
+    app.decorate('securityEvents', securityEvents);
+    app.decorate('ipBlockList', ipBlockList);
+    app.decorate('securityAgent', securityAgent);
+
+    const cycleInterval = setInterval(() => {
+      securityAgent.runCycle().catch((err: unknown) => {
+        app.log.error({ err }, 'Security agent cycle failed');
+      });
+    }, SECURITY_AGENT_CYCLE_MS);
+    cycleInterval.unref();
+    app.addHook('onClose', () => {
+      clearInterval(cycleInterval);
+    });
   },
   { name: 'services', dependencies: ['db'] },
 );

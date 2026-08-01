@@ -9,6 +9,15 @@ export interface OrderConfirmationEmail {
   createdAt: Date;
 }
 
+export interface SecurityAlertEmail {
+  to: string;
+  action: string;
+  severity: string;
+  reason: string;
+  occurredAt: Date;
+}
+
 export interface EmailSender {
   sendOrderConfirmation(data: OrderConfirmationEmail): Promise<void>;
+  sendSecurityAlert(data: SecurityAlertEmail): Promise<void>;
 }

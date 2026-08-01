@@ -70,9 +70,17 @@ export class AuthController {
       return reply.code(201).send(toAuthPayload(result));
     } catch (err) {
       req.log.warn(
-        { event: 'auth.register.failed', email: req.body.email },
+        { event: 'auth.register.failed', email: req.body.email, ip: req.ip },
         'register failed',
       );
+      req.server.securityEvents.record({
+        type: 'register_fail',
+        ip: req.ip,
+        occurredAt: new Date(),
+        endpoint: '/api/v1/auth/register',
+        email: req.body.email,
+        userAgent: req.headers['user-agent'],
+      });
       throw err;
     }
   };
@@ -96,9 +104,17 @@ export class AuthController {
       return reply.send(toAuthPayload(result));
     } catch (err) {
       req.log.warn(
-        { event: 'auth.login.failed', email: req.body.email },
+        { event: 'auth.login.failed', email: req.body.email, ip: req.ip },
         'login failed',
       );
+      req.server.securityEvents.record({
+        type: 'login_fail',
+        ip: req.ip,
+        occurredAt: new Date(),
+        endpoint: '/api/v1/auth/login',
+        email: req.body.email,
+        userAgent: req.headers['user-agent'],
+      });
       throw err;
     }
   };

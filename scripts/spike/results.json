@@ -1,0 +1,285 @@
+{
+  "model": "gemini-embedding-2",
+  "dimension": 3072,
+  "accuracy": 91.66666666666666,
+  "exactAccuracy": 100,
+  "vagueAccuracy": 85.71428571428571,
+  "results": [
+    {
+      "query": "Cho tôi cà phê Ethiopian Yirgacheffe",
+      "kind": "exact_name",
+      "expected": "P7",
+      "top3": [
+        {
+          "productId": "P7",
+          "name": "Cà phê Ethiopian Yirgacheffe",
+          "score": 0.5894095401017934
+        },
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.5656864681584504
+        },
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.5540567946785226
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Tôi muốn mua cà phê Kenya A A Peaberry",
+      "kind": "exact_name",
+      "expected": "P10",
+      "top3": [
+        {
+          "productId": "P10",
+          "name": "Cà phê Kenya AA Peaberry",
+          "score": 0.6602433752120234
+        },
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.5698475603602173
+        },
+        {
+          "productId": "P7",
+          "name": "Cà phê Ethiopian Yirgacheffe",
+          "score": 0.5688010764233766
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Ở đây có cà phê Colombian Geisha không",
+      "kind": "exact_name",
+      "expected": "P8",
+      "top3": [
+        {
+          "productId": "P8",
+          "name": "Cà phê Colombian Geisha",
+          "score": 0.5973019470694969
+        },
+        {
+          "productId": "P1",
+          "name": "Cà phê Phối Trộn Arabica Morning Mist",
+          "score": 0.569451966787266
+        },
+        {
+          "productId": "P7",
+          "name": "Cà phê Ethiopian Yirgacheffe",
+          "score": 0.5690639526409957
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Cho tôi một gói cà phê Costa Rica Tarrazu",
+      "kind": "exact_name",
+      "expected": "P14",
+      "top3": [
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.6106682609314549
+        },
+        {
+          "productId": "P8",
+          "name": "Cà phê Colombian Geisha",
+          "score": 0.5546164939597898
+        },
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.5467843143272442
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Tôi muốn cà phê Robusta rang bơ truyền thống",
+      "kind": "exact_name",
+      "expected": "P6",
+      "top3": [
+        {
+          "productId": "P6",
+          "name": "Cà phê Robusta Rang Bơ",
+          "score": 0.5984857742425717
+        },
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.5875131563943679
+        },
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.5681692061065207
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Cho tôi loại cà phê nào có vị chua nhẹ giống rượu vang và hương hoa",
+      "kind": "vague_description",
+      "expected": "P7",
+      "top3": [
+        {
+          "productId": "P7",
+          "name": "Cà phê Ethiopian Yirgacheffe",
+          "score": 0.6309513013931093
+        },
+        {
+          "productId": "P1",
+          "name": "Cà phê Phối Trộn Arabica Morning Mist",
+          "score": 0.6270448703231299
+        },
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.6128117239041935
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Tôi thích cà phê đậm đà nhiều cafein để pha sữa đá",
+      "kind": "vague_description",
+      "expected": "P4",
+      "top3": [
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.6628438168037596
+        },
+        {
+          "productId": "P6",
+          "name": "Cà phê Robusta Rang Bơ",
+          "score": 0.618581079355493
+        },
+        {
+          "productId": "P1",
+          "name": "Cà phê Phối Trộn Arabica Morning Mist",
+          "score": 0.5969020956090729
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Cà phê nào thơm bơ béo ngậy kiểu truyền thống Việt Nam",
+      "kind": "vague_description",
+      "expected": "P6",
+      "top3": [
+        {
+          "productId": "P6",
+          "name": "Cà phê Robusta Rang Bơ",
+          "score": 0.640943969755578
+        },
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.6067354553227462
+        },
+        {
+          "productId": "P1",
+          "name": "Cà phê Phối Trộn Arabica Morning Mist",
+          "score": 0.5757077005320947
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Loại cà phê nào cao cấp hiếm và đắt tiền nhất ở đây",
+      "kind": "vague_description",
+      "expected": "P8",
+      "top3": [
+        {
+          "productId": "P8",
+          "name": "Cà phê Colombian Geisha",
+          "score": 0.6518884925521012
+        },
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.6243032608309267
+        },
+        {
+          "productId": "P10",
+          "name": "Cà phê Kenya AA Peaberry",
+          "score": 0.6008694643709737
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Tôi muốn cà phê ít chua đậm vị gia vị và da thuộc",
+      "kind": "vague_description",
+      "expected": "P11",
+      "top3": [
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.6278100394237531
+        },
+        {
+          "productId": "P6",
+          "name": "Cà phê Robusta Rang Bơ",
+          "score": 0.6051354656581031
+        },
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.6017118802853214
+        }
+      ],
+      "hit": false
+    },
+    {
+      "query": "Cà phê nào có vị caramel sô cô la và cam quýt nhẹ nhàng",
+      "kind": "vague_description",
+      "expected": "P14",
+      "top3": [
+        {
+          "productId": "P1",
+          "name": "Cà phê Phối Trộn Arabica Morning Mist",
+          "score": 0.6212104562890336
+        },
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.6085480183468677
+        },
+        {
+          "productId": "P6",
+          "name": "Cà phê Robusta Rang Bơ",
+          "score": 0.563299767693806
+        }
+      ],
+      "hit": true
+    },
+    {
+      "query": "Cho tôi loại cà phê cân bằng phù hợp uống vào buổi sáng",
+      "kind": "vague_description",
+      "expected": "P1",
+      "top3": [
+        {
+          "productId": "P1",
+          "name": "Cà phê Phối Trộn Arabica Morning Mist",
+          "score": 0.6492625874792392
+        },
+        {
+          "productId": "P4",
+          "name": "Cà phê Robusta Espresso Đậm Đà",
+          "score": 0.6131714813744193
+        },
+        {
+          "productId": "P14",
+          "name": "Cà phê Costa Rica Tarrazú",
+          "score": 0.6065794056211163
+        }
+      ],
+      "hit": true
+    }
+  ]
+}

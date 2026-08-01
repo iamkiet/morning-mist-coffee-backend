@@ -3,8 +3,10 @@ import { ExternalServiceError } from '../../lib/errors.js';
 import type {
   EmailSender,
   OrderConfirmationEmail,
+  SecurityAlertEmail,
 } from '../../domain/ports/email-sender.port.js';
 import { buildOrderConfirmationEmail } from '../email/templates/order-confirmation.js';
+import { buildSecurityAlertEmail } from '../email/templates/security-alert.js';
 
 export class ResendEmailSender implements EmailSender {
   private readonly client: Resend;
@@ -23,6 +25,20 @@ export class ResendEmailSender implements EmailSender {
       to: data.to,
       subject,
       html,
+    });
+
+    if (error) {
+      throw new ExternalServiceError('Resend', error.message, error);
+    }
+  }
+
+  async sendSecurityAlert(data: SecurityAlertEmail): Promise<void> {
+    const { subject, text } = buildSecurityAlertEmail(data);
+    const { error } = await this.client.emails.send({
+      from: this.from,
+      to: data.to,
+      subject,
+      text,
     });
 
     if (error) {

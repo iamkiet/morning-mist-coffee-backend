@@ -48,6 +48,7 @@ export class OrderController {
     reply: FastifyReply,
   ) => {
     const email = normalizeEmail(req.query.email);
+    const code = req.query.code.toLowerCase();
     const result = await this.uc.list.execute({
       email,
       sortBy: 'createdAt',
@@ -55,7 +56,8 @@ export class OrderController {
       limit: 50,
       offset: 0,
     });
-    return reply.send({ items: result.items.map(toOrderDTO) });
+    const matched = result.items.filter((order) => order.id.slice(0, 8).toLowerCase() === code);
+    return reply.send({ items: matched.map(toOrderDTO) });
   };
 
   create = async (

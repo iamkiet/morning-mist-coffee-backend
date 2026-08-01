@@ -27,6 +27,22 @@ const EnvSchema = z.object({
   RESEND_API_KEY: z.string().min(1),
   RESEND_FROM: z.string().min(1),
   GEMINI_API_KEY: z.string().min(1).optional(),
+
+  SECURITY_AGENT_ENABLED: booleanString,
+  SECURITY_AGENT_ALERT_EMAIL: z.string().email(),
+
+  EMBEDDING_DIMENSION: z.coerce.number().int().positive().max(4000),
+
+  SEARCH_VOICE_SIMILARITY_THRESHOLD: z.coerce.number().min(0).max(1),
+  SEARCH_VOICE_MAX_DURATION_SECONDS: z.coerce.number().int().positive().max(180),
+  SEARCH_VOICE_RATE_MAX: z.coerce.number().int().positive(),
+  SEARCH_VOICE_RATE_WINDOW: z.string().min(1),
+
+  ORDER_LOOKUP_RATE_MAX: z.coerce.number().int().positive(),
+  ORDER_LOOKUP_RATE_WINDOW: z.string().min(1),
+
+  CHAT_RATE_MAX: z.coerce.number().int().positive(),
+  CHAT_RATE_WINDOW: z.string().min(1),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

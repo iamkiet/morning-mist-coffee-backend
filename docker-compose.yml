@@ -1,6 +1,6 @@
 services:
   pg-db:
-    image: postgres:18-alpine
+    image: pgvector/pgvector:pg18
     container_name: morning-mist-coffee-backend-pg-db
     restart: unless-stopped
     ports:

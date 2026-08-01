@@ -219,6 +219,42 @@
       ]
     },
     {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Voice Search",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "audio",
+                  "type": "file",
+                  "src": [],
+                  "description": "Audio file, max 10MB / 60s. audio/webm, audio/wav, audio/wave, audio/x-wav, audio/mpeg, audio/mp3, or audio/ogg."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/search/voice",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "search",
+                "voice"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Orders",
       "item": [
         {
@@ -265,7 +301,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/orders/lookup?email=customer@example.com",
+              "raw": "{{baseUrl}}/api/v1/orders/lookup?email=customer@example.com&code=a1b2c3d4",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -279,7 +315,12 @@
                 {
                   "key": "email",
                   "value": "customer@example.com",
-                  "description": "Owner's email (must match current profile or admin status)"
+                  "description": "Customer email used at checkout"
+                },
+                {
+                  "key": "code",
+                  "value": "a1b2c3d4",
+                  "description": "8-char hex order code from the receipt (first 8 chars of the order id) — required alongside email"
                 }
               ]
             }

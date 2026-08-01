@@ -34,7 +34,7 @@ ENV TZ=UTC
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-RUN apk add --no-cache tini
+RUN apk add --no-cache tini ffmpeg
 
 COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /app/dist ./dist
