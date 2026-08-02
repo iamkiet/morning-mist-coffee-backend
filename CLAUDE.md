@@ -34,7 +34,7 @@ infrastructure/  Drizzle repos, adapters, db client — implements domain ports
 presentation/    Fastify routes/controllers/schemas/serializers/plugins — the only Fastify-aware code
 ```
 
-**Domains:** `user`, `auth` (refresh token), `product`, `product-type`, `order`
+**Domains:** `user`, `auth` (refresh token), `product`, `product-type`, `order`, `chat`
 
 **Fastify plugin wiring** (src/presentation/plugins/):
 
@@ -66,6 +66,14 @@ Skipping steps (e.g. `pending → shipped`) throws `ConflictError`.
 **Product stock** — stored in a separate `product_stock` table (one row per product, upsert on write). `stockQuantity` is joined into `Product` at read time. `UpdateProductInput.stockQuantity` calls `ProductStockRepo.set()` which does an upsert to the exact value — not a delta. `UpdateProductUseCase` takes three constructor args: `(ProductRepo, ProductTypeRepo, ProductStockRepo)`.
 
 **Password update** — `PATCH /api/v1/users/:id/password` (admin-only). Use case hashes the new password via `PasswordHasher` before storing.
+
+**Product slug** — `products.slug` is unique and NOT NULL. `slugify()` in [src/domain/product/slugify.ts](src/domain/product/slugify.ts) is pure (NFD fold, `đ`→`d`, non-alphanumeric→`-`); uniqueness is resolved in `CreateProductUseCase`, which probes `findBySlug` and appends `-2`, `-3`, …. Renaming a product does **not** regenerate its slug — existing URLs must keep working. Changing one is an explicit `PATCH { slug }`, validated with `isSlug()` (400) and checked for collisions (409). `GET /api/v1/products/slug/:slug` is public and joins `product_stock`.
+
+**Product description is three columns** — `origin` (text), `tasting_notes` (`text[]`), `description` (short blurb). They were split out of one newline-delimited string; do not put them back into one field.
+
+**Chat is RAG, not context dumping** — `SendChatMessageUseCase` embeds the customer's latest message with `MultimodalEmbeddingPort.embedText`, retrieves the top 8 products via `findSimilarByVector` (the same pgvector index voice search uses), and injects only those into the system prompt. Fallback chain: vector → `ilike` keyword → most recent products, so the assistant never answers with an empty catalogue. Gemini is reached through `ChatPort` / `GeminiChatAdapter` — never call the SDK from a controller.
+
+**List `q` search** — `products` matches `name`, `origin`, `description` and `tasting_notes`; `users` matches `first_name`, `last_name`, `email`, `role`; `orders` matches `email` (partial), `id` (prefix, for the 8-char receipt code) and `status`. All use `ilike`, so they are case-insensitive, and every `q` is applied to both `list()` and `count()` so pagination totals stay consistent.
 
 ## CORS
 

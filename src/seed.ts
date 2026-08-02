@@ -5,9 +5,25 @@ import {
   productTypes,
   products,
 } from './infrastructure/db/schema.js';
+import { slugify } from './domain/product/slugify.js';
 import { logger } from './lib/logger.js';
 
 const { client, db } = buildDb(env.DATABASE_URL);
+
+function splitDescription(raw: string): {
+  origin: string | null;
+  tastingNotes: string[];
+  description: string | null;
+} {
+  const lines = raw.split('\n').filter((l) => l.trim().length > 0);
+  if (lines.length === 0) return { origin: null, tastingNotes: [], description: null };
+  if (lines.length === 1) return { origin: null, tastingNotes: [], description: lines[0]! };
+  return {
+    origin: lines[0]!,
+    tastingNotes: lines.slice(1, -1),
+    description: lines.at(-1)!,
+  };
+}
 
 const types = [{ name: 'Arabica' }, { name: 'Robusta' }];
 
@@ -233,8 +249,9 @@ async function seed() {
     const [inserted] = await db
       .insert(products)
       .values({
+        slug: slugify(p.name),
         name: p.name,
-        description: p.description,
+        ...splitDescription(p.description),
         priceCents: p.priceCents,
         currency: 'VND',
         image: p.image,

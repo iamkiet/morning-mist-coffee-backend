@@ -60,6 +60,7 @@ export const OrderIdParam = z.object({
 
 export const ListOrdersQuery = z.object({
   email: z.email().optional(),
+  q: z.string().min(1).max(200).optional(),
   status: OrderStatus.optional(),
   currency: CurrencySchema.optional(),
   totalMin: z.coerce.number().int().min(0).optional(),

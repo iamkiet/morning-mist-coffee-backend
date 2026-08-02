@@ -79,7 +79,10 @@ export const products = pgTable(
   'products',
   {
     id: uuid().primaryKey().defaultRandom(),
+    slug: text().notNull(),
     name: text().notNull(),
+    origin: text(),
+    tastingNotes: text().array().notNull().default([]),
     description: text(),
     priceCents: integer().notNull(),
     currency: currency().notNull().default('VND'),
@@ -100,6 +103,7 @@ export const products = pgTable(
       t.createdAt.desc(),
     ),
     index('products_created_at_idx').on(t.createdAt.desc()),
+    uniqueIndex('products_slug_idx').on(t.slug),
     check('products_price_cents_nonneg', sql`${t.priceCents} >= 0`),
     index('products_embedding_hnsw_idx').using(
       'hnsw',

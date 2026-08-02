@@ -10,7 +10,10 @@ export const CurrencySchema = z.enum(CURRENCIES);
 
 export const ProductSchema = z.object({
   id: z.uuid(),
+  slug: z.string(),
   name: z.string(),
+  origin: z.string().nullable(),
+  tastingNotes: z.array(z.string()),
   description: z.string().nullable(),
   priceCents: z.number().int().min(0),
   currency: CurrencySchema,
@@ -23,6 +26,8 @@ export const ProductSchema = z.object({
 
 export const CreateProductBody = z.object({
   name: z.string().min(1).max(200),
+  origin: z.string().max(200).nullable().optional(),
+  tastingNotes: z.array(z.string().min(1).max(100)).max(20).optional(),
   description: z.string().max(5000).nullable().optional(),
   priceCents: z.number().int().min(0),
   currency: CurrencySchema.optional(),
@@ -32,7 +37,10 @@ export const CreateProductBody = z.object({
 
 export const UpdateProductBody = z
   .object({
+    slug: z.string().min(1).max(220).optional(),
     name: z.string().min(1).max(200).optional(),
+    origin: z.string().max(200).nullable().optional(),
+    tastingNotes: z.array(z.string().min(1).max(100)).max(20).optional(),
     description: z.string().max(5000).nullable().optional(),
     priceCents: z.number().int().min(0).optional(),
     currency: CurrencySchema.optional(),
@@ -45,6 +53,8 @@ export const UpdateProductBody = z
   });
 
 export const ProductIdParam = z.object({ id: z.uuid() });
+
+export const ProductSlugParam = z.object({ slug: z.string().min(1).max(220) });
 
 export const ListProductsQuery = z.object({
   productTypeId: z.uuid().optional(),

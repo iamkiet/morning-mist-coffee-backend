@@ -8,7 +8,10 @@ import type { ProductDTO } from '../schemas/product.schema.js';
 export function toProductDTO(p: Product): ProductDTO {
   return {
     id: p.id,
+    slug: p.slug,
     name: p.name,
+    origin: p.origin,
+    tastingNotes: p.tastingNotes,
     description: p.description,
     priceCents: p.priceCents,
     currency: p.currency,

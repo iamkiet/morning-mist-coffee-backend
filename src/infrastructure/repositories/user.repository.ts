@@ -35,6 +35,7 @@ function buildConditions(criteria: UserFilterCriteria) {
         ilike(users.firstName, pattern),
         ilike(users.lastName, pattern),
         ilike(users.email, pattern),
+        sql`${users.role}::text ilike ${pattern}`,
       ),
     );
   }

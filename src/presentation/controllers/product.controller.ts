@@ -4,6 +4,7 @@ import type { CreateProductUseCase } from '../../application/product/create-prod
 import type { DecreaseStockUseCase } from '../../application/product/decrease-stock.use-case.js';
 import type { DeleteProductUseCase } from '../../application/product/delete-product.use-case.js';
 import type { GetProductByIdUseCase } from '../../application/product/get-product-by-id.use-case.js';
+import type { GetProductBySlugUseCase } from '../../application/product/get-product-by-slug.use-case.js';
 import type { GetStockUseCase } from '../../application/product/get-stock.use-case.js';
 import type { IncreaseStockUseCase } from '../../application/product/increase-stock.use-case.js';
 import type { ListProductsUseCase } from '../../application/product/list-products.use-case.js';
@@ -16,6 +17,7 @@ import type {
   CreateProductBody,
   ListProductsQuery,
   ProductIdParam,
+  ProductSlugParam,
   StockChangeBody,
   UpdateProductBody,
 } from '../schemas/product.schema.js';
@@ -23,6 +25,7 @@ import type {
 export interface ProductUseCases {
   list: ListProductsUseCase;
   getById: GetProductByIdUseCase;
+  getBySlug: GetProductBySlugUseCase;
   create: CreateProductUseCase;
   update: UpdateProductUseCase;
   delete: DeleteProductUseCase;
@@ -47,6 +50,14 @@ export class ProductController {
     reply: FastifyReply,
   ) => {
     const product = await this.uc.getById.execute(req.params.id);
+    return reply.send(toProductDTO(product));
+  };
+
+  getBySlug = async (
+    req: FastifyRequest<{ Params: z.infer<typeof ProductSlugParam> }>,
+    reply: FastifyReply,
+  ) => {
+    const product = await this.uc.getBySlug.execute(req.params.slug);
     return reply.send(toProductDTO(product));
   };
 

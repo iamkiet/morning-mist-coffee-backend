@@ -13,7 +13,7 @@ const chatRateLimit = {
 
 export async function chatRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
-  const controller = new ChatController(app.useCases.product);
+  const controller = new ChatController(app.useCases.chat);
 
   fastify.post('/', {
     config: chatRateLimit,

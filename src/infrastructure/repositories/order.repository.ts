@@ -1,4 +1,16 @@
-import { and, asc, desc, eq, gte, inArray, lte, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import type {
   CreateOrderInput,
   ListOrdersFilter,
@@ -27,6 +39,15 @@ const SORT_COLUMNS = {
 function buildFilters(filter: OrderFilterCriteria): SQL[] {
   const filters: SQL[] = [];
   if (filter.email) filters.push(eq(orders.email, filter.email));
+  if (filter.q) {
+    const pattern = `%${filter.q}%`;
+    const match = or(
+      ilike(orders.email, pattern),
+      sql`${orders.id}::text ilike ${`${filter.q}%`}`,
+      sql`${orders.status}::text ilike ${pattern}`,
+    );
+    if (match) filters.push(match);
+  }
   if (filter.status) filters.push(eq(orders.status, filter.status));
   if (filter.currency) filters.push(eq(orders.currency, filter.currency));
   if (filter.totalMin !== undefined)

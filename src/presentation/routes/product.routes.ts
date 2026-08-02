@@ -6,6 +6,7 @@ import {
   ListProductsQuery,
   ProductIdParam,
   ProductListResponse,
+  ProductSlugParam,
   ProductSchema,
   ProductStockSchema,
   StockChangeBody,
@@ -23,6 +24,15 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
       response: { 200: ProductListResponse },
     },
     handler: controller.list,
+  });
+
+  fastify.get('/slug/:slug', {
+    schema: {
+      tags: ['products'],
+      params: ProductSlugParam,
+      response: { 200: ProductSchema },
+    },
+    handler: controller.getBySlug,
   });
 
   fastify.get('/:id', {

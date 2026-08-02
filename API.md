@@ -221,7 +221,7 @@ All endpoints require Bearer token.
 
 ## Products
 
-`GET /api/v1/products` and `GET /api/v1/products/:id` are public — no authentication required. All other product endpoints require Bearer token.
+`GET /api/v1/products`, `GET /api/v1/products/:id` and `GET /api/v1/products/slug/:slug` are public — no authentication required. All other product endpoints require Bearer token.
 
 ### GET /api/v1/products
 
@@ -229,7 +229,7 @@ All endpoints require Bearer token.
 
 | Param | Type | Description | Default |
 |-------|------|-------------|---------|
-| `q` | string | Keyword search (1–200 chars) | — |
+| `q` | string | Keyword search over `name`, `origin`, `description`, `tastingNotes` (1–200 chars, case-insensitive) | — |
 | `productTypeId` | uuid | Filter by product type | — |
 | `currency` | `VND` | Filter by currency | — |
 | `priceMin` | integer | Min price in cents | — |
@@ -246,12 +246,16 @@ All endpoints require Bearer token.
   "items": [
     {
       "id": "uuid",
+      "slug": "string",
       "name": "string",
+      "origin": "string | null",
+      "tastingNotes": ["string"],
       "description": "string | null",
       "priceCents": "integer",
       "currency": "VND",
       "image": "string | null",
       "productTypeId": "uuid",
+      "stockQuantity": "integer",
       "createdAt": "ISO datetime",
       "updatedAt": "ISO datetime"
     }
@@ -270,6 +274,17 @@ All endpoints require Bearer token.
 
 ---
 
+### GET /api/v1/products/slug/:slug
+
+Resolves the public URL slug used by the storefront product page.
+
+**Response `200`** — single product object (same shape as items above), with
+`stockQuantity` joined from `product_stock`.
+
+**Response `404`** — no product with that slug.
+
+---
+
 ### POST /api/v1/products
 
 **Body**
@@ -277,6 +292,8 @@ All endpoints require Bearer token.
 ```json
 {
   "name": "string (1–200)",
+  "origin": "string (max 200) | null",
+  "tastingNotes": ["string (max 100)"],
   "description": "string (max 5000) | null",
   "priceCents": "integer (≥ 0)",
   "currency": "VND",
@@ -284,6 +301,9 @@ All endpoints require Bearer token.
   "productTypeId": "uuid"
 }
 ```
+
+`slug` is derived from `name` automatically and deduplicated with a `-2`, `-3`, … suffix.
+It is not accepted in the create body.
 
 **Response `201`** — created product object.
 
@@ -298,15 +318,24 @@ All fields optional; at least one required.
 ```json
 {
   "name": "string (1–200)",
+  "origin": "string (max 200) | null",
+  "tastingNotes": ["string (max 100)"],
   "description": "string (max 5000) | null",
   "priceCents": "integer (≥ 0)",
   "currency": "VND",
   "image": "url (max 2048) | null",
-  "productTypeId": "uuid"
+  "productTypeId": "uuid",
+  "stockQuantity": "integer (≥ 0)",
+  "slug": "string (1–220)"
 }
 ```
 
+Renaming a product does **not** change its slug — existing links stay valid. Pass `slug`
+explicitly to change it.
+
 **Response `200`** — updated product object.
+**Response `400`** — `slug` is not slug-shaped (lowercase alphanumeric words joined by single hyphens).
+**Response `409`** — `slug` already belongs to another product.
 
 ---
 
@@ -367,7 +396,8 @@ All fields optional; at least one required.
 
 | Param | Type | Description | Default |
 |-------|------|-------------|---------|
-| `email` | string | Filter by customer email | — |
+| `q` | string | Keyword search over customer email (partial) and order-id prefix, e.g. the 8-char receipt code (1–200 chars, case-insensitive) | — |
+| `email` | string | Filter by customer email (exact match) | — |
 | `status` | string | Filter by status (see below) | — |
 | `currency` | `VND` | Filter by currency | — |
 | `totalMin` | integer | Min total in cents | — |

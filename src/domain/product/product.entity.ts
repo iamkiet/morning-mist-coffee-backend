@@ -3,7 +3,10 @@ import type { SortDirection } from '../shared/pagination.js';
 
 export interface Product {
   id: string;
+  slug: string;
   name: string;
+  origin: string | null;
+  tastingNotes: string[];
   description: string | null;
   priceCents: number;
   currency: Currency;
@@ -16,6 +19,8 @@ export interface Product {
 
 export interface CreateProductInput {
   name: string;
+  origin?: string | null;
+  tastingNotes?: string[];
   description?: string | null;
   priceCents: number;
   currency?: Currency;
@@ -23,8 +28,13 @@ export interface CreateProductInput {
   productTypeId: string;
 }
 
+export type CreateProductRecord = CreateProductInput & { slug: string };
+
 export interface UpdateProductInput {
+  slug?: string;
   name?: string;
+  origin?: string | null;
+  tastingNotes?: string[];
   description?: string | null;
   priceCents?: number;
   currency?: Currency;

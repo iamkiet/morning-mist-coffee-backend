@@ -10,10 +10,15 @@ export async function syncProductEmbedding(
   products: ProductRepo,
   embedding: MultimodalEmbeddingPort,
   logger: EmbeddingSyncLogger,
-  product: Pick<Product, 'id' | 'name' | 'description'>,
+  product: Pick<Product, 'id' | 'name' | 'origin' | 'tastingNotes' | 'description'>,
 ): Promise<void> {
   try {
-    const doc = `title: ${product.name} | text: ${product.description ?? ''}`;
+    const doc = [
+      `title: ${product.name}`,
+      `origin: ${product.origin ?? ''}`,
+      `notes: ${product.tastingNotes.join(', ')}`,
+      `text: ${product.description ?? ''}`,
+    ].join(' | ');
     const vector = await embedding.embedText(doc);
     await products.updateEmbedding(product.id, vector);
   } catch (err) {

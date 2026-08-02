@@ -8,11 +8,12 @@ import {
   ilike,
   isNotNull,
   lte,
+  or,
   sql,
   type SQL,
 } from 'drizzle-orm';
 import type {
-  CreateProductInput,
+  CreateProductRecord,
   ListProductsFilter,
   Product,
   ProductSortField,
@@ -42,14 +43,26 @@ function buildFilters(filter: ProductFilterCriteria): SQL[] {
     filters.push(gte(products.priceCents, filter.priceMin));
   if (filter.priceMax !== undefined)
     filters.push(lte(products.priceCents, filter.priceMax));
-  if (filter.q) filters.push(ilike(products.name, `%${filter.q}%`));
+  if (filter.q) {
+    const pattern = `%${filter.q}%`;
+    const match = or(
+      ilike(products.name, pattern),
+      ilike(products.origin, pattern),
+      ilike(products.description, pattern),
+      sql`array_to_string(${products.tastingNotes}, ' ') ilike ${pattern}`,
+    );
+    if (match) filters.push(match);
+  }
   return filters;
 }
 
 function rowToProduct(row: ProductRow): Product {
   return {
     id: row.id,
+    slug: row.slug,
     name: row.name,
+    origin: row.origin,
+    tastingNotes: row.tastingNotes,
     description: row.description,
     priceCents: row.priceCents,
     currency: row.currency,
@@ -98,11 +111,25 @@ export class PostgresProductRepository implements ProductRepo {
     return row ? rowToProduct(row) : null;
   }
 
-  async create(input: CreateProductInput): Promise<Product> {
+  async findBySlug(slug: string): Promise<Product | null> {
+    const [row] = await this.db
+      .select()
+      .from(products)
+      .where(eq(products.slug, slug))
+      .limit(1);
+    return row ? rowToProduct(row) : null;
+  }
+
+  async create(input: CreateProductRecord): Promise<Product> {
     const [row] = await this.db
       .insert(products)
       .values({
+        slug: input.slug,
         name: input.name,
+        origin: input.origin ?? null,
+        ...(input.tastingNotes !== undefined
+          ? { tastingNotes: input.tastingNotes }
+          : {}),
         description: input.description ?? null,
         priceCents: input.priceCents,
         ...(input.currency !== undefined ? { currency: input.currency } : {}),
@@ -116,14 +143,20 @@ export class PostgresProductRepository implements ProductRepo {
 
   async update(id: string, input: UpdateProductInput): Promise<Product | null> {
     const patch: Partial<{
+      slug: string;
       name: string;
+      origin: string | null;
+      tastingNotes: string[];
       description: string | null;
       priceCents: number;
       currency: Currency;
       image: string | null;
       productTypeId: string;
     }> = {};
+    if (input.slug !== undefined) patch.slug = input.slug;
     if (input.name !== undefined) patch.name = input.name;
+    if (input.origin !== undefined) patch.origin = input.origin;
+    if (input.tastingNotes !== undefined) patch.tastingNotes = input.tastingNotes;
     if (input.description !== undefined) patch.description = input.description;
     if (input.priceCents !== undefined) patch.priceCents = input.priceCents;
     if (input.currency !== undefined) patch.currency = input.currency;

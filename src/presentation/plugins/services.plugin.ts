@@ -18,6 +18,8 @@ import { CreateProductUseCase } from '../../application/product/create-product.u
 import { DecreaseStockUseCase } from '../../application/product/decrease-stock.use-case.js';
 import { DeleteProductUseCase } from '../../application/product/delete-product.use-case.js';
 import { GetProductByIdUseCase } from '../../application/product/get-product-by-id.use-case.js';
+import { GetProductBySlugUseCase } from '../../application/product/get-product-by-slug.use-case.js';
+import { SendChatMessageUseCase } from '../../application/chat/send-chat-message.use-case.js';
 import { GetStockUseCase } from '../../application/product/get-stock.use-case.js';
 import { IncreaseStockUseCase } from '../../application/product/increase-stock.use-case.js';
 import { ListProductsUseCase } from '../../application/product/list-products.use-case.js';
@@ -31,6 +33,7 @@ import { GeminiMultimodalEmbeddingAdapter } from '../../infrastructure/adapters/
 import { GeminiTranscriptionAdapter } from '../../infrastructure/adapters/gemini.transcription.js';
 import { JoseTokenSigner } from '../../infrastructure/adapters/jose.token-signer.js';
 import { PostgresOrderRepository } from '../../infrastructure/repositories/order.repository.js';
+import { GeminiChatAdapter } from '../../infrastructure/adapters/gemini.chat.js';
 import { PostgresProductRepository } from '../../infrastructure/repositories/product.repository.js';
 import { PostgresProductStockRepository } from '../../infrastructure/repositories/product-stock.repository.js';
 import { PostgresProductTypeRepository } from '../../infrastructure/repositories/product-type.repository.js';
@@ -46,6 +49,7 @@ import { InMemorySecurityEventStore } from '../../infrastructure/security/in-mem
 import type { AuthUseCases } from '../controllers/auth.controller.js';
 import type { OrderUseCases } from '../controllers/order.controller.js';
 import type { ProductUseCases } from '../controllers/product.controller.js';
+import type { ChatUseCases } from '../controllers/chat.controller.js';
 import type { ProductTypeUseCases } from '../controllers/product-type.controller.js';
 import type { SearchUseCases } from '../controllers/search.controller.js';
 import type { UserUseCases } from '../controllers/user.controller.js';
@@ -54,6 +58,7 @@ const SECURITY_AGENT_CYCLE_MS = 60_000;
 
 export interface AppUseCases {
   auth: AuthUseCases;
+  chat: ChatUseCases;
   order: OrderUseCases;
   product: ProductUseCases;
   productType: ProductTypeUseCases;
@@ -94,6 +99,7 @@ export const servicesPlugin = fp(
     );
     const multimodalEmbedding = new GeminiMultimodalEmbeddingAdapter(env.GEMINI_API_KEY || 'dummy');
     const transcription = new GeminiTranscriptionAdapter(env.GEMINI_API_KEY || 'dummy');
+    const chatAdapter = new GeminiChatAdapter(env.GEMINI_API_KEY || 'dummy');
     const audioConverter = new FfmpegAudioConverterAdapter();
     const passwordHasher = new BcryptPasswordHasher();
     const tokenSigner = new JoseTokenSigner(
@@ -130,9 +136,18 @@ export const servicesPlugin = fp(
         create: new CreateOrderUseCase(orderRepo, productRepo, productStockRepo, emailSender, app.log),
         updateStatus: new UpdateOrderStatusUseCase(orderRepo),
       },
+      chat: {
+        send: new SendChatMessageUseCase(
+          productRepo,
+          multimodalEmbedding,
+          chatAdapter,
+          app.log,
+        ),
+      },
       product: {
         list: new ListProductsUseCase(productRepo, productStockRepo),
         getById: new GetProductByIdUseCase(productRepo),
+        getBySlug: new GetProductBySlugUseCase(productRepo, productStockRepo),
         create: new CreateProductUseCase(productRepo, productTypeRepo, multimodalEmbedding, app.log),
         update: new UpdateProductUseCase(
           productRepo,

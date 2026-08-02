@@ -53,6 +53,7 @@ export type OrderSortField = 'createdAt' | 'totalCents';
 
 export interface ListOrdersFilter {
   email?: string;
+  q?: string;
   status?: OrderStatus;
   currency?: Currency;
   totalMin?: number;
