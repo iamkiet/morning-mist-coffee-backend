@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { ProductTypeController } from '../controllers/product-type.controller.js';
+import { ProductTypeController } from '../controllers/product-type.controller.ts';
 import {
   CreateProductTypeBody,
   ProductTypeListResponse,
   ProductTypeSchema,
-} from '../schemas/product-type.schema.js';
+} from '../schemas/product-type.schema.ts';
 
 export async function productTypeRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();

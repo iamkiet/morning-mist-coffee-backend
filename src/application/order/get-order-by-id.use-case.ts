@@ -1,6 +1,6 @@
-import { NotFoundError } from '../../lib/errors.js';
-import type { Order } from '../../domain/order/order.entity.js';
-import type { OrderRepo } from '../../domain/order/order.repo.js';
+import { NotFoundError } from '../../lib/errors.ts';
+import type { Order } from '../../domain/order/order.entity.ts';
+import type { OrderRepo } from '../../domain/order/order.repo.ts';
 
 export class GetOrderByIdUseCase {
   constructor(private readonly repo: OrderRepo) {}

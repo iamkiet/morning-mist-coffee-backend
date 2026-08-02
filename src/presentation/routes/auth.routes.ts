@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { env } from '../../config/env.js';
-import { AuthController } from '../controllers/auth.controller.js';
-import { checkRegistrationKey } from '../middlewares/registration-key.js';
-import { aiSecurityGuard } from '../middlewares/ai-security.middleware.js';
+import { env } from '../../config/env.ts';
+import { AuthController } from '../controllers/auth.controller.ts';
+import { checkRegistrationKey } from '../middlewares/registration-key.ts';
+import { aiSecurityGuard } from '../middlewares/ai-security.middleware.ts';
 import {
   AuthResponse,
   LoginBody,
@@ -11,7 +11,7 @@ import {
   RefreshResponse,
   RegisterBody,
   UserSchema,
-} from '../schemas/auth.schema.js';
+} from '../schemas/auth.schema.ts';
 
 const authRateLimit = {
   rateLimit: {

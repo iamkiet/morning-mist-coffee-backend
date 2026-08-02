@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import type { FastifyRequest } from 'fastify';
-import { env } from '../../config/env.js';
-import { ForbiddenError } from '../../lib/errors.js';
+import { env } from '../../config/env.ts';
+import { ForbiddenError } from '../../lib/errors.ts';
 
 const HEADER = 'x-user-registration-key';
 

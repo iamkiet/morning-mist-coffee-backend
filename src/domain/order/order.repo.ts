@@ -3,7 +3,7 @@ import type {
   ListOrdersFilter,
   Order,
   OrderStatus,
-} from './order.entity.js';
+} from './order.entity.ts';
 
 export type OrderFilterCriteria = Omit<
   ListOrdersFilter,

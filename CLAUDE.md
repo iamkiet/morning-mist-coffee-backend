@@ -46,7 +46,7 @@ presentation/    Fastify routes/controllers/schemas/serializers/plugins — the 
 
 ## Conventions
 
-- **ESM**: relative imports end in `.js` (NodeNext), even though source is `.ts`.
+- **ESM**: relative imports end in `.ts` (NodeNext + `rewriteRelativeImportExtensions`) — `tsc` rewrites them to `.js` in `dist/` at build time.
 - **Strict TS**: `noUncheckedIndexedAccess` is on — array/index access returns `T | undefined`; guard before use.
 - **Errors**: throw `AppError` subclasses from [src/lib/errors.ts](src/lib/errors.ts) (`NotFoundError`, `ConflictError`, `ValidationError`, `ForbiddenError`, `UnauthorizedError`, `ExternalServiceError`). Never plain `Error` for client-facing errors.
 - **Env**: import the validated `env` from [src/config/env.ts](src/config/env.ts). Never read `process.env` directly. No defaults, no `?? fallback`, no `if (NODE_ENV === 'production')` — use explicit toggle env vars.
@@ -66,6 +66,8 @@ Skipping steps (e.g. `pending → shipped`) throws `ConflictError`.
 **Product stock** — stored in a separate `product_stock` table (one row per product, upsert on write). `stockQuantity` is joined into `Product` at read time. `UpdateProductInput.stockQuantity` calls `ProductStockRepo.set()` which does an upsert to the exact value — not a delta. `UpdateProductUseCase` takes three constructor args: `(ProductRepo, ProductTypeRepo, ProductStockRepo)`.
 
 **Password update** — `PATCH /api/v1/users/:id/password` (admin-only). Use case hashes the new password via `PasswordHasher` before storing.
+
+**Order shipping fields** — `shippingFirstName`/`shippingLastName`/`shippingAddress`/`shippingCity`/`shippingPostalCode` are **required** in `CreateOrderBody` (every order placed through checkout has them) but **nullable** in `Order`/`orders` — orders created before these columns existed have `null`. Never tighten these to NOT NULL in a migration without backfilling first.
 
 **Product slug** — `products.slug` is unique and NOT NULL. `slugify()` in [src/domain/product/slugify.ts](src/domain/product/slugify.ts) is pure (NFD fold, `đ`→`d`, non-alphanumeric→`-`); uniqueness is resolved in `CreateProductUseCase`, which probes `findBySlug` and appends `-2`, `-3`, …. Renaming a product does **not** regenerate its slug — existing URLs must keep working. Changing one is an explicit `PATCH { slug }`, validated with `isSlug()` (400) and checked for collisions (409). `GET /api/v1/products/slug/:slug` is public and joins `product_stock`.
 

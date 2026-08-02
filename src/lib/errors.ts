@@ -57,6 +57,12 @@ export class ExternalServiceError extends AppError {
   }
 }
 
+export class AiNotConfiguredError extends AppError {
+  constructor(message = 'Gemini API is not configured') {
+    super(message, 503, 'AI_NOT_CONFIGURED');
+  }
+}
+
 export function isAppError(err: unknown): err is AppError {
   return err instanceof AppError;
 }

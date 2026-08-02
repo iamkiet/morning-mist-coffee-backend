@@ -1,35 +1,35 @@
-import { GoogleGenerativeAI, type GenerativeModel } from '@google/generative-ai';
-import type { TranscriptionPort } from '../../domain/ports/transcription.port.js';
-import { ExternalServiceError } from '../../lib/errors.js';
+import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
+import { ExternalServiceError } from '../../lib/errors.ts';
+import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 
 const TIMEOUT_MS = 15_000;
 
-export class GeminiTranscriptionAdapter implements TranscriptionPort {
-  private model: GenerativeModel;
+const SYSTEM_INSTRUCTION =
+  'Transcribe the given Vietnamese audio to plain text exactly as spoken. Reply with the transcript only, no extra commentary, no quotes.';
 
-  constructor(apiKey: string) {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    this.model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      systemInstruction:
-        'Transcribe the given Vietnamese audio to plain text exactly as spoken. Reply with the transcript only, no extra commentary, no quotes.',
-    });
-  }
+export class GeminiTranscriptionAdapter implements TranscriptionPort {
+  constructor(private readonly gemini: GeminiClient) {}
 
   async transcribe(audioBytes: Buffer, mimeType: string): Promise<string> {
     try {
-      const result = await this.model.generateContent(
-        {
-          contents: [
-            {
-              role: 'user',
-              parts: [{ inlineData: { mimeType, data: audioBytes.toString('base64') } }],
-            },
-          ],
+      const response = await this.gemini.models.generateContent({
+        model: GEMINI_FLASH_MODEL,
+        contents: [
+          {
+            role: 'user',
+            parts: [{ inlineData: { mimeType, data: audioBytes.toString('base64') } }],
+          },
+        ],
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          httpOptions: { timeout: TIMEOUT_MS },
         },
-        { timeout: TIMEOUT_MS },
-      );
-      return result.response.text().trim();
+      });
+      const text = response.text;
+      if (text === undefined) {
+        throw new ExternalServiceError('Gemini', 'Transcription returned no text');
+      }
+      return text.trim();
     } catch (error) {
       throw new ExternalServiceError('Gemini', 'Failed to transcribe audio', error);
     }

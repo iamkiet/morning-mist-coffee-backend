@@ -2,10 +2,10 @@ import { eq, or, lt, isNotNull } from 'drizzle-orm';
 import type {
   CreateRefreshTokenInput,
   RefreshToken,
-} from '../../domain/auth/refresh-token.entity.js';
-import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.js';
-import type { DB } from '../db/client.js';
-import { refreshTokens, type RefreshTokenRow } from '../db/schema.js';
+} from '../../domain/auth/refresh-token.entity.ts';
+import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
+import type { DB } from '../db/client.ts';
+import { refreshTokens, type RefreshTokenRow } from '../db/schema.ts';
 
 function rowToRefreshToken(row: RefreshTokenRow): RefreshToken {
   return {

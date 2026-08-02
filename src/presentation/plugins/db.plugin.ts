@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
-import { env } from '../../config/env.js';
-import { buildDb, type DB } from '../../infrastructure/db/client.js';
+import { env } from '../../config/env.ts';
+import { buildDb, type DB } from '../../infrastructure/db/client.ts';
 
 declare module 'fastify' {
   interface FastifyInstance {

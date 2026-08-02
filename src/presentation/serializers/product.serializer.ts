@@ -1,9 +1,9 @@
-import type { Product } from '../../domain/product/product.entity.js';
+import type { Product } from '../../domain/product/product.entity.ts';
 import {
   mapPaginated,
   type Paginated,
-} from '../../domain/shared/pagination.js';
-import type { ProductDTO } from '../schemas/product.schema.js';
+} from '../../domain/shared/pagination.ts';
+import type { ProductDTO } from '../schemas/product.schema.ts';
 
 export function toProductDTO(p: Product): ProductDTO {
   return {

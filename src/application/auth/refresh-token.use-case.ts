@@ -1,7 +1,7 @@
-import { UnauthorizedError } from '../../lib/errors.js';
-import type { TokenSigner } from '../../domain/ports/token-signer.port.js';
-import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.js';
-import type { UserRepo } from '../../domain/user/user.repo.js';
+import { UnauthorizedError } from '../../lib/errors.ts';
+import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
+import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
+import type { UserRepo } from '../../domain/user/user.repo.ts';
 
 export interface RefreshTokenInput {
   refreshToken: string;

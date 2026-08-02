@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { USER_ROLES, USER_STATUSES } from '../../domain/user/user.entity.ts';
 
-export const UserRoleSchema = z.enum(['user', 'admin']);
-export const UserStatusSchema = z.enum(['active', 'inactive', 'banned']);
+export const UserRoleSchema = z.enum(USER_ROLES);
+export const UserStatusSchema = z.enum(USER_STATUSES);
 
 export const UserSchema = z.object({
   id: z.uuid(),

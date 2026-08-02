@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { UserController } from '../controllers/user.controller.js';
+import { UserController } from '../controllers/user.controller.ts';
 import {
   ListUsersQuery,
   UpdatePasswordBody,
@@ -8,7 +8,7 @@ import {
   UserIdParam,
   UserListResponse,
   UserSchema,
-} from '../schemas/user.schema.js';
+} from '../schemas/user.schema.ts';
 
 export async function userRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();

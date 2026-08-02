@@ -1,5 +1,5 @@
-import type { User } from '../../domain/user/user.entity.js';
-import type { UserDTO } from '../schemas/auth.schema.js';
+import type { User } from '../../domain/user/user.entity.ts';
+import type { UserDTO } from '../schemas/auth.schema.ts';
 
 export function toUserDTO(user: User): UserDTO {
   return {

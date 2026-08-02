@@ -1,5 +1,5 @@
-import type { Currency } from '../shared/currency.js';
-import type { SortDirection } from '../shared/pagination.js';
+import type { Currency } from '../shared/currency.ts';
+import type { SortDirection } from '../shared/pagination.ts';
 
 export interface Product {
   id: string;

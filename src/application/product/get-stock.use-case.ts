@@ -1,7 +1,7 @@
-import { NotFoundError } from '../../lib/errors.js';
-import type { ProductStock } from '../../domain/product/product-stock.entity.js';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
+import { NotFoundError } from '../../lib/errors.ts';
+import type { ProductStock } from '../../domain/product/product-stock.entity.ts';
+import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
 
 export class GetStockUseCase {
   constructor(

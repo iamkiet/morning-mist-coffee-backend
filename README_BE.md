@@ -29,7 +29,7 @@ infrastructure/  Drizzle repos, adapters (jose, bcrypt, resend) — implements p
 presentation/    Fastify routes, controllers, schemas, serializers, plugins, middlewares
 ```
 
-**Domains:** `user`, `auth` (refresh token), `product`, `product-type`, `order`
+**Domains:** `user`, `auth` (refresh token), `product`, `product-type`, `order`, `chat`
 
 **Request flow:**
 
@@ -67,8 +67,9 @@ Access token chấp nhận qua `Authorization: Bearer <token>` hoặc HttpOnly c
 
 ### Products
 
-- **Public:** list (search, filter, sort, paginate, kèm `stockQuantity`), get by id
+- **Public:** list (search, filter, sort, paginate, kèm `stockQuantity`), get by id, get by slug (`GET /api/v1/products/slug/:slug`, dùng cho trang chi tiết sản phẩm)
 - **Admin:** create, update, delete
+- **Slug:** derive tự động từ `name`, dedupe bằng suffix `-2`, `-3`, …; đổi tên sản phẩm **không** đổi slug — sửa slug là `PATCH { slug }` tường minh (400 nếu sai định dạng, 409 nếu trùng)
 - **Stock (admin):** tồn kho lưu bảng `product_stock` riêng — get / increase / decrease
 
 Giá lưu bằng **cents**, currency hiện chỉ hỗ trợ **VND**.
@@ -87,7 +88,7 @@ Giá lưu bằng **cents**, currency hiện chỉ hỗ trợ **VND**.
 2. Server **ghi đè** `name` / `priceCents` từ DB (chống sửa giá client-side)
 3. Giảm stock batch — fail nếu hết hàng
 4. Tính lại `totalCents`; tùy chọn `cashReceivedCents` → tính `changeCents`
-5. Lưu order + items; gửi email xác nhận qua Resend (best-effort, không block nếu email fail)
+5. Lưu order + items + thông tin giao hàng (`shippingFirstName`/`shippingLastName`/`shippingAddress`/`shippingCity`/`shippingPostalCode`, bắt buộc trên mọi order mới — nullable trong response vì order đặt trước khi field này tồn tại không có giá trị); gửi email xác nhận qua Resend (best-effort, không block nếu email fail)
 
 **Order status state machine** (bỏ bước sẽ bị `409 CONFLICT`):
 
@@ -112,11 +113,11 @@ cancelled → (terminal)
 
 ### AI Chat Assistant
 
-`POST /api/v1/chat` — public, không cần auth.
+`POST /api/v1/chat` — public, không cần auth, rate-limit riêng (`CHAT_RATE_MAX`/`CHAT_RATE_WINDOW`).
 
 - Model: `gemini-2.5-flash`
 - Persona: trợ lý Morning Mist Coffee, trả lời tiếng Việt, phong cách nhã nhặn tối giản
-- **Context injection:** nạp ~30 sản phẩm mới nhất (tên, giá VND, mô tả rút gọn) vào system prompt
+- **RAG bằng vector:** embed tin nhắn mới nhất của khách (`MultimodalEmbeddingPort.embedText`), lấy 8 sản phẩm gần nhất theo cosine similarity trên cùng chỉ mục `pgvector` mà voice search dùng (`findSimilarByVector`), rồi mới tiêm vào system prompt — không còn nạp tĩnh N sản phẩm mới nhất. Nếu vector không có kết quả (embedding chưa sinh), fallback tìm kiếm từ khoá (`ilike`) rồi tới danh sách sản phẩm mới nhất, đảm bảo không bao giờ trả lời với catalogue rỗng.
 - Duy trì lịch sử hội thoại (chuẩn hóa luân phiên user/model)
 - Trả về `{ "message": "..." }`
 - Cần `GEMINI_API_KEY`; thiếu key → `503 AI_NOT_CONFIGURED`
@@ -201,6 +202,7 @@ App không boot nếu thiếu hoặc sai env. Xem `.env.example` đầy đủ.
 | `SEARCH_VOICE_RATE_MAX` / `SEARCH_VOICE_RATE_WINDOW` | Rate limit riêng cho `/api/v1/search/voice` |
 | `ORDER_LOOKUP_RATE_MAX` / `ORDER_LOOKUP_RATE_WINDOW` | Rate limit riêng cho `/api/v1/orders/lookup`, key theo IP + email (fix A01 IDOR) |
 | `AUTH_LOGIN_RATE_MAX` / `AUTH_LOGIN_RATE_WINDOW` | Rate limit cho login/register/refresh |
+| `CHAT_RATE_MAX` / `CHAT_RATE_WINDOW` | Rate limit riêng cho `/api/v1/chat` |
 | `EXPOSE_INTERNAL_ERRORS` | `true` dev/staging, `false` prod |
 
 **Generate secrets:**
@@ -241,7 +243,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"  
 | GET | `/api/v1/auth/me` | user |
 | GET/PATCH | `/api/v1/users/*` | admin |
 | GET/POST | `/api/v1/product-types/*` | user |
-| GET | `/api/v1/products`, `/api/v1/products/:id` | — |
+| GET | `/api/v1/products`, `/api/v1/products/:id`, `/api/v1/products/slug/:slug` | — |
 | POST/PATCH/DELETE | `/api/v1/products/*` | admin |
 | GET/POST | `/api/v1/products/:id/stock/*` | admin |
 | POST | `/api/v1/orders` | — |
@@ -296,7 +298,7 @@ Global rate limit: **100 requests/minute** (mọi route). Login/register/refresh
 
 ## Conventions
 
-- ESM imports end in `.js` (NodeNext), source is `.ts`
+- ESM imports end in `.ts` (NodeNext + `rewriteRelativeImportExtensions`) — rewritten to `.js` in `dist/` at build time
 - Throw `AppError` subclasses from `src/lib/errors.ts` — never plain `Error` for client-facing errors
 - Import validated `env` from `src/config/env.ts` — never read `process.env` directly
 - `domain/` must be deterministic — no `Date.now()`, `Math.random()`, `crypto.randomUUID()`; pass time/ids from caller

@@ -1,5 +1,5 @@
-import { NotFoundError } from '../../lib/errors.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
+import { NotFoundError } from '../../lib/errors.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
 
 export class DeleteProductUseCase {
   constructor(private readonly repo: ProductRepo) {}

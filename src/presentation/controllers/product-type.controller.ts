@@ -1,9 +1,9 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
-import type { CreateProductTypeUseCase } from '../../application/product-type/create-product-type.use-case.js';
-import type { ListProductTypesUseCase } from '../../application/product-type/list-product-types.use-case.js';
-import type { CreateProductTypeBody } from '../schemas/product-type.schema.js';
-import { toProductTypeDTO } from '../serializers/product-type.serializer.js';
+import type { CreateProductTypeUseCase } from '../../application/product-type/create-product-type.use-case.ts';
+import type { ListProductTypesUseCase } from '../../application/product-type/list-product-types.use-case.ts';
+import type { CreateProductTypeBody } from '../schemas/product-type.schema.ts';
+import { toProductTypeDTO } from '../serializers/product-type.serializer.ts';
 
 export interface ProductTypeUseCases {
   list: ListProductTypesUseCase;

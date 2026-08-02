@@ -1,10 +1,10 @@
-import { ConflictError, NotFoundError } from '../../lib/errors.js';
+import { ConflictError, NotFoundError } from '../../lib/errors.ts';
 import {
   canTransition,
   type Order,
   type UpdateOrderStatusInput,
-} from '../../domain/order/order.entity.js';
-import type { OrderRepo } from '../../domain/order/order.repo.js';
+} from '../../domain/order/order.entity.ts';
+import type { OrderRepo } from '../../domain/order/order.repo.ts';
 
 export class UpdateOrderStatusUseCase {
   constructor(private readonly repo: OrderRepo) {}

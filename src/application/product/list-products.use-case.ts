@@ -1,10 +1,11 @@
 import type {
   ListProductsFilter,
   Product,
-} from '../../domain/product/product.entity.js';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
-import type { Paginated } from '../../domain/shared/pagination.js';
+} from '../../domain/product/product.entity.ts';
+import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import type { Paginated } from '../../domain/shared/pagination.ts';
+import { attachStock } from './attach-stock.ts';
 
 export class ListProductsUseCase {
   constructor(
@@ -24,13 +25,8 @@ export class ListProductsUseCase {
       this.repo.list(filter),
       this.repo.count(criteria),
     ]);
-    const stockMap = await this.stock.getByProductIds(items.map((p) => p.id));
-    const itemsWithStock = items.map((p) => ({
-      ...p,
-      stockQuantity: stockMap.get(p.id) ?? 0,
-    }));
     return {
-      items: itemsWithStock,
+      items: await attachStock(this.stock, items),
       total,
       limit: filter.limit,
       offset: filter.offset,

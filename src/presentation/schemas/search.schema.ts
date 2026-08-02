@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProductSchema } from './product.schema.js';
+import { ProductSchema } from './product.schema.ts';
 
 export const VOICE_SEARCH_MAX_AUDIO_BYTES = 10 * 1024 * 1024;
 

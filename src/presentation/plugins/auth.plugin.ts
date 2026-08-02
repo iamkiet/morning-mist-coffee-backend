@@ -1,7 +1,7 @@
 import fp from 'fastify-plugin';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import type { UserRole } from '../../domain/user/user.entity.js';
-import { authenticate, requireRole } from '../middlewares/auth.js';
+import type { UserRole } from '../../domain/user/user.entity.ts';
+import { authenticate, requireRole } from '../middlewares/auth.ts';
 
 declare module 'fastify' {
   interface FastifyInstance {

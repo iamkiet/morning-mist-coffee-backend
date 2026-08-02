@@ -1,22 +1,19 @@
-import { ValidationError } from '../../lib/errors.js';
-import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.js';
-import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.js';
-import type { Product } from '../../domain/product/product.entity.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
-import { buildChatPrompt, wrapUserMessage } from './build-chat-prompt.js';
+import { ValidationError } from '../../lib/errors.ts';
+import type { AppLogger } from '../../domain/ports/logger.port.ts';
+import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.ts';
+import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
+import type { Product } from '../../domain/product/product.entity.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import { buildChatPrompt, wrapUserMessage } from './build-chat-prompt.ts';
 
 const RETRIEVAL_LIMIT = 8;
-
-export interface ChatRetrievalLogger {
-  warn(obj: Record<string, unknown>, msg: string): void;
-}
 
 export class SendChatMessageUseCase {
   constructor(
     private readonly products: ProductRepo,
     private readonly embedding: MultimodalEmbeddingPort,
     private readonly chat: ChatPort,
-    private readonly logger: ChatRetrievalLogger,
+    private readonly logger: AppLogger,
   ) {}
 
   async execute(messages: ChatTurn[]): Promise<string> {

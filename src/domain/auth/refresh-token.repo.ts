@@ -1,7 +1,7 @@
 import type {
   CreateRefreshTokenInput,
   RefreshToken,
-} from './refresh-token.entity.js';
+} from './refresh-token.entity.ts';
 
 export interface RefreshTokenRepo {
   create(input: CreateRefreshTokenInput): Promise<RefreshToken>;

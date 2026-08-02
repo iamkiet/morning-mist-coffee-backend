@@ -28,8 +28,8 @@ scan() {
 }
 
 # 3rd-party libs forbidden in domain/ and application/
-scan "domain/ or application/ imports a forbidden library (drizzle/zod/fastify/postgres/jose/bcrypt/openai)" \
-  "from ['\"](drizzle-orm|drizzle-orm/.*|zod|fastify|@fastify/.*|postgres|jose|bcryptjs|openai)['\"]" \
+scan "domain/ or application/ imports a forbidden library (drizzle/zod/fastify/postgres/jose/bcrypt/openai/google-genai)" \
+  "from ['\"](drizzle-orm|drizzle-orm/.*|zod|fastify|@fastify/.*|postgres|jose|bcryptjs|openai|@google/.*|resend)['\"]" \
   "$SRC/domain" "$SRC/application"
 
 # Use case importing another use case
@@ -71,7 +71,7 @@ console_hits=$(grep -rEn --include='*.ts' "console\\.(log|info|warn|error|debug|
 # process.env access outside src/config/ — use the validated `env` object instead
 penv_hits=$(grep -rEn --include='*.ts' "process\\.env" "$SRC" 2>/dev/null \
   | grep -vE "/src/config/(env|timezone)\\.ts:" || true)
-[ -n "$penv_hits" ] && report "process.env accessed outside src/config/ — import { env } from 'src/config/env.js' (Zod-validated, fail-fast on missing)" "$penv_hits"
+[ -n "$penv_hits" ] && report "process.env accessed outside src/config/ — import { env } from 'src/config/env.ts' (Zod-validated, fail-fast on missing)" "$penv_hits"
 
 # application/ must not import concrete adapters — depend on the port interface instead
 scan "application/ imports a concrete adapter — depend on the port interface instead" \

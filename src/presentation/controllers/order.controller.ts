@@ -1,25 +1,26 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
-import type { CreateOrderUseCase } from '../../application/order/create-order.use-case.js';
-import type { GetOrderByIdUseCase } from '../../application/order/get-order-by-id.use-case.js';
-import type { ListOrdersUseCase } from '../../application/order/list-orders.use-case.js';
-import type { UpdateOrderStatusUseCase } from '../../application/order/update-order-status.use-case.js';
+import type { CreateOrderUseCase } from '../../application/order/create-order.use-case.ts';
+import type { GetOrderByIdUseCase } from '../../application/order/get-order-by-id.use-case.ts';
+import type { ListOrdersUseCase } from '../../application/order/list-orders.use-case.ts';
+import type { LookupOrderUseCase } from '../../application/order/lookup-order.use-case.ts';
+import type { UpdateOrderStatusUseCase } from '../../application/order/update-order-status.use-case.ts';
 import {
   toOrderDTO,
   toOrderListPayload,
-} from '../serializers/order.serializer.js';
+} from '../serializers/order.serializer.ts';
 import type {
   CreateOrderBody,
   ListOrdersQuery,
   LookupOrdersQuery,
   OrderIdParam,
   UpdateOrderStatusBody,
-} from '../schemas/order.schema.js';
-import { normalizeEmail } from '../../domain/user/user.entity.js';
+} from '../schemas/order.schema.ts';
 
 export interface OrderUseCases {
   list: ListOrdersUseCase;
   getById: GetOrderByIdUseCase;
+  lookup: LookupOrderUseCase;
   create: CreateOrderUseCase;
   updateStatus: UpdateOrderStatusUseCase;
 }
@@ -47,17 +48,8 @@ export class OrderController {
     req: FastifyRequest<{ Querystring: z.infer<typeof LookupOrdersQuery> }>,
     reply: FastifyReply,
   ) => {
-    const email = normalizeEmail(req.query.email);
-    const code = req.query.code.toLowerCase();
-    const result = await this.uc.list.execute({
-      email,
-      sortBy: 'createdAt',
-      sortDir: 'desc',
-      limit: 50,
-      offset: 0,
-    });
-    const matched = result.items.filter((order) => order.id.slice(0, 8).toLowerCase() === code);
-    return reply.send({ items: matched.map(toOrderDTO) });
+    const order = await this.uc.lookup.execute(req.query);
+    return reply.send({ items: order ? [toOrderDTO(order)] : [] });
   };
 
   create = async (
@@ -69,6 +61,11 @@ export class OrderController {
       totalCents: req.body.totalCents,
       currency: req.body.currency,
       cashReceivedCents: req.body.cashReceivedCents,
+      shippingFirstName: req.body.shippingFirstName,
+      shippingLastName: req.body.shippingLastName,
+      shippingAddress: req.body.shippingAddress,
+      shippingCity: req.body.shippingCity,
+      shippingPostalCode: req.body.shippingPostalCode,
       items: req.body.items,
     });
     return reply.code(201).send(toOrderDTO(order));

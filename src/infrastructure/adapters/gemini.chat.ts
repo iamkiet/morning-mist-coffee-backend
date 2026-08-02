@@ -1,8 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.js';
-import { ExternalServiceError } from '../../lib/errors.js';
-
-const MODEL_NAME = 'gemini-2.5-flash';
+import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.ts';
+import { ExternalServiceError } from '../../lib/errors.ts';
+import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 
 interface GeminiTurn {
   role: 'user' | 'model';
@@ -31,11 +29,7 @@ function toAlternatingHistory(history: ChatTurn[]): GeminiTurn[] {
 }
 
 export class GeminiChatAdapter implements ChatPort {
-  private readonly genAI: GoogleGenerativeAI;
-
-  constructor(apiKey: string) {
-    this.genAI = new GoogleGenerativeAI(apiKey);
-  }
+  constructor(private readonly gemini: GeminiClient) {}
 
   async reply(
     systemInstruction: string,
@@ -43,13 +37,17 @@ export class GeminiChatAdapter implements ChatPort {
     message: string,
   ): Promise<string> {
     try {
-      const model = this.genAI.getGenerativeModel({
-        model: MODEL_NAME,
-        systemInstruction,
+      const chat = this.gemini.chats.create({
+        model: GEMINI_FLASH_MODEL,
+        config: { systemInstruction },
+        history: toAlternatingHistory(history),
       });
-      const chat = model.startChat({ history: toAlternatingHistory(history) });
-      const result = await chat.sendMessage(message);
-      return result.response.text();
+      const response = await chat.sendMessage({ message });
+      const text = response.text;
+      if (text === undefined) {
+        throw new ExternalServiceError('Gemini', 'Chat returned no text');
+      }
+      return text;
     } catch (error) {
       throw new ExternalServiceError('Gemini', 'Chat request failed', error);
     }

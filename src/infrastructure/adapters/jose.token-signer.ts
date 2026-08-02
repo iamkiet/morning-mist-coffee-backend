@@ -1,12 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { UnauthorizedError } from '../../lib/errors.js';
+import { UnauthorizedError } from '../../lib/errors.ts';
 import type {
   AccessTokenClaims,
   IssuedRefreshToken,
   RefreshTokenClaims,
   TokenSigner,
-} from '../../domain/ports/token-signer.port.js';
-import type { UserRole } from '../../domain/user/user.entity.js';
+} from '../../domain/ports/token-signer.port.ts';
+import type { UserRole } from '../../domain/user/user.entity.ts';
 
 const ISSUER = 'backend';
 const ACCESS_TYPE = 'access';

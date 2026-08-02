@@ -2,10 +2,10 @@ import { asc, eq, sql } from 'drizzle-orm';
 import type {
   CreateProductTypeInput,
   ProductType,
-} from '../../domain/product-type/product-type.entity.js';
-import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.js';
-import type { DB } from '../db/client.js';
-import { productTypes, type ProductTypeRow } from '../db/schema.js';
+} from '../../domain/product-type/product-type.entity.ts';
+import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.ts';
+import type { DB } from '../db/client.ts';
+import { productTypes, type ProductTypeRow } from '../db/schema.ts';
 
 function rowToProductType(row: ProductTypeRow): ProductType {
   return {

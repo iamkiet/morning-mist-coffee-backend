@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { UnauthorizedError } from '../../lib/errors.js';
-import type { UserRole } from '../../domain/user/user.entity.js';
-import { ACCESS_COOKIE } from './auth-cookies.js';
+import { ForbiddenError, UnauthorizedError } from '../../lib/errors.ts';
+import type { UserRole } from '../../domain/user/user.entity.ts';
+import { ACCESS_COOKIE } from './auth-cookies.ts';
 
 export interface AuthUser {
   id: string;
@@ -41,7 +41,7 @@ export function requireRole(role: UserRole) {
   return async function check(req: FastifyRequest): Promise<void> {
     if (!req.user) throw new UnauthorizedError();
     if (req.user.role !== role) {
-      throw new UnauthorizedError(`Role '${role}' required`);
+      throw new ForbiddenError(`Role '${role}' required`);
     }
   };
 }

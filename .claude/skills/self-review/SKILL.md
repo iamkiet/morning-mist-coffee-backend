@@ -21,7 +21,7 @@ When in doubt about whether to add something, **lean toward deleting**. Adding c
 
 ## 2. Codebase conventions
 
-- All relative imports end in `.js` (NodeNext).
+- All relative imports end in `.ts` (NodeNext + `rewriteRelativeImportExtensions`).
 - Array/index accesses are guarded (`noUncheckedIndexedAccess` is on).
 - Zod schema fields mirror the entity; serializer maps `Date → ISO string`.
 - Throw `AppError` subclasses, not plain `Error`, for any error that should surface to the client.

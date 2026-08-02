@@ -1,13 +1,13 @@
-import { ConflictError, NotFoundError, ValidationError } from '../../lib/errors.js';
+import { ConflictError, NotFoundError, ValidationError } from '../../lib/errors.ts';
 import type {
   CreateOrderInput,
   Order,
-} from '../../domain/order/order.entity.js';
-import type { OrderRepo } from '../../domain/order/order.repo.js';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
-import type { EmailSender } from '../../domain/ports/email-sender.port.js';
-import { normalizeEmail } from '../../domain/user/user.entity.js';
+} from '../../domain/order/order.entity.ts';
+import type { OrderRepo } from '../../domain/order/order.repo.ts';
+import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import type { EmailSender } from '../../domain/ports/email-sender.port.ts';
+import { normalizeEmail } from '../../domain/user/user.entity.ts';
 
 export interface Logger {
   warn(obj: Record<string, unknown>, msg: string): void;
@@ -86,6 +86,11 @@ export class CreateOrderUseCase {
         currency: order.currency,
         cashReceivedCents: order.cashReceivedCents,
         changeCents: order.changeCents,
+        shippingFirstName: order.shippingFirstName,
+        shippingLastName: order.shippingLastName,
+        shippingAddress: order.shippingAddress,
+        shippingCity: order.shippingCity,
+        shippingPostalCode: order.shippingPostalCode,
         items: order.items.map((item) => ({
           name: item.name,
           quantity: item.quantity,

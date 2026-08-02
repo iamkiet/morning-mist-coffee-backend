@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { CURRENCIES } from '../../domain/shared/currency.js';
+import { CURRENCIES } from '../../domain/shared/currency.ts';
 import {
   paginatedResponse,
   paginationFields,
   sortFields,
-} from './_pagination.js';
+} from './_pagination.ts';
 
 export const CurrencySchema = z.enum(CURRENCIES);
 

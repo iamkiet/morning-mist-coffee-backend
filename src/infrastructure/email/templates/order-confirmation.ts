@@ -1,4 +1,4 @@
-import type { OrderConfirmationEmail } from '../../../domain/ports/email-sender.port.js';
+import type { OrderConfirmationEmail } from '../../../domain/ports/email-sender.port.ts';
 
 function formatCents(cents: number): string {
   return `${cents.toLocaleString('vi-VN')} ₫`;
@@ -20,6 +20,21 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
     .join('');
 
   const subject = `Order confirmed — #${data.orderId.slice(0, 8).toUpperCase()}`;
+
+  const shippingBlock = data.shippingAddress
+    ? `
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <td style="font-size:12px;color:#7a6055;text-transform:uppercase;letter-spacing:0.5px;padding-bottom:4px;">Shipping To</td>
+              </tr>
+              <tr>
+                <td style="font-size:14px;">
+                  ${data.shippingFirstName ?? ''} ${data.shippingLastName ?? ''}<br/>
+                  ${data.shippingAddress}, ${data.shippingCity ?? ''} ${data.shippingPostalCode ?? ''}
+                </td>
+              </tr>
+            </table>`
+    : '';
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -78,7 +93,7 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
               </tr>
               ` : ''}
             </table>
-
+            ${shippingBlock}
             <p style="margin:0;font-size:13px;color:#7a6055;line-height:1.6;">
               Questions about your order? Reply to this email and we'll be happy to help.
             </p>

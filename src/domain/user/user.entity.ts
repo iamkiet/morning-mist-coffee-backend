@@ -1,5 +1,10 @@
-export type UserRole = 'user' | 'admin';
-export type UserStatus = 'active' | 'inactive' | 'banned';
+import type { SortDirection } from '../shared/pagination.ts';
+
+export const USER_ROLES = ['user', 'admin'] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
+export const USER_STATUSES = ['active', 'inactive', 'banned'] as const;
+export type UserStatus = (typeof USER_STATUSES)[number];
 
 export interface User {
   id: string;
@@ -32,9 +37,17 @@ export interface UserFilterCriteria {
   q?: string;
 }
 
+export const USER_SORT_FIELDS = [
+  'createdAt',
+  'firstName',
+  'lastName',
+  'email',
+] as const;
+export type UserSortField = (typeof USER_SORT_FIELDS)[number];
+
 export interface ListUsersFilter extends UserFilterCriteria {
-  sortBy: 'createdAt' | 'firstName' | 'lastName' | 'email';
-  sortDir: 'asc' | 'desc';
+  sortBy: UserSortField;
+  sortDir: SortDirection;
   limit: number;
   offset: number;
 }

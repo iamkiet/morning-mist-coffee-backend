@@ -18,6 +18,7 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
+    "rewriteRelativeImportExtensions": true,
     "noEmit": true,
     "sourceMap": true,
     "removeComments": false

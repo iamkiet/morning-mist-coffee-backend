@@ -1,15 +1,12 @@
-import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.js';
-import type { Product } from '../../domain/product/product.entity.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
-
-export interface EmbeddingSyncLogger {
-  warn(obj: Record<string, unknown>, msg: string): void;
-}
+import type { AppLogger } from '../../domain/ports/logger.port.ts';
+import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
+import type { Product } from '../../domain/product/product.entity.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
 
 export async function syncProductEmbedding(
   products: ProductRepo,
   embedding: MultimodalEmbeddingPort,
-  logger: EmbeddingSyncLogger,
+  logger: AppLogger,
   product: Pick<Product, 'id' | 'name' | 'origin' | 'tastingNotes' | 'description'>,
 ): Promise<void> {
   try {

@@ -11,10 +11,13 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { env } from '../../config/env.js';
+import { env } from '../../config/env.ts';
+import { ORDER_STATUSES } from '../../domain/order/order.entity.ts';
+import { CURRENCIES } from '../../domain/shared/currency.ts';
+import { USER_ROLES, USER_STATUSES } from '../../domain/user/user.entity.ts';
 
-export const userRole = pgEnum('user_role', ['user', 'admin']);
-export const userStatus = pgEnum('user_status', ['active', 'inactive', 'banned']);
+export const userRole = pgEnum('user_role', USER_ROLES);
+export const userStatus = pgEnum('user_status', USER_STATUSES);
 
 export const users = pgTable(
   'users',
@@ -49,15 +52,9 @@ export const refreshTokens = pgTable(
   (t) => [index('refresh_tokens_user_id_idx').on(t.userId)],
 );
 
-export const orderStatus = pgEnum('order_status', [
-  'pending',
-  'paid',
-  'shipped',
-  'delivered',
-  'cancelled',
-]);
+export const orderStatus = pgEnum('order_status', ORDER_STATUSES);
 
-export const currency = pgEnum('currency', ['VND']);
+export const currency = pgEnum('currency', CURRENCIES);
 
 export const productTypes = pgTable(
   'product_types',
@@ -142,6 +139,11 @@ export const orders = pgTable(
     currency: currency().notNull().default('VND'),
     cashReceivedCents: integer(),
     changeCents: integer(),
+    shippingFirstName: text(),
+    shippingLastName: text(),
+    shippingAddress: text(),
+    shippingCity: text(),
+    shippingPostalCode: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

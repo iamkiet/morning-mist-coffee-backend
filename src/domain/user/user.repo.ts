@@ -4,7 +4,7 @@ import type {
   UpdateUserInput,
   User,
   UserFilterCriteria,
-} from './user.entity.js';
+} from './user.entity.ts';
 
 export interface UserRepo {
   findById(id: string): Promise<User | null>;

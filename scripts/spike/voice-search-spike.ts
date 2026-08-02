@@ -15,7 +15,7 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GoogleGenerativeAI, TaskType } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -155,18 +155,18 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 async function main(): Promise<void> {
-  const genAI = new GoogleGenerativeAI(apiKey!);
-  const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+  const genAI = new GoogleGenAI({ apiKey: apiKey! });
 
   console.log(`Embedding ${products.length} product documents with ${MODEL_NAME}...`);
   const productEmbeddings = new Map<string, number[]>();
   for (const product of products) {
     const doc = `title: ${product.name} | text: ${product.description}`;
-    const result = await model.embedContent({
-      content: { role: 'user', parts: [{ text: doc }] },
-      taskType: TaskType.RETRIEVAL_DOCUMENT,
+    const result = await genAI.models.embedContent({
+      model: MODEL_NAME,
+      contents: [{ role: 'user', parts: [{ text: doc }] }],
+      config: { taskType: 'RETRIEVAL_DOCUMENT' },
     });
-    productEmbeddings.set(product.id, result.embedding.values);
+    productEmbeddings.set(product.id, result.embeddings![0]!.values!);
   }
   console.log(`Done. Embedding dimension: ${productEmbeddings.get(products[0]!.id)!.length}`);
 
@@ -186,13 +186,16 @@ async function main(): Promise<void> {
     synthesizeWav(query.text, wavPath);
     const audioBase64 = readFileSync(wavPath).toString('base64');
 
-    const result = await model.embedContent({
-      content: {
-        role: 'user',
-        parts: [{ inlineData: { mimeType: 'audio/wav', data: audioBase64 } }],
-      },
+    const result = await genAI.models.embedContent({
+      model: MODEL_NAME,
+      contents: [
+        {
+          role: 'user',
+          parts: [{ inlineData: { mimeType: 'audio/wav', data: audioBase64 } }],
+        },
+      ],
     });
-    const queryEmbedding = result.embedding.values;
+    const queryEmbedding = result.embeddings![0]!.values!;
 
     const scored = products
       .map((p) => ({

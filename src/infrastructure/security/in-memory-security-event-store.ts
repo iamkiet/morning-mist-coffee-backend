@@ -1,5 +1,5 @@
-import type { SecurityEventStore } from '../../domain/security/security-event-store.port.js';
-import type { SecurityEvent } from '../../domain/security/security-event.entity.js';
+import type { SecurityEventStore } from '../../domain/security/security-event-store.port.ts';
+import type { SecurityEvent } from '../../domain/security/security-event.entity.ts';
 
 const MAX_EVENTS = 2000;
 

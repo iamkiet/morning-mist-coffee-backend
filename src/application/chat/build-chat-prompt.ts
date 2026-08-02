@@ -1,4 +1,4 @@
-import type { Product } from '../../domain/product/product.entity.js';
+import type { Product } from '../../domain/product/product.entity.ts';
 
 const BASE_INSTRUCTION = `
 You are a virtual assistant at the high-end coffee shop "Morning Mist Coffee".

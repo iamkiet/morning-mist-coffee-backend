@@ -129,6 +129,37 @@ Returns the currently authenticated user. Requires Bearer token.
 
 ---
 
+## Chat
+
+### POST /api/v1/chat
+
+Chat with the storefront assistant (RAG over the product catalogue). No authentication required. Rate-limited (see `CHAT_RATE_MAX`/`CHAT_RATE_WINDOW`). Returns `503 AI_NOT_CONFIGURED` if the Gemini API key is not configured on the server.
+
+**Body**
+
+```json
+{
+  "messages": [
+    {
+      "role": "user | assistant",
+      "content": "string"
+    }
+  ]
+}
+```
+
+At least one message is required.
+
+**Response `200`**
+
+```json
+{
+  "message": "string"
+}
+```
+
+---
+
 ## Users
 
 All endpoints require Bearer token with `admin` role.
@@ -420,6 +451,13 @@ Order statuses: `pending`, `paid`, `shipped`, `delivered`, `cancelled`
       "status": "pending | paid | shipped | delivered | cancelled",
       "totalCents": "integer",
       "currency": "VND",
+      "cashReceivedCents": "integer | null",
+      "changeCents": "integer | null",
+      "shippingFirstName": "string | null",
+      "shippingLastName": "string | null",
+      "shippingAddress": "string | null",
+      "shippingCity": "string | null",
+      "shippingPostalCode": "string | null",
       "items": [
         {
           "id": "uuid",
@@ -468,6 +506,13 @@ Access control on this route (A01 fix):
       "status": "pending | paid | shipped | delivered | cancelled",
       "totalCents": "integer",
       "currency": "VND",
+      "cashReceivedCents": "integer | null",
+      "changeCents": "integer | null",
+      "shippingFirstName": "string | null",
+      "shippingLastName": "string | null",
+      "shippingAddress": "string | null",
+      "shippingCity": "string | null",
+      "shippingPostalCode": "string | null",
       "items": [
         {
           "id": "uuid",
@@ -503,6 +548,12 @@ Submit a new order. The backend automatically re-evaluates all item prices using
   "email": "string",
   "totalCents": "integer (≥ 0)",
   "currency": "VND",
+  "cashReceivedCents": "integer (≥ 0, optional)",
+  "shippingFirstName": "string (1–100)",
+  "shippingLastName": "string (1–100)",
+  "shippingAddress": "string (5–500)",
+  "shippingCity": "string (1–100)",
+  "shippingPostalCode": "string (3–20)",
   "items": [
     {
       "productId": "uuid",
@@ -513,6 +564,8 @@ Submit a new order. The backend automatically re-evaluates all item prices using
   ]
 }
 ```
+
+`changeCents` is computed server-side from `cashReceivedCents - totalCents` and is not accepted in the request body. `shippingFirstName`/`shippingLastName`/`shippingAddress`/`shippingCity`/`shippingPostalCode` are required on every new order; they are nullable in responses only because orders placed before this field existed have no value.
 
 **Response `201`** — created order object.
 
@@ -553,7 +606,10 @@ Audio-native: the recorded voice query is embedded directly with `gemini-embeddi
   "items": [
     {
       "id": "uuid",
+      "slug": "string",
       "name": "string",
+      "origin": "string | null",
+      "tastingNotes": ["string"],
       "description": "string | null",
       "priceCents": "integer",
       "currency": "VND",
@@ -630,3 +686,5 @@ All errors follow this shape:
 | `409` | `CONFLICT` | Duplicate resource (e.g. email already registered) |
 | `429` | `RATE_LIMIT_EXCEEDED` | Too many requests |
 | `500` | `INTERNAL_ERROR` | Unexpected server error |
+| `502` | `EXTERNAL_SERVICE_ERROR` | An upstream service (e.g. Gemini) failed |
+| `503` | `AI_NOT_CONFIGURED` | AI-dependent endpoint called without a configured Gemini API key |

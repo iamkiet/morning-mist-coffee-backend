@@ -1,6 +1,6 @@
-import type { Paginated } from '../../domain/shared/pagination.js';
-import type { ListUsersFilter, User, UserFilterCriteria } from '../../domain/user/user.entity.js';
-import type { UserRepo } from '../../domain/user/user.repo.js';
+import type { Paginated } from '../../domain/shared/pagination.ts';
+import type { ListUsersFilter, User, UserFilterCriteria } from '../../domain/user/user.entity.ts';
+import type { UserRepo } from '../../domain/user/user.repo.ts';
 
 export class ListUsersUseCase {
   constructor(private readonly repo: UserRepo) {}

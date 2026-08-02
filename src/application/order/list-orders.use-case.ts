@@ -1,9 +1,9 @@
 import type {
   ListOrdersFilter,
   Order,
-} from '../../domain/order/order.entity.js';
-import type { OrderRepo } from '../../domain/order/order.repo.js';
-import type { Paginated } from '../../domain/shared/pagination.js';
+} from '../../domain/order/order.entity.ts';
+import type { OrderRepo } from '../../domain/order/order.repo.ts';
+import type { Paginated } from '../../domain/shared/pagination.ts';
 
 export class ListOrdersUseCase {
   constructor(private readonly repo: OrderRepo) {}

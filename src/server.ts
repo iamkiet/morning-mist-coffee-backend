@@ -1,7 +1,7 @@
-import './config/timezone.js';
-import { buildApp } from './app.js';
-import { env } from './config/env.js';
-import { logger } from './lib/logger.js';
+import './config/timezone.ts';
+import { buildApp } from './app.ts';
+import { env } from './config/env.ts';
+import { logger } from './lib/logger.ts';
 
 async function main(): Promise<void> {
   const app = await buildApp();

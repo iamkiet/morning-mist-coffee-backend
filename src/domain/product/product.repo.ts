@@ -3,7 +3,7 @@ import type {
   ListProductsFilter,
   Product,
   UpdateProductInput,
-} from './product.entity.js';
+} from './product.entity.ts';
 
 export type ProductFilterCriteria = Omit<
   ListProductsFilter,

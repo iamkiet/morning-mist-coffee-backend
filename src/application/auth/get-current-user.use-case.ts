@@ -1,6 +1,6 @@
-import { UnauthorizedError } from '../../lib/errors.js';
-import type { User } from '../../domain/user/user.entity.js';
-import type { UserRepo } from '../../domain/user/user.repo.js';
+import { UnauthorizedError } from '../../lib/errors.ts';
+import type { User } from '../../domain/user/user.entity.ts';
+import type { UserRepo } from '../../domain/user/user.repo.ts';
 
 export class GetCurrentUserUseCase {
   constructor(private readonly users: UserRepo) {}

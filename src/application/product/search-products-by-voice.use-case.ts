@@ -1,9 +1,9 @@
-import type { Product } from '../../domain/product/product.entity.js';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
-import type { AudioConverterPort } from '../../domain/ports/audio-converter.port.js';
-import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.js';
-import type { TranscriptionPort } from '../../domain/ports/transcription.port.js';
+import type { Product } from '../../domain/product/product.entity.ts';
+import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import type { AudioConverterPort } from '../../domain/ports/audio-converter.port.ts';
+import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
+import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
 
 const RESULT_LIMIT = 10;
 

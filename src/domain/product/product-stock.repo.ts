@@ -1,4 +1,4 @@
-import type { ProductStock } from './product-stock.entity.js';
+import type { ProductStock } from './product-stock.entity.ts';
 
 export interface StockDecreaseItem {
   productId: string;

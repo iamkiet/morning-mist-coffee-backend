@@ -1,9 +1,9 @@
-import type { Order } from '../../domain/order/order.entity.js';
+import type { Order } from '../../domain/order/order.entity.ts';
 import {
   mapPaginated,
   type Paginated,
-} from '../../domain/shared/pagination.js';
-import type { OrderDTO } from '../schemas/order.schema.js';
+} from '../../domain/shared/pagination.ts';
+import type { OrderDTO } from '../schemas/order.schema.ts';
 
 export function toOrderDTO(order: Order): OrderDTO {
   return {
@@ -14,6 +14,11 @@ export function toOrderDTO(order: Order): OrderDTO {
     currency: order.currency,
     cashReceivedCents: order.cashReceivedCents,
     changeCents: order.changeCents,
+    shippingFirstName: order.shippingFirstName,
+    shippingLastName: order.shippingLastName,
+    shippingAddress: order.shippingAddress,
+    shippingCity: order.shippingCity,
+    shippingPostalCode: order.shippingPostalCode,
     items: order.items.map((item) => ({
       id: item.id,
       productId: item.productId,

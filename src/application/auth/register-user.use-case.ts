@@ -1,10 +1,10 @@
-import { ConflictError } from '../../lib/errors.js';
-import type { PasswordHasher } from '../../domain/ports/password-hasher.port.js';
-import type { TokenSigner } from '../../domain/ports/token-signer.port.js';
-import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.js';
-import { normalizeEmail } from '../../domain/user/user.entity.js';
-import type { UserRepo } from '../../domain/user/user.repo.js';
-import type { AuthResult } from './types.js';
+import { ConflictError } from '../../lib/errors.ts';
+import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts';
+import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
+import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
+import { normalizeEmail } from '../../domain/user/user.entity.ts';
+import type { UserRepo } from '../../domain/user/user.repo.ts';
+import type { AuthResult } from './types.ts';
 
 export interface RegisterUserInput {
   firstName: string;

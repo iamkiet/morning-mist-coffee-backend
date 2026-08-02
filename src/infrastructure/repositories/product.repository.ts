@@ -1,32 +1,20 @@
-import {
-  and,
-  asc,
-  cosineDistance,
-  desc,
-  eq,
-  gte,
-  ilike,
-  isNotNull,
-  lte,
-  or,
-  sql,
-  type SQL,
-} from 'drizzle-orm';
+import { asc, cosineDistance, desc, eq, isNotNull, sql } from 'drizzle-orm';
 import type {
   CreateProductRecord,
   ListProductsFilter,
   Product,
   ProductSortField,
   UpdateProductInput,
-} from '../../domain/product/product.entity.js';
+} from '../../domain/product/product.entity.ts';
 import type {
   ProductFilterCriteria,
   ProductRepo,
   SimilarProduct,
-} from '../../domain/product/product.repo.js';
-import type { Currency } from '../../domain/shared/currency.js';
-import type { DB } from '../db/client.js';
-import { products, type ProductRow } from '../db/schema.js';
+} from '../../domain/product/product.repo.ts';
+import type { Currency } from '../../domain/shared/currency.ts';
+import type { DB } from '../db/client.ts';
+import { products } from '../db/schema.ts';
+import { productWhere, rowToProduct } from './product.mappers.ts';
 
 const SORT_COLUMNS = {
   createdAt: products.createdAt,
@@ -34,58 +22,17 @@ const SORT_COLUMNS = {
   priceCents: products.priceCents,
 } as const satisfies Record<ProductSortField, unknown>;
 
-function buildFilters(filter: ProductFilterCriteria): SQL[] {
-  const filters: SQL[] = [];
-  if (filter.productTypeId)
-    filters.push(eq(products.productTypeId, filter.productTypeId));
-  if (filter.currency) filters.push(eq(products.currency, filter.currency));
-  if (filter.priceMin !== undefined)
-    filters.push(gte(products.priceCents, filter.priceMin));
-  if (filter.priceMax !== undefined)
-    filters.push(lte(products.priceCents, filter.priceMax));
-  if (filter.q) {
-    const pattern = `%${filter.q}%`;
-    const match = or(
-      ilike(products.name, pattern),
-      ilike(products.origin, pattern),
-      ilike(products.description, pattern),
-      sql`array_to_string(${products.tastingNotes}, ' ') ilike ${pattern}`,
-    );
-    if (match) filters.push(match);
-  }
-  return filters;
-}
-
-function rowToProduct(row: ProductRow): Product {
-  return {
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    origin: row.origin,
-    tastingNotes: row.tastingNotes,
-    description: row.description,
-    priceCents: row.priceCents,
-    currency: row.currency,
-    image: row.image,
-    productTypeId: row.productTypeId,
-    stockQuantity: 0,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
 export class PostgresProductRepository implements ProductRepo {
   constructor(private readonly db: DB) {}
 
   async list(filter: ListProductsFilter): Promise<Product[]> {
-    const filters = buildFilters(filter);
     const orderFn = filter.sortDir === 'asc' ? asc : desc;
     const sortColumn = SORT_COLUMNS[filter.sortBy];
 
     const rows = await this.db
       .select()
       .from(products)
-      .where(filters.length ? and(...filters) : undefined)
+      .where(productWhere(filter))
       .orderBy(orderFn(sortColumn), desc(products.id))
       .limit(filter.limit)
       .offset(filter.offset);
@@ -93,12 +40,10 @@ export class PostgresProductRepository implements ProductRepo {
   }
 
   async count(filter: ProductFilterCriteria): Promise<number> {
-    const filters = buildFilters(filter);
-
     const [row] = await this.db
       .select({ count: sql<number>`count(*)::int` })
       .from(products)
-      .where(filters.length ? and(...filters) : undefined);
+      .where(productWhere(filter));
     return row?.count ?? 0;
   }
 
@@ -190,7 +135,10 @@ export class PostgresProductRepository implements ProductRepo {
     await this.db.update(products).set({ embedding }).where(eq(products.id, id));
   }
 
-  async findSimilarByVector(embedding: number[], limit: number): Promise<SimilarProduct[]> {
+  async findSimilarByVector(
+    embedding: number[],
+    limit: number,
+  ): Promise<SimilarProduct[]> {
     const similarity = sql<number>`1 - (${cosineDistance(products.embedding, embedding)})`;
     const rows = await this.db
       .select({ product: products, score: similarity })

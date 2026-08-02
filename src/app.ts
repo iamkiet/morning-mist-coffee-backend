@@ -10,20 +10,20 @@ import {
   validatorCompiler,
   hasZodFastifySchemaValidationErrors,
 } from 'fastify-type-provider-zod';
-import { env } from './config/env.js';
-import { logger } from './lib/logger.js';
-import { ForbiddenError, isAppError } from './lib/errors.js';
-import { dbPlugin } from './presentation/plugins/db.plugin.js';
-import { authPlugin } from './presentation/plugins/auth.plugin.js';
-import { servicesPlugin } from './presentation/plugins/services.plugin.js';
-import { authRoutes } from './presentation/routes/auth.routes.js';
-import { chatRoutes } from './presentation/routes/chat.routes.js';
-import { healthRoutes } from './presentation/routes/health.routes.js';
-import { orderRoutes } from './presentation/routes/order.routes.js';
-import { productRoutes } from './presentation/routes/product.routes.js';
-import { productTypeRoutes } from './presentation/routes/product-type.routes.js';
-import { searchRoutes } from './presentation/routes/search.routes.js';
-import { userRoutes } from './presentation/routes/user.routes.js';
+import { env } from './config/env.ts';
+import { logger } from './lib/logger.ts';
+import { ForbiddenError, isAppError } from './lib/errors.ts';
+import { dbPlugin } from './presentation/plugins/db.plugin.ts';
+import { authPlugin } from './presentation/plugins/auth.plugin.ts';
+import { servicesPlugin } from './presentation/plugins/services.plugin.ts';
+import { authRoutes } from './presentation/routes/auth.routes.ts';
+import { chatRoutes } from './presentation/routes/chat.routes.ts';
+import { healthRoutes } from './presentation/routes/health.routes.ts';
+import { orderRoutes } from './presentation/routes/order.routes.ts';
+import { productRoutes } from './presentation/routes/product.routes.ts';
+import { productTypeRoutes } from './presentation/routes/product-type.routes.ts';
+import { searchRoutes } from './presentation/routes/search.routes.ts';
+import { userRoutes } from './presentation/routes/user.routes.ts';
 
 export async function buildApp() {
   const app = Fastify({

@@ -1,18 +1,13 @@
 import { z } from 'zod';
+import { ORDER_STATUSES } from '../../domain/order/order.entity.ts';
 import {
   paginatedResponse,
   paginationFields,
   sortFields,
-} from './_pagination.js';
-import { CurrencySchema } from './product.schema.js';
+} from './_pagination.ts';
+import { CurrencySchema } from './product.schema.ts';
 
-export const OrderStatus = z.enum([
-  'pending',
-  'paid',
-  'shipped',
-  'delivered',
-  'cancelled',
-]);
+export const OrderStatus = z.enum(ORDER_STATUSES);
 
 export const OrderItemSchema = z.object({
   id: z.uuid(),
@@ -30,6 +25,11 @@ export const OrderSchema = z.object({
   currency: CurrencySchema,
   cashReceivedCents: z.number().int().min(0).nullable(),
   changeCents: z.number().int().min(0).nullable(),
+  shippingFirstName: z.string().nullable(),
+  shippingLastName: z.string().nullable(),
+  shippingAddress: z.string().nullable(),
+  shippingCity: z.string().nullable(),
+  shippingPostalCode: z.string().nullable(),
   items: z.array(OrderItemSchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -47,6 +47,11 @@ export const CreateOrderBody = z.object({
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
   cashReceivedCents: z.number().int().min(0).optional(),
+  shippingFirstName: z.string().min(1).max(100),
+  shippingLastName: z.string().min(1).max(100),
+  shippingAddress: z.string().min(5).max(500),
+  shippingCity: z.string().min(1).max(100),
+  shippingPostalCode: z.string().min(3).max(20),
   items: z.array(CreateOrderItemBody).min(1),
 });
 

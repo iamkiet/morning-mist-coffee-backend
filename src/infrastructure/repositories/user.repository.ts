@@ -5,10 +5,11 @@ import type {
   UpdateUserInput,
   User,
   UserFilterCriteria,
-} from '../../domain/user/user.entity.js';
-import type { UserRepo } from '../../domain/user/user.repo.js';
-import type { DB } from '../db/client.js';
-import { users, type UserRow } from '../db/schema.js';
+} from '../../domain/user/user.entity.ts';
+import type { UserRepo } from '../../domain/user/user.repo.ts';
+import type { DB } from '../db/client.ts';
+import { users, type UserRow } from '../db/schema.ts';
+import { containsPattern } from './ilike-pattern.ts';
 
 function rowToUser(row: UserRow): User {
   return {
@@ -29,7 +30,7 @@ function buildConditions(criteria: UserFilterCriteria) {
   if (criteria.role !== undefined) conditions.push(eq(users.role, criteria.role));
   if (criteria.status !== undefined) conditions.push(eq(users.status, criteria.status));
   if (criteria.q !== undefined && criteria.q.length > 0) {
-    const pattern = `%${criteria.q}%`;
+    const pattern = containsPattern(criteria.q);
     conditions.push(
       or(
         ilike(users.firstName, pattern),

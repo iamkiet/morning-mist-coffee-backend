@@ -1,4 +1,4 @@
-import type { IpBlockList } from '../../domain/security/ip-block-list.port.js';
+import type { IpBlockList } from '../../domain/security/ip-block-list.port.ts';
 
 interface BlockEntry {
   expiresAt: number;

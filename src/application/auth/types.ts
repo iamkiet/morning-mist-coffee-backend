@@ -1,4 +1,4 @@
-import type { User } from '../../domain/user/user.entity.js';
+import type { User } from '../../domain/user/user.entity.ts';
 
 export interface AuthResult {
   user: User;

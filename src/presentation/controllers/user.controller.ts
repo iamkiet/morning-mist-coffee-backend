@@ -1,11 +1,11 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
-import type { ListUsersUseCase } from '../../application/user/list-users.use-case.js';
-import type { UpdateUserUseCase } from '../../application/user/update-user.use-case.js';
-import type { UpdateUserPasswordUseCase } from '../../application/user/update-user-password.use-case.js';
-import { mapPaginated } from '../../domain/shared/pagination.js';
-import { toUserDTO } from '../serializers/auth.serializer.js';
-import type { ListUsersQuery, UpdateUserBody, UpdatePasswordBody, UserIdParam } from '../schemas/user.schema.js';
+import type { ListUsersUseCase } from '../../application/user/list-users.use-case.ts';
+import type { UpdateUserUseCase } from '../../application/user/update-user.use-case.ts';
+import type { UpdateUserPasswordUseCase } from '../../application/user/update-user-password.use-case.ts';
+import { mapPaginated } from '../../domain/shared/pagination.ts';
+import { toUserDTO } from '../serializers/auth.serializer.ts';
+import type { ListUsersQuery, UpdateUserBody, UpdatePasswordBody, UserIdParam } from '../schemas/user.schema.ts';
 
 export interface UserUseCases {
   list: ListUsersUseCase;

@@ -1,18 +1,18 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
-import type { CreateProductUseCase } from '../../application/product/create-product.use-case.js';
-import type { DecreaseStockUseCase } from '../../application/product/decrease-stock.use-case.js';
-import type { DeleteProductUseCase } from '../../application/product/delete-product.use-case.js';
-import type { GetProductByIdUseCase } from '../../application/product/get-product-by-id.use-case.js';
-import type { GetProductBySlugUseCase } from '../../application/product/get-product-by-slug.use-case.js';
-import type { GetStockUseCase } from '../../application/product/get-stock.use-case.js';
-import type { IncreaseStockUseCase } from '../../application/product/increase-stock.use-case.js';
-import type { ListProductsUseCase } from '../../application/product/list-products.use-case.js';
-import type { UpdateProductUseCase } from '../../application/product/update-product.use-case.js';
+import type { CreateProductUseCase } from '../../application/product/create-product.use-case.ts';
+import type { DecreaseStockUseCase } from '../../application/product/decrease-stock.use-case.ts';
+import type { DeleteProductUseCase } from '../../application/product/delete-product.use-case.ts';
+import type { GetProductByIdUseCase } from '../../application/product/get-product-by-id.use-case.ts';
+import type { GetProductBySlugUseCase } from '../../application/product/get-product-by-slug.use-case.ts';
+import type { GetStockUseCase } from '../../application/product/get-stock.use-case.ts';
+import type { IncreaseStockUseCase } from '../../application/product/increase-stock.use-case.ts';
+import type { ListProductsUseCase } from '../../application/product/list-products.use-case.ts';
+import type { UpdateProductUseCase } from '../../application/product/update-product.use-case.ts';
 import {
   toProductDTO,
   toProductListPayload,
-} from '../serializers/product.serializer.js';
+} from '../serializers/product.serializer.ts';
 import type {
   CreateProductBody,
   ListProductsQuery,
@@ -20,7 +20,7 @@ import type {
   ProductSlugParam,
   StockChangeBody,
   UpdateProductBody,
-} from '../schemas/product.schema.js';
+} from '../schemas/product.schema.ts';
 
 export interface ProductUseCases {
   list: ListProductsUseCase;

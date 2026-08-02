@@ -1,8 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { env } from '../../config/env.js';
-import { ChatController } from '../controllers/chat.controller.js';
-import { ChatRequestSchema, ChatResponseSchema } from '../schemas/chat.schema.js';
+import { env } from '../../config/env.ts';
+import { ChatController } from '../controllers/chat.controller.ts';
+import { requireAi } from '../middlewares/require-ai.ts';
+import { ChatRequestSchema, ChatResponseSchema } from '../schemas/chat.schema.ts';
 
 const chatRateLimit = {
   rateLimit: {
@@ -17,6 +18,7 @@ export async function chatRoutes(app: FastifyInstance): Promise<void> {
 
   fastify.post('/', {
     config: chatRateLimit,
+    onRequest: requireAi,
     schema: {
       tags: ['chat'],
       body: ChatRequestSchema,

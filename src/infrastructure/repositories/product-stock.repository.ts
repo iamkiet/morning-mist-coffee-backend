@@ -1,11 +1,11 @@
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
-import type { ProductStock } from '../../domain/product/product-stock.entity.js';
+import type { ProductStock } from '../../domain/product/product-stock.entity.ts';
 import type {
   ProductStockRepo,
   StockDecreaseItem,
-} from '../../domain/product/product-stock.repo.js';
-import type { DB } from '../db/client.js';
-import { productStock, type ProductStockRow } from '../db/schema.js';
+} from '../../domain/product/product-stock.repo.ts';
+import type { DB } from '../db/client.ts';
+import { productStock, type ProductStockRow } from '../db/schema.ts';
 
 function rowToStock(row: ProductStockRow): ProductStock {
   return { productId: row.productId, quantity: row.quantity };

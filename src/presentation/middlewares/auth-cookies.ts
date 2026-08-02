@@ -1,6 +1,6 @@
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyReply } from 'fastify';
-import { env } from '../../config/env.js';
+import { env } from '../../config/env.ts';
 
 export const ACCESS_COOKIE = 'access_token';
 export const REFRESH_COOKIE = 'refresh_token';

@@ -1,4 +1,4 @@
-import type { UserRole } from '../user/user.entity.js';
+import type { UserRole } from '../user/user.entity.ts';
 
 export interface AccessTokenClaims {
   sub: string;

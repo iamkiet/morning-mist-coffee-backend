@@ -1,15 +1,16 @@
-import { env } from '../../config/env.js';
-import type { EmailSender } from '../../domain/ports/email-sender.port.js';
-import type { IpBlockList } from '../../domain/security/ip-block-list.port.js';
-import type { SecurityDecisionPort } from '../../domain/security/security-decision.port.js';
-import type { SecurityEventStore } from '../../domain/security/security-event-store.port.js';
-import type { SecurityAgentAction } from '../../domain/security/security-event.entity.js';
+import type { AppLogger } from '../../domain/ports/logger.port.ts';
+import type { EmailSender } from '../../domain/ports/email-sender.port.ts';
+import type { IpBlockList } from '../../domain/security/ip-block-list.port.ts';
+import type { SecurityDecisionPort } from '../../domain/security/security-decision.port.ts';
+import type { SecurityEventStore } from '../../domain/security/security-event-store.port.ts';
+import {
+  isSecurityAgentAction,
+  type SecurityAgentAction,
+} from '../../domain/security/security-event.entity.ts';
 
-export interface Logger {
-  debug(msg: string): void;
-  info(obj: Record<string, unknown>, msg: string): void;
-  warn(obj: Record<string, unknown>, msg: string): void;
-  error(obj: Record<string, unknown>, msg: string): void;
+export interface SecurityAgentConfig {
+  enabled: boolean;
+  alertEmail: string;
 }
 
 const EVENT_WINDOW_MS = 5 * 60 * 1000;
@@ -20,8 +21,6 @@ const MAX_ACTIONS_PER_WINDOW = 5;
 
 const CIRCUIT_BREAKER_BLOCK_THRESHOLD = 3;
 
-const ALLOWED_ACTIONS = new Set(['IGNORE', 'LOG_ONLY', 'ALERT_EMAIL', 'TEMP_BLOCK_IP']);
-
 export class SecurityAgentService {
   private executedActionTimestamps: number[] = [];
 
@@ -30,12 +29,15 @@ export class SecurityAgentService {
     private readonly ipBlockList: IpBlockList,
     private readonly decisionPort: SecurityDecisionPort,
     private readonly emailSender: EmailSender,
-    private readonly logger: Logger,
+    private readonly config: SecurityAgentConfig,
+    private readonly logger: AppLogger,
   ) {}
 
   async runCycle(): Promise<void> {
-    if (!env.SECURITY_AGENT_ENABLED) {
-      this.logger.debug('Security agent disabled (SECURITY_AGENT_ENABLED=false), skipping cycle');
+    if (!this.config.enabled) {
+      this.logger.debug(
+        'Security agent disabled (SECURITY_AGENT_ENABLED=false), skipping cycle',
+      );
       return;
     }
 
@@ -53,7 +55,7 @@ export class SecurityAgentService {
       return;
     }
 
-    if (!ALLOWED_ACTIONS.has(decision.action)) {
+    if (!isSecurityAgentAction(decision.action)) {
       this.logger.error(
         { event: 'security_agent.invalid_action', decision },
         'Security agent returned an action outside the allowed list — ignoring',
@@ -64,7 +66,11 @@ export class SecurityAgentService {
     const finalDecision = this.applyCircuitBreaker(decision);
 
     this.logger.info(
-      { event: 'security_agent.decision', decision: finalDecision, eventCount: events.length },
+      {
+        event: 'security_agent.decision',
+        decision: finalDecision,
+        eventCount: events.length,
+      },
       `Security agent decided: ${finalDecision.action} (${finalDecision.severity})`,
     );
 
@@ -94,7 +100,9 @@ export class SecurityAgentService {
 
   private isRateLimited(): boolean {
     const cutoff = Date.now() - ACTION_RATE_WINDOW_MS;
-    this.executedActionTimestamps = this.executedActionTimestamps.filter((t) => t > cutoff);
+    this.executedActionTimestamps = this.executedActionTimestamps.filter(
+      (t) => t > cutoff,
+    );
     return this.executedActionTimestamps.length >= MAX_ACTIONS_PER_WINDOW;
   }
 
@@ -112,35 +120,45 @@ export class SecurityAgentService {
     }
 
     if (decision.action === 'ALERT_EMAIL') {
-      try {
-        await this.emailSender.sendSecurityAlert({
-          to: env.SECURITY_AGENT_ALERT_EMAIL,
-          action: decision.action,
-          severity: decision.severity,
-          reason: decision.reason,
-          occurredAt: new Date(),
-        });
-        this.executedActionTimestamps.push(Date.now());
-      } catch (err) {
-        this.logger.error({ err, event: 'security_agent.alert_email_failed' }, 'Failed to send security alert email');
-      }
+      await this.sendAlert(decision);
       return;
     }
 
-    if (decision.action === 'TEMP_BLOCK_IP') {
-      if (!decision.targetIp) {
-        this.logger.warn(
-          { event: 'security_agent.missing_target_ip', decision },
-          'Security agent chose TEMP_BLOCK_IP without a targetIp — skipping',
-        );
-        return;
-      }
-      this.ipBlockList.block(decision.targetIp, BLOCK_TTL_MS, decision.reason);
+    this.blockIp(decision);
+  }
+
+  private async sendAlert(decision: SecurityAgentAction): Promise<void> {
+    try {
+      await this.emailSender.sendSecurityAlert({
+        to: this.config.alertEmail,
+        action: decision.action,
+        severity: decision.severity,
+        reason: decision.reason,
+        occurredAt: new Date(),
+      });
       this.executedActionTimestamps.push(Date.now());
-      this.logger.warn(
-        { event: 'security_agent.ip_blocked', ip: decision.targetIp, ttlMs: BLOCK_TTL_MS },
-        `Security agent temporarily blocked IP ${decision.targetIp}`,
+    } catch (err) {
+      this.logger.error(
+        { err, event: 'security_agent.alert_email_failed' },
+        'Failed to send security alert email',
       );
     }
+  }
+
+  private blockIp(decision: SecurityAgentAction): void {
+    if (!decision.targetIp) {
+      this.logger.warn(
+        { event: 'security_agent.missing_target_ip', decision },
+        'Security agent chose TEMP_BLOCK_IP without a targetIp — skipping',
+      );
+      return;
+    }
+
+    this.ipBlockList.block(decision.targetIp, BLOCK_TTL_MS, decision.reason);
+    this.executedActionTimestamps.push(Date.now());
+    this.logger.warn(
+      { event: 'security_agent.ip_blocked', ip: decision.targetIp, ttlMs: BLOCK_TTL_MS },
+      `Security agent temporarily blocked IP ${decision.targetIp}`,
+    );
   }
 }

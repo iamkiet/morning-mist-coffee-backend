@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { env } from '../../config/env.js';
-import { OrderController } from '../controllers/order.controller.js';
+import { env } from '../../config/env.ts';
+import { OrderController } from '../controllers/order.controller.ts';
 import {
   CreateOrderBody,
   ListOrdersQuery,
@@ -11,7 +11,7 @@ import {
   OrderLookupResponse,
   OrderSchema,
   UpdateOrderStatusBody,
-} from '../schemas/order.schema.js';
+} from '../schemas/order.schema.ts';
 
 const orderLookupRateLimit = {
   rateLimit: {

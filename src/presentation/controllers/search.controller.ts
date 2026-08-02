@@ -1,11 +1,11 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import type { SearchProductsByVoiceUseCase } from '../../application/product/search-products-by-voice.use-case.js';
-import { ValidationError } from '../../lib/errors.js';
+import type { SearchProductsByVoiceUseCase } from '../../application/product/search-products-by-voice.use-case.ts';
+import { ValidationError } from '../../lib/errors.ts';
 import {
   VOICE_SEARCH_MAX_AUDIO_BYTES,
   VoiceSearchAudioUpload,
-} from '../schemas/search.schema.js';
-import { toProductDTO } from '../serializers/product.serializer.js';
+} from '../schemas/search.schema.ts';
+import { toProductDTO } from '../serializers/product.serializer.ts';
 
 export interface SearchUseCases {
   voiceSearch: SearchProductsByVoiceUseCase;

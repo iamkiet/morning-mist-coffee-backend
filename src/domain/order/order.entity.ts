@@ -1,12 +1,14 @@
-import type { Currency } from '../shared/currency.js';
-import type { SortDirection } from '../shared/pagination.js';
+import type { Currency } from '../shared/currency.ts';
+import type { SortDirection } from '../shared/pagination.ts';
 
-export type OrderStatus =
-  | 'pending'
-  | 'paid'
-  | 'shipped'
-  | 'delivered'
-  | 'cancelled';
+export const ORDER_STATUSES = [
+  'pending',
+  'paid',
+  'shipped',
+  'delivered',
+  'cancelled',
+] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export interface OrderItem {
   id: string;
@@ -31,6 +33,11 @@ export interface Order {
   currency: Currency;
   cashReceivedCents: number | null;
   changeCents: number | null;
+  shippingFirstName: string | null;
+  shippingLastName: string | null;
+  shippingAddress: string | null;
+  shippingCity: string | null;
+  shippingPostalCode: string | null;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -42,6 +49,11 @@ export interface CreateOrderInput {
   currency: Currency;
   cashReceivedCents?: number;
   changeCents?: number;
+  shippingFirstName: string;
+  shippingLastName: string;
+  shippingAddress: string;
+  shippingCity: string;
+  shippingPostalCode: string;
   items: CreateOrderItemInput[];
 }
 
@@ -53,6 +65,7 @@ export type OrderSortField = 'createdAt' | 'totalCents';
 
 export interface ListOrdersFilter {
   email?: string;
+  idPrefix?: string;
   q?: string;
   status?: OrderStatus;
   currency?: Currency;

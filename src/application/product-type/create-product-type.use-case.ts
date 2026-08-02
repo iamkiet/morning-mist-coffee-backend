@@ -1,9 +1,9 @@
-import { ConflictError } from '../../lib/errors.js';
+import { ConflictError } from '../../lib/errors.ts';
 import type {
   CreateProductTypeInput,
   ProductType,
-} from '../../domain/product-type/product-type.entity.js';
-import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.js';
+} from '../../domain/product-type/product-type.entity.ts';
+import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.ts';
 
 export class CreateProductTypeUseCase {
   constructor(private readonly repo: ProductTypeRepo) {}

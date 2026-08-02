@@ -3,8 +3,8 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import ffmpeg from 'fluent-ffmpeg';
-import type { AudioConverterPort, ConvertedAudio } from '../../domain/ports/audio-converter.port.js';
-import { ValidationError } from '../../lib/errors.js';
+import type { AudioConverterPort, ConvertedAudio } from '../../domain/ports/audio-converter.port.ts';
+import { ValidationError } from '../../lib/errors.ts';
 
 const EXT_BY_MIME: Record<string, string> = {
   'audio/webm': 'webm',

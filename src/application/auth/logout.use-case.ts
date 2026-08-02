@@ -1,5 +1,5 @@
-import type { TokenSigner } from '../../domain/ports/token-signer.port.js';
-import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.js';
+import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
+import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
 
 export interface LogoutInput {
   refreshToken: string;

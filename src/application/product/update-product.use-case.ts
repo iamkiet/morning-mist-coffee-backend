@@ -1,14 +1,15 @@
-import { ConflictError, NotFoundError, ValidationError } from '../../lib/errors.js';
-import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.js';
+import { ConflictError, NotFoundError, ValidationError } from '../../lib/errors.ts';
+import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.ts';
 import type {
   Product,
   UpdateProductInput,
-} from '../../domain/product/product.entity.js';
-import type { ProductRepo } from '../../domain/product/product.repo.js';
-import { isSlug } from '../../domain/product/slugify.js';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.js';
-import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.js';
-import { syncProductEmbedding, type EmbeddingSyncLogger } from './sync-product-embedding.js';
+} from '../../domain/product/product.entity.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import { isSlug } from '../../domain/product/slugify.ts';
+import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { AppLogger } from '../../domain/ports/logger.port.ts';
+import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
+import { syncProductEmbedding } from './sync-product-embedding.ts';
 
 export class UpdateProductUseCase {
   constructor(
@@ -16,7 +17,7 @@ export class UpdateProductUseCase {
     private readonly productTypes: ProductTypeRepo,
     private readonly stock: ProductStockRepo,
     private readonly embedding: MultimodalEmbeddingPort,
-    private readonly logger: EmbeddingSyncLogger,
+    private readonly logger: AppLogger,
   ) {}
 
   async execute(id: string, input: UpdateProductInput): Promise<Product> {

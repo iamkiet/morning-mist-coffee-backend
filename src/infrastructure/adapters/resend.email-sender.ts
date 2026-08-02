@@ -1,12 +1,12 @@
 import { Resend } from 'resend';
-import { ExternalServiceError } from '../../lib/errors.js';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   EmailSender,
   OrderConfirmationEmail,
   SecurityAlertEmail,
-} from '../../domain/ports/email-sender.port.js';
-import { buildOrderConfirmationEmail } from '../email/templates/order-confirmation.js';
-import { buildSecurityAlertEmail } from '../email/templates/security-alert.js';
+} from '../../domain/ports/email-sender.port.ts';
+import { buildOrderConfirmationEmail } from '../email/templates/order-confirmation.ts';
+import { buildSecurityAlertEmail } from '../email/templates/security-alert.ts';
 
 export class ResendEmailSender implements EmailSender {
   private readonly client: Resend;

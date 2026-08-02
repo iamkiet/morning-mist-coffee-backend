@@ -15,15 +15,26 @@ export interface SecurityEvent {
   detail?: string;
 }
 
-export type SecurityAgentActionType =
-  | 'IGNORE'
-  | 'LOG_ONLY'
-  | 'ALERT_EMAIL'
-  | 'TEMP_BLOCK_IP';
+export const SECURITY_AGENT_ACTIONS = [
+  'IGNORE',
+  'LOG_ONLY',
+  'ALERT_EMAIL',
+  'TEMP_BLOCK_IP',
+] as const;
+export type SecurityAgentActionType = (typeof SECURITY_AGENT_ACTIONS)[number];
+
+export const SECURITY_SEVERITIES = ['low', 'medium', 'high'] as const;
+export type SecuritySeverity = (typeof SECURITY_SEVERITIES)[number];
 
 export interface SecurityAgentAction {
   action: SecurityAgentActionType;
   reason: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: SecuritySeverity;
   targetIp?: string;
+}
+
+export function isSecurityAgentAction(
+  value: string,
+): value is SecurityAgentActionType {
+  return (SECURITY_AGENT_ACTIONS as readonly string[]).includes(value);
 }

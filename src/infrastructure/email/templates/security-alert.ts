@@ -1,4 +1,4 @@
-import type { SecurityAlertEmail } from '../../../domain/ports/email-sender.port.js';
+import type { SecurityAlertEmail } from '../../../domain/ports/email-sender.port.ts';
 
 export function buildSecurityAlertEmail(data: SecurityAlertEmail): {
   subject: string;

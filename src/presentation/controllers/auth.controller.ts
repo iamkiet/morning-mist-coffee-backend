@@ -1,23 +1,24 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
-import type { GetCurrentUserUseCase } from '../../application/auth/get-current-user.use-case.js';
-import type { LoginUserUseCase } from '../../application/auth/login-user.use-case.js';
-import type { LogoutUseCase } from '../../application/auth/logout.use-case.js';
-import type { RefreshTokenUseCase } from '../../application/auth/refresh-token.use-case.js';
-import type { RegisterUserUseCase } from '../../application/auth/register-user.use-case.js';
-import type { AuthResult } from '../../application/auth/types.js';
-import { UnauthorizedError } from '../../lib/errors.js';
+import type { GetCurrentUserUseCase } from '../../application/auth/get-current-user.use-case.ts';
+import type { LoginUserUseCase } from '../../application/auth/login-user.use-case.ts';
+import type { LogoutUseCase } from '../../application/auth/logout.use-case.ts';
+import type { RefreshTokenUseCase } from '../../application/auth/refresh-token.use-case.ts';
+import type { RegisterUserUseCase } from '../../application/auth/register-user.use-case.ts';
+import type { AuthResult } from '../../application/auth/types.ts';
+import { UnauthorizedError } from '../../lib/errors.ts';
 import {
   REFRESH_COOKIE,
   clearAuthCookies,
   setAuthCookies,
-} from '../middlewares/auth-cookies.js';
+} from '../middlewares/auth-cookies.ts';
 import type {
   LoginBody,
   RefreshBody,
   RegisterBody,
-} from '../schemas/auth.schema.js';
-import { toUserDTO } from '../serializers/auth.serializer.js';
+} from '../schemas/auth.schema.ts';
+import { toUserDTO } from '../serializers/auth.serializer.ts';
+import { withAuthFailureLogging } from './record-auth-failure.ts';
 
 export interface AuthUseCases {
   register: RegisterUserUseCase;
@@ -55,68 +56,48 @@ export class AuthController {
     req: FastifyRequest<{ Body: z.infer<typeof RegisterBody> }>,
     reply: FastifyReply,
   ) => {
-    try {
-      const result = await this.uc.register.execute(req.body);
-      setAuthCookies(
-        reply,
-        result.accessToken,
-        result.refreshToken,
-        result.refreshExpiresAt,
-      );
-      req.log.info(
-        { event: 'auth.register.success', userId: result.user.id },
-        'register success',
-      );
-      return reply.code(201).send(toAuthPayload(result));
-    } catch (err) {
-      req.log.warn(
-        { event: 'auth.register.failed', email: req.body.email, ip: req.ip },
-        'register failed',
-      );
-      req.server.securityEvents.record({
-        type: 'register_fail',
-        ip: req.ip,
-        occurredAt: new Date(),
-        endpoint: '/api/v1/auth/register',
-        email: req.body.email,
-        userAgent: req.headers['user-agent'],
-      });
-      throw err;
-    }
+    const result = await withAuthFailureLogging(
+      req,
+      'register_fail',
+      '/api/v1/auth/register',
+      req.body.email,
+      () => this.uc.register.execute(req.body),
+    );
+    setAuthCookies(
+      reply,
+      result.accessToken,
+      result.refreshToken,
+      result.refreshExpiresAt,
+    );
+    req.log.info(
+      { event: 'auth.register.success', userId: result.user.id },
+      'register success',
+    );
+    return reply.code(201).send(toAuthPayload(result));
   };
 
   login = async (
     req: FastifyRequest<{ Body: z.infer<typeof LoginBody> }>,
     reply: FastifyReply,
   ) => {
-    try {
-      const result = await this.uc.login.execute(req.body);
-      setAuthCookies(
-        reply,
-        result.accessToken,
-        result.refreshToken,
-        result.refreshExpiresAt,
-      );
-      req.log.info(
-        { event: 'auth.login.success', userId: result.user.id },
-        'login success',
-      );
-      return reply.send(toAuthPayload(result));
-    } catch (err) {
-      req.log.warn(
-        { event: 'auth.login.failed', email: req.body.email, ip: req.ip },
-        'login failed',
-      );
-      req.server.securityEvents.record({
-        type: 'login_fail',
-        ip: req.ip,
-        occurredAt: new Date(),
-        endpoint: '/api/v1/auth/login',
-        email: req.body.email,
-        userAgent: req.headers['user-agent'],
-      });
-      throw err;
-    }
+    const result = await withAuthFailureLogging(
+      req,
+      'login_fail',
+      '/api/v1/auth/login',
+      req.body.email,
+      () => this.uc.login.execute(req.body),
+    );
+    setAuthCookies(
+      reply,
+      result.accessToken,
+      result.refreshToken,
+      result.refreshExpiresAt,
+    );
+    req.log.info(
+      { event: 'auth.login.success', userId: result.user.id },
+      'login success',
+    );
+    return reply.send(toAuthPayload(result));
   };
 
   refresh = async (

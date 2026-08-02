@@ -1,6 +1,6 @@
-import { NotFoundError } from '../../lib/errors.js';
-import type { UpdateUserInput, User } from '../../domain/user/user.entity.js';
-import type { UserRepo } from '../../domain/user/user.repo.js';
+import { NotFoundError } from '../../lib/errors.ts';
+import type { UpdateUserInput, User } from '../../domain/user/user.entity.ts';
+import type { UserRepo } from '../../domain/user/user.repo.ts';
 
 export class UpdateUserUseCase {
   constructor(private readonly repo: UserRepo) {}
