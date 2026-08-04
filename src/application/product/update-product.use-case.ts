@@ -1,4 +1,5 @@
 import { ConflictError, NotFoundError, ValidationError } from '../../lib/errors.ts';
+import type { ProductType } from '../../domain/product-type/product-type.entity.ts';
 import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.ts';
 import type {
   Product,
@@ -21,8 +22,9 @@ export class UpdateProductUseCase {
   ) {}
 
   async execute(id: string, input: UpdateProductInput): Promise<Product> {
+    let type: ProductType | null = null;
     if (input.productTypeId) {
-      const type = await this.productTypes.findById(input.productTypeId);
+      type = await this.productTypes.findById(input.productTypeId);
       if (!type) throw new NotFoundError('ProductType', input.productTypeId);
     }
     if (input.slug !== undefined) {
@@ -42,9 +44,12 @@ export class UpdateProductUseCase {
       input.name !== undefined ||
       input.origin !== undefined ||
       input.tastingNotes !== undefined ||
-      input.description !== undefined
+      input.description !== undefined ||
+      input.productTypeId !== undefined
     ) {
-      await syncProductEmbedding(this.products, this.embedding, this.logger, updated);
+      type ??= await this.productTypes.findById(updated.productTypeId);
+      if (!type) throw new NotFoundError('ProductType', updated.productTypeId);
+      await syncProductEmbedding(this.products, this.embedding, this.logger, updated, type);
     }
 
     if (stockQuantity !== undefined) {

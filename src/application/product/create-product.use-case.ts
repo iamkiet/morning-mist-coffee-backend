@@ -25,7 +25,7 @@ export class CreateProductUseCase {
     if (!type) throw new NotFoundError('ProductType', input.productTypeId);
     const slug = await this.resolveSlug(input.name);
     const product = await this.products.create({ ...input, slug });
-    await syncProductEmbedding(this.products, this.embedding, this.logger, product);
+    await syncProductEmbedding(this.products, this.embedding, this.logger, product, type);
     return product;
   }
 

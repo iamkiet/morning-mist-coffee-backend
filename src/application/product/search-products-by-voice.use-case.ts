@@ -41,7 +41,7 @@ export class SearchProductsByVoiceUseCase {
       throw new ExternalServiceError('transcription', 'Could not understand the audio');
     }
 
-    const queryVectorPromise = this.embeddingPort.embedAudio(wavBytes, 'audio/wav');
+    const queryVectorPromise = this.embeddingPort.embedAudioQuery(wavBytes, 'audio/wav');
     const { message, products } = await this.chatUseCase.replyToMessage(
       queryVectorPromise,
       transcript,

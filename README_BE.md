@@ -104,11 +104,11 @@ cancelled → (terminal)
 
 `POST /api/v1/search/voice` — public, rate-limit riêng (`SEARCH_VOICE_RATE_MAX`/`SEARCH_VOICE_RATE_WINDOW`).
 
-- **Audio-native**: audio ghi âm (webm/wav/mp3/ogg, tối đa 10MB và `SEARCH_VOICE_MAX_DURATION_SECONDS` giây — độ dài được ffprobe kiểm tra và reject **trước** khi tốn công convert) được convert sang WAV qua ffmpeg, embed thẳng bằng `gemini-embedding-2` (không qua bước STT trung gian), so khớp cosine similarity với embedding text của sản phẩm — cùng model, cùng không gian vector (không trộn `gemini-embedding-2` với model khác).
-- Transcript (chữ) được tạo riêng qua `gemini-2.5-flash`, chỉ để hiển thị UI ("bạn vừa nói: ..."), **không dùng để search**.
-- Nếu similarity cao nhất dưới ngưỡng `SEARCH_VOICE_SIMILARITY_THRESHOLD` → fallback keyword search bằng transcript (`usedFallback: true` trong response).
+- **Audio-native + transcript, cả hai đều dùng để search**: audio ghi âm (webm/wav/mp3/ogg, tối đa 10MB và `SEARCH_VOICE_MAX_DURATION_SECONDS` giây — độ dài được ffprobe kiểm tra và reject **trước** khi tốn công convert) được convert sang WAV qua ffmpeg, rồi (a) transcribe bằng `gemini-2.5-flash` ra transcript, và (b) embed thẳng bằng `gemini-embedding-2` (`embedAudioQuery`, task type `RETRIEVAL_QUERY` — cùng model, cùng không gian vector với embedding sản phẩm, không trộn model khác) để so khớp cosine similarity. Vector đi vào `SendChatMessageUseCase.replyToMessage` cùng transcript.
+- Transcript **không chỉ để hiển thị UI** — nó được dùng để: trích ràng buộc giá (`ProductFilterExtractionPort`), làm câu hỏi cho keyword fallback (`ilike`) khi vector search rỗng/lỗi, và làm message cho Gemini soạn câu trả lời tự nhiên (`ChatPort.reply`).
+- Fallback không dựa trên ngưỡng similarity cấu hình được — logic nằm trong `SendChatMessageUseCase.retrieveByVector`: vector search lỗi hoặc rỗng → fallback `ilike` theo transcript (giữ nguyên filter giá) → nếu vẫn rỗng, fallback danh sách mới nhất (vẫn giữ filter giá).
 - Đã kiểm chứng thực nghiệm ở `scripts/spike/voice-search-spike.ts` trước khi build: 91.7% top-3 accuracy trên bộ câu hỏi tiếng Việt mẫu (100% câu nói tên sản phẩm, 85.7% câu mô tả mơ hồ) — số liệu + script giữ lại làm bằng chứng thực nghiệm.
-- Embedding sản phẩm (cột `products.embedding`, `halfvec(3072)`, HNSW index `halfvec_cosine_ops`) tự động sinh lại khi `name`/`description` thay đổi (hook trong `CreateProductUseCase`/`UpdateProductUseCase`, best-effort — lỗi Gemini không làm fail request tạo/sửa sản phẩm). Backfill sản phẩm cũ: `npm run db:backfill-embeddings`.
+- Embedding sản phẩm (cột `products.embedding`, `halfvec(3072)`, HNSW index `halfvec_cosine_ops`) nhúng từ `name`/`type` (tên loại sản phẩm)/`origin`/`tastingNotes`/`description` (`syncProductEmbedding`, dùng chung bởi create/update/backfill), tự động sinh lại khi bất kỳ field nào trong số đó đổi, kể cả đổi `productTypeId` (hook trong `CreateProductUseCase`/`UpdateProductUseCase`, best-effort — lỗi Gemini không làm fail request tạo/sửa sản phẩm). Backfill sản phẩm cũ: `npm run db:backfill-embeddings`.
 - **Vì sao `halfvec` chứ không phải `vector`**: `gemini-embedding-2` trả về 3072 chiều, trong khi pgvector giới hạn index (HNSW/IVFFlat) ở **2000 chiều** cho kiểu `vector` — `CREATE INDEX ... USING hnsw` trên `vector(3072)` fail thẳng với lỗi `column cannot have more than 2000 dimensions for hnsw index`. Kiểu `halfvec` (fp16, pgvector ≥ 0.7) nâng trần index lên 4000 chiều, nên giữ nguyên được đủ 3072 chiều mà vẫn index được. Đây là lựa chọn kỹ thuật đáng nêu trong báo cáo: giải pháp thay thế là hạ số chiều xuống 1536 (mất thông tin) hoặc bỏ index (full scan mọi query).
 
 ### AI Chat Assistant
@@ -117,7 +117,7 @@ cancelled → (terminal)
 
 - Model: `gemini-2.5-flash`
 - Persona: trợ lý Morning Mist Coffee, trả lời tiếng Việt, phong cách nhã nhặn tối giản
-- **RAG bằng vector:** embed tin nhắn mới nhất của khách (`MultimodalEmbeddingPort.embedText`), lấy 8 sản phẩm gần nhất theo cosine similarity trên cùng chỉ mục `pgvector` mà voice search dùng (`findSimilarByVector`), rồi mới tiêm vào system prompt — không còn nạp tĩnh N sản phẩm mới nhất. Nếu vector không có kết quả (embedding chưa sinh), fallback tìm kiếm từ khoá (`ilike`) rồi tới danh sách sản phẩm mới nhất, đảm bảo không bao giờ trả lời với catalogue rỗng.
+- **RAG bằng vector:** embed tin nhắn mới nhất của khách (`MultimodalEmbeddingPort.embedQuery` — `RETRIEVAL_QUERY`, khác task type với `embedDocument` dùng khi index sản phẩm), lấy 8 sản phẩm gần nhất theo cosine similarity trên cùng chỉ mục `pgvector` mà voice search dùng (`findSimilarByVector`), rồi mới tiêm vào system prompt — không còn nạp tĩnh N sản phẩm mới nhất. Song song đó, `ProductFilterExtractionPort` (Gemini structured output) trích ràng buộc giá (VND) nếu khách có nêu, áp thành `WHERE priceCents BETWEEN ...` trong cùng query — vector similarity không tự hiểu được ngưỡng số. Nếu vector không có kết quả (embedding chưa sinh), fallback tìm kiếm từ khoá (`ilike`) rồi tới danh sách sản phẩm mới nhất, cả hai đều giữ nguyên filter giá, đảm bảo không bao giờ trả lời với catalogue rỗng hoặc gợi ý sai khoảng giá.
 - Duy trì lịch sử hội thoại (chuẩn hóa luân phiên user/model)
 - Trả về `{ "message": "..." }`
 - Cần `GEMINI_API_KEY`; thiếu key → `503 AI_NOT_CONFIGURED`
@@ -126,7 +126,7 @@ cancelled → (terminal)
 
 Chạy trên `POST /api/v1/auth/register` và `POST /api/v1/auth/login` (preHandler).
 
-- Phân tích payload bằng Gemini (`gemini-2.5-flash`, timeout 8s, tối đa 2 lần thử) — phát hiện SQLi, XSS, path traversal, bot/spam signup
+- Phân tích payload bằng Gemini (`gemini-2.5-flash`, timeout 10s — tối thiểu Gemini API chấp nhận, tối đa 2 lần thử) — phát hiện SQLi, XSS, path traversal, bot/spam signup
 - **DANGEROUS** → block request (`403 FORBIDDEN`)
 - **SUSPICIOUS** → log cảnh báo, vẫn cho qua
 - **SAFE** → cache payload (tối đa 1000 entries) để giảm gọi API

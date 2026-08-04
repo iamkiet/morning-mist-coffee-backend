@@ -7,18 +7,13 @@ import {
   type ThreatAnalysis,
 } from '../../domain/security/threat-analysis.entity.ts';
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
+import securityScanPrompt from '../../prompts/security-scan.prompt.json' with { type: 'json' };
 
 const TIMEOUT_MS = 10_000;
 const MAX_ATTEMPTS = 2;
 
 const CONFIG: GenerateContentConfig = {
-  systemInstruction: `You are a WAF (Web Application Firewall) security and business integrity system.
-Analyze the input JSON data for a specific endpoint.
-Your job is to look for:
-1. Attack signatures such as SQL Injection, XSS, Path Traversal, and NoSQL Injection.
-2. Bot/Spam signatures (especially on registration endpoints like /register), such as temporary/fake email domains (e.g., tempmail.com, mailinator.com) or random garbage strings in name/email fields (e.g., "asdfasdf123", "xyz123abc").
-
-Analyze the input context and return a structured JSON response.`,
+  systemInstruction: securityScanPrompt.template,
   responseMimeType: 'application/json',
   responseSchema: {
     type: Type.OBJECT,

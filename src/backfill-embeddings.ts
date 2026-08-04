@@ -1,8 +1,8 @@
-import { isNull } from 'drizzle-orm';
+import { eq, isNull } from 'drizzle-orm';
 import { syncProductEmbedding } from './application/product/sync-product-embedding.ts';
 import { env } from './config/env.ts';
 import { buildDb } from './infrastructure/db/client.ts';
-import { products } from './infrastructure/db/schema.ts';
+import { productTypes, products } from './infrastructure/db/schema.ts';
 import { GeminiClient } from './infrastructure/adapters/gemini.client.ts';
 import { GeminiMultimodalEmbeddingAdapter } from './infrastructure/adapters/gemini.multimodal-embedding.ts';
 import { PostgresProductRepository } from './infrastructure/repositories/product.repository.ts';
@@ -28,14 +28,16 @@ async function backfill(): Promise<void> {
       origin: products.origin,
       tastingNotes: products.tastingNotes,
       description: products.description,
+      typeName: productTypes.name,
     })
     .from(products)
+    .innerJoin(productTypes, eq(products.productTypeId, productTypes.id))
     .where(isNull(products.embedding));
 
   logger.info({ count: rows.length }, 'Backfilling product embeddings');
 
-  for (const row of rows) {
-    await syncProductEmbedding(productRepo, embedding, logger, row);
+  for (const { typeName, ...row } of rows) {
+    await syncProductEmbedding(productRepo, embedding, logger, row, { name: typeName });
     logger.info({ productId: row.id, name: row.name }, 'Embedding backfilled');
   }
 

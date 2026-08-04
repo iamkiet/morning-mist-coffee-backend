@@ -1,4 +1,5 @@
 export interface MultimodalEmbeddingPort {
-  embedText(text: string): Promise<number[]>;
-  embedAudio(audioBytes: Buffer, mimeType: string): Promise<number[]>;
+  embedDocument(text: string): Promise<number[]>;
+  embedQuery(text: string): Promise<number[]>;
+  embedAudioQuery(audioBytes: Buffer, mimeType: string): Promise<number[]>;
 }

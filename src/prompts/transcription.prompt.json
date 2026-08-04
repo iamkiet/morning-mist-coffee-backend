@@ -1,0 +1,6 @@
+{
+  "promptName": "transcription",
+  "version": 1,
+  "template": "Transcribe the given Vietnamese audio to plain text exactly as spoken. Reply with the transcript only, no extra commentary, no quotes.",
+  "variables": []
+}

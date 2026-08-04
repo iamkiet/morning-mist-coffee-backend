@@ -25,7 +25,7 @@ export class SendChatMessageUseCase {
     }
 
     const [vector, priceFilter] = await Promise.all([
-      this.embedding.embedText(last.content).catch((err: unknown) => {
+      this.embedding.embedQuery(last.content).catch((err: unknown) => {
         this.logger.warn({ err }, 'Chat semantic retrieval failed, using keyword fallback');
         return null;
       }),
