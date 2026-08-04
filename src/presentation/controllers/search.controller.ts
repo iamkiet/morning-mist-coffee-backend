@@ -41,9 +41,9 @@ export class SearchController {
     });
 
     return reply.send({
-      items: result.items.map((item) => ({ ...toProductDTO(item), score: item.score })),
+      message: result.message,
+      items: result.items.map((item) => toProductDTO(item)),
       transcript: result.transcript,
-      usedFallback: result.usedFallback,
     });
   };
 }

@@ -16,32 +16,47 @@ export class SendChatMessageUseCase {
     private readonly logger: AppLogger,
   ) {}
 
-  async execute(messages: ChatTurn[]): Promise<string> {
+  async execute(messages: ChatTurn[]): Promise<{ message: string; products: Product[] }> {
     const last = messages.at(-1);
     if (!last || last.role !== 'user') {
       throw new ValidationError('Last message must be from user');
     }
 
-    const relevant = await this.retrieve(last.content);
+    const vector = await this.embedding.embedText(last.content).catch((err: unknown) => {
+      this.logger.warn({ err }, 'Chat semantic retrieval failed, using keyword fallback');
+      return null;
+    });
+    const relevant = await this.retrieveByVector(vector, last.content);
     const history = messages.slice(0, -1).map((m) => ({
       role: m.role,
       content: m.role === 'user' ? wrapUserMessage(m.content) : m.content,
     }));
 
-    return this.chat.reply(
+    const message = await this.chat.reply(
       buildChatPrompt(relevant),
       history,
       wrapUserMessage(last.content),
     );
+    return { message, products: relevant };
   }
 
-  private async retrieve(question: string): Promise<Product[]> {
-    try {
-      const vector = await this.embedding.embedText(question);
-      const matches = await this.products.findSimilarByVector(vector, RETRIEVAL_LIMIT);
-      if (matches.length > 0) return matches.map((m) => m.product);
-    } catch (err) {
-      this.logger.warn({ err }, 'Chat semantic retrieval failed, using keyword fallback');
+  async replyToMessage(
+    vector: number[] | null,
+    message: string,
+  ): Promise<{ message: string; products: Product[] }> {
+    const relevant = await this.retrieveByVector(vector, message);
+    const reply = await this.chat.reply(buildChatPrompt(relevant), [], wrapUserMessage(message));
+    return { message: reply, products: relevant };
+  }
+
+  private async retrieveByVector(vector: number[] | null, question: string): Promise<Product[]> {
+    if (vector) {
+      try {
+        const matches = await this.products.findSimilarByVector(vector, RETRIEVAL_LIMIT);
+        if (matches.length > 0) return matches.map((m) => m.product);
+      } catch (err) {
+        this.logger.warn({ err }, 'Chat semantic retrieval failed, using keyword fallback');
+      }
     }
 
     const byKeyword = await this.listProducts(question);

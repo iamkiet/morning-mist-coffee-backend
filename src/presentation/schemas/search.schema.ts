@@ -18,12 +18,8 @@ export const VoiceSearchAudioUpload = z.object({
   byteLength: z.number().int().positive().max(VOICE_SEARCH_MAX_AUDIO_BYTES),
 });
 
-export const VoiceSearchResultItemSchema = ProductSchema.extend({
-  score: z.number().min(0).max(1),
-});
-
 export const VoiceSearchResponse = z.object({
-  items: z.array(VoiceSearchResultItemSchema),
+  message: z.string(),
+  items: z.array(ProductSchema),
   transcript: z.string().nullable(),
-  usedFallback: z.boolean(),
 });

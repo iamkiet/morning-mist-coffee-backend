@@ -33,7 +33,6 @@ const EnvSchema = z.object({
 
   EMBEDDING_DIMENSION: z.coerce.number().int().positive().max(4000),
 
-  SEARCH_VOICE_SIMILARITY_THRESHOLD: z.coerce.number().min(0).max(1),
   SEARCH_VOICE_MAX_DURATION_SECONDS: z.coerce.number().int().positive().max(180),
   SEARCH_VOICE_RATE_MAX: z.coerce.number().int().positive(),
   SEARCH_VOICE_RATE_WINDOW: z.string().min(1),

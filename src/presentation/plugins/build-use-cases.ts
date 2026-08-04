@@ -75,6 +75,13 @@ export interface UseCaseDeps {
 }
 
 export function buildUseCases(deps: UseCaseDeps): AppUseCases {
+  const chatSend = new SendChatMessageUseCase(
+    deps.productRepo,
+    deps.embedding,
+    deps.chat,
+    deps.logger,
+  );
+
   return {
     auth: {
       register: new RegisterUserUseCase(
@@ -111,12 +118,7 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
       updateStatus: new UpdateOrderStatusUseCase(deps.orderRepo),
     },
     chat: {
-      send: new SendChatMessageUseCase(
-        deps.productRepo,
-        deps.embedding,
-        deps.chat,
-        deps.logger,
-      ),
+      send: chatSend,
     },
     product: {
       list: new ListProductsUseCase(deps.productRepo, deps.productStockRepo),
@@ -151,12 +153,11 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
     },
     search: {
       voiceSearch: new SearchProductsByVoiceUseCase(
-        deps.productRepo,
         deps.productStockRepo,
         deps.embedding,
         deps.transcription,
         deps.audioConverter,
-        env.SEARCH_VOICE_SIMILARITY_THRESHOLD,
+        chatSend,
         env.SEARCH_VOICE_MAX_DURATION_SECONDS,
       ),
     },

@@ -14,7 +14,7 @@ export class ChatController {
     req: FastifyRequest<{ Body: z.infer<typeof ChatRequestSchema> }>,
     reply: FastifyReply,
   ) => {
-    const message = await this.uc.send.execute(req.body.messages);
+    const { message } = await this.uc.send.execute(req.body.messages);
     return reply.send({ message });
   };
 }
