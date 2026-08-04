@@ -56,3 +56,5 @@ export interface ListProductsFilter {
   limit: number;
   offset: number;
 }
+
+export type PriceRange = Pick<ListProductsFilter, 'priceMin' | 'priceMax'>;

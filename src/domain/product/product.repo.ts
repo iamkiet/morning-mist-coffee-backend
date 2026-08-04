@@ -1,11 +1,10 @@
 import type {
   CreateProductRecord,
   ListProductsFilter,
+  PriceRange,
   Product,
   UpdateProductInput,
 } from './product.entity.ts';
-
-export type PriceRange = Pick<ListProductsFilter, 'priceMin' | 'priceMax'>;
 
 export type ProductFilterCriteria = Omit<
   ListProductsFilter,

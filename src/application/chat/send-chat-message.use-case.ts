@@ -3,8 +3,8 @@ import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
 import type { ProductFilterExtractionPort } from '../../domain/ports/product-filter-extraction.port.ts';
-import type { Product } from '../../domain/product/product.entity.ts';
-import type { PriceRange, ProductRepo } from '../../domain/product/product.repo.ts';
+import type { PriceRange, Product } from '../../domain/product/product.entity.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
 import { buildChatPrompt, wrapUserMessage } from './build-chat-prompt.ts';
 
 const RETRIEVAL_LIMIT = 8;

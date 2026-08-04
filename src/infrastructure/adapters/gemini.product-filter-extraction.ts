@@ -2,7 +2,7 @@ import { Type, type GenerateContentConfig } from '@google/genai';
 import { z } from 'zod';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { ProductFilterExtractionPort } from '../../domain/ports/product-filter-extraction.port.ts';
-import type { PriceRange } from '../../domain/product/product.repo.ts';
+import type { PriceRange } from '../../domain/product/product.entity.ts';
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 
 const PriceRangeSchema = z.object({
@@ -10,7 +10,7 @@ const PriceRangeSchema = z.object({
   priceMax: z.number().int().min(0).optional(),
 });
 
-const TIMEOUT_MS = 5_000;
+const TIMEOUT_MS = 10_000;
 
 const CONFIG: GenerateContentConfig = {
   systemInstruction: `Extract a VND price constraint from a customer's question at a coffee shop, if one is stated.

@@ -2,12 +2,12 @@ import { and, asc, cosineDistance, desc, eq, gte, isNotNull, lte, sql } from 'dr
 import type {
   CreateProductRecord,
   ListProductsFilter,
+  PriceRange,
   Product,
   ProductSortField,
   UpdateProductInput,
 } from '../../domain/product/product.entity.ts';
 import type {
-  PriceRange,
   ProductFilterCriteria,
   ProductRepo,
   SimilarProduct,

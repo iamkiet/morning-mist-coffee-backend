@@ -8,7 +8,7 @@ import {
 } from '../../domain/security/threat-analysis.entity.ts';
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 
-const TIMEOUT_MS = 8_000;
+const TIMEOUT_MS = 10_000;
 const MAX_ATTEMPTS = 2;
 
 const CONFIG: GenerateContentConfig = {
