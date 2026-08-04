@@ -37,7 +37,7 @@ export class SendChatMessageUseCase {
       history,
       wrapUserMessage(last.content),
     );
-    return { message, products: relevant };
+    return { message, products: this.filterMentioned(relevant, message) };
   }
 
   async replyToMessage(
@@ -46,7 +46,12 @@ export class SendChatMessageUseCase {
   ): Promise<{ message: string; products: Product[] }> {
     const relevant = await this.retrieveByVector(vector, message);
     const reply = await this.chat.reply(buildChatPrompt(relevant), [], wrapUserMessage(message));
-    return { message: reply, products: relevant };
+    return { message: reply, products: this.filterMentioned(relevant, reply) };
+  }
+
+  private filterMentioned(products: Product[], reply: string): Product[] {
+    const mentioned = products.filter((p) => reply.includes(p.name));
+    return mentioned.length > 0 ? mentioned : products;
   }
 
   private async retrieveByVector(vector: number[] | null, question: string): Promise<Product[]> {
