@@ -31,6 +31,7 @@ import type { ChatPort } from '../../domain/ports/chat.port.ts';
 import type { EmailSender } from '../../domain/ports/email-sender.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
 import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts';
+import type { ProductFilterExtractionPort } from '../../domain/ports/product-filter-extraction.port.ts';
 import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
 import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
 import type { OrderRepo } from '../../domain/order/order.repo.ts';
@@ -68,6 +69,7 @@ export interface UseCaseDeps {
   embedding: MultimodalEmbeddingPort;
   transcription: TranscriptionPort;
   chat: ChatPort;
+  filterExtraction: ProductFilterExtractionPort;
   audioConverter: AudioConverterPort;
   passwordHasher: PasswordHasher;
   tokenSigner: TokenSigner;
@@ -79,6 +81,7 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
     deps.productRepo,
     deps.embedding,
     deps.chat,
+    deps.filterExtraction,
     deps.logger,
   );
 

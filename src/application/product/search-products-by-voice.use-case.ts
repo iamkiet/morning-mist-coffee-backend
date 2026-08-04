@@ -41,8 +41,11 @@ export class SearchProductsByVoiceUseCase {
       throw new ExternalServiceError('transcription', 'Could not understand the audio');
     }
 
-    const queryVector = await this.embeddingPort.embedAudio(wavBytes, 'audio/wav');
-    const { message, products } = await this.chatUseCase.replyToMessage(queryVector, transcript);
+    const queryVectorPromise = this.embeddingPort.embedAudio(wavBytes, 'audio/wav');
+    const { message, products } = await this.chatUseCase.replyToMessage(
+      queryVectorPromise,
+      transcript,
+    );
 
     const stockMap = await this.stockRepo.getByProductIds(products.map((p) => p.id));
     const items = products.map((p) => ({

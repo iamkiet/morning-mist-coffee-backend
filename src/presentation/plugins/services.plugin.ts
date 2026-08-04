@@ -10,6 +10,7 @@ import { FfmpegAudioConverterAdapter } from '../../infrastructure/adapters/ffmpe
 import { GeminiChatAdapter } from '../../infrastructure/adapters/gemini.chat.ts';
 import { GeminiClient } from '../../infrastructure/adapters/gemini.client.ts';
 import { GeminiMultimodalEmbeddingAdapter } from '../../infrastructure/adapters/gemini.multimodal-embedding.ts';
+import { GeminiProductFilterExtractionAdapter } from '../../infrastructure/adapters/gemini.product-filter-extraction.ts';
 import { GeminiSecurityDecisionAdapter } from '../../infrastructure/adapters/gemini.security-decision.ts';
 import { GeminiSecurityScanAdapter } from '../../infrastructure/adapters/gemini.security-scan.ts';
 import { GeminiTranscriptionAdapter } from '../../infrastructure/adapters/gemini.transcription.ts';
@@ -80,6 +81,7 @@ export const servicesPlugin = fp(
       embedding: new GeminiMultimodalEmbeddingAdapter(gemini),
       transcription: new GeminiTranscriptionAdapter(gemini),
       chat: new GeminiChatAdapter(gemini),
+      filterExtraction: new GeminiProductFilterExtractionAdapter(gemini, app.log),
       audioConverter: new FfmpegAudioConverterAdapter(),
       passwordHasher: new BcryptPasswordHasher(),
       tokenSigner,

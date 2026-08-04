@@ -5,6 +5,8 @@ import type {
   UpdateProductInput,
 } from './product.entity.ts';
 
+export type PriceRange = Pick<ListProductsFilter, 'priceMin' | 'priceMax'>;
+
 export type ProductFilterCriteria = Omit<
   ListProductsFilter,
   'sortBy' | 'sortDir' | 'limit' | 'offset'
@@ -24,5 +26,9 @@ export interface ProductRepo {
   update(id: string, input: UpdateProductInput): Promise<Product | null>;
   delete(id: string): Promise<boolean>;
   updateEmbedding(id: string, embedding: number[] | null): Promise<void>;
-  findSimilarByVector(embedding: number[], limit: number): Promise<SimilarProduct[]>;
+  findSimilarByVector(
+    embedding: number[],
+    limit: number,
+    priceFilter?: PriceRange,
+  ): Promise<SimilarProduct[]>;
 }

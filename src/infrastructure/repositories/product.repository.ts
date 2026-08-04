@@ -1,4 +1,4 @@
-import { asc, cosineDistance, desc, eq, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, cosineDistance, desc, eq, gte, isNotNull, lte, sql } from 'drizzle-orm';
 import type {
   CreateProductRecord,
   ListProductsFilter,
@@ -7,6 +7,7 @@ import type {
   UpdateProductInput,
 } from '../../domain/product/product.entity.ts';
 import type {
+  PriceRange,
   ProductFilterCriteria,
   ProductRepo,
   SimilarProduct,
@@ -138,12 +139,19 @@ export class PostgresProductRepository implements ProductRepo {
   async findSimilarByVector(
     embedding: number[],
     limit: number,
+    priceFilter?: PriceRange,
   ): Promise<SimilarProduct[]> {
     const similarity = sql<number>`1 - (${cosineDistance(products.embedding, embedding)})`;
+    const filters = [isNotNull(products.embedding)];
+    if (priceFilter?.priceMin !== undefined)
+      filters.push(gte(products.priceCents, priceFilter.priceMin));
+    if (priceFilter?.priceMax !== undefined)
+      filters.push(lte(products.priceCents, priceFilter.priceMax));
+
     const rows = await this.db
       .select({ product: products, score: similarity })
       .from(products)
-      .where(isNotNull(products.embedding))
+      .where(and(...filters))
       .orderBy(desc(similarity))
       .limit(limit);
     return rows.map((r) => ({ product: rowToProduct(r.product), score: r.score }));
