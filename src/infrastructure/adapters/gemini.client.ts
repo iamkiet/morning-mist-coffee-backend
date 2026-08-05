@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { AiNotConfiguredError } from '../../lib/errors.ts';
 
-export const GEMINI_FLASH_MODEL = 'gemini-2.5-flash';
+export const GEMINI_FLASH_MODEL = 'gemini-3.6-flash';
 export const GEMINI_EMBEDDING_MODEL = 'gemini-embedding-2';
 
 export class GeminiClient {
