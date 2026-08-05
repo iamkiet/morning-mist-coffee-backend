@@ -8,6 +8,8 @@ import type { ProductRepo } from '../../domain/product/product.repo.ts';
 import { buildChatPrompt, wrapUserMessage } from './build-chat-prompt.ts';
 
 const RETRIEVAL_LIMIT = 8;
+const FALLBACK_REPLY =
+  'Xin lỗi, trợ lý đang tạm quá tải. Đây là một vài gợi ý phù hợp, bạn thử lại sau ít phút để trò chuyện chi tiết hơn nhé.';
 
 export class SendChatMessageUseCase {
   constructor(
@@ -37,11 +39,7 @@ export class SendChatMessageUseCase {
       content: m.role === 'user' ? wrapUserMessage(m.content) : m.content,
     }));
 
-    const message = await this.chat.reply(
-      buildChatPrompt(relevant),
-      history,
-      wrapUserMessage(last.content),
-    );
+    const message = await this.reply(relevant, history, last.content);
     return { message, products: this.filterMentioned(relevant, message) };
   }
 
@@ -54,8 +52,25 @@ export class SendChatMessageUseCase {
       this.filterExtraction.extract(message),
     ]);
     const relevant = await this.retrieveByVector(resolvedVector, message, priceFilter);
-    const reply = await this.chat.reply(buildChatPrompt(relevant), [], wrapUserMessage(message));
+    const reply = await this.reply(relevant, [], message);
     return { message: reply, products: this.filterMentioned(relevant, reply) };
+  }
+
+  private async reply(
+    products: Product[],
+    history: ChatTurn[],
+    userMessage: string,
+  ): Promise<string> {
+    try {
+      return await this.chat.reply(
+        buildChatPrompt(products),
+        history,
+        wrapUserMessage(userMessage),
+      );
+    } catch (err) {
+      this.logger.warn({ err }, 'Chat reply failed, returning fallback message');
+      return FALLBACK_REPLY;
+    }
   }
 
   private filterMentioned(products: Product[], reply: string): Product[] {
