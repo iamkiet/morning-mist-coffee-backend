@@ -99,7 +99,7 @@ export async function buildApp() {
   await app.register(servicesPlugin);
 
   app.addHook('onRequest', async (req) => {
-    if (req.url === '/health' || req.url === '/ready') return;
+    if (req.url === '/health') return;
     if (app.ipBlockList.isBlocked(req.ip)) {
       throw new ForbiddenError('Temporarily blocked by security agent');
     }

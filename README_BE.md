@@ -144,12 +144,11 @@ Vì agent có quyền tự hành động (gửi email, block IP), thiết kế �
 - **ASI09** — nội dung `reason` do Gemini sinh ra trong email cảnh báo chỉ render **plain text**, không HTML/link.
 - **ASI10** — kill switch `SECURITY_AGENT_ENABLED=false` tắt hoàn toàn hành động tự động, agent chỉ còn log.
 
-`TEMP_BLOCK_IP` chặn IP 5 phút qua `IpBlockList` (in-memory), kiểm tra ở `onRequest` hook toàn app (trừ `/health`, `/ready`) → `403 FORBIDDEN`.
+`TEMP_BLOCK_IP` chặn IP 5 phút qua `IpBlockList` (in-memory), kiểm tra ở `onRequest` hook toàn app (trừ `/health`) → `403 FORBIDDEN`.
 
 ### Health
 
 - `GET /health` — uptime + DB check (`200` ok / `503` degraded)
-- `GET /ready` — readiness probe
 
 ## Setup
 
@@ -222,7 +221,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"  
 
 | Method | Path | Auth |
 |--------|------|------|
-| GET | `/health`, `/ready` | — |
+| GET | `/health` | — |
 | POST | `/api/v1/auth/register` | registration key |
 | POST | `/api/v1/auth/login` | — |
 | POST | `/api/v1/auth/refresh`, `/logout` | refresh token |

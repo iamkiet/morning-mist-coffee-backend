@@ -32,6 +32,12 @@ export const RegisterBody = z.object({
   role: UserRoleSchema.optional(),
 });
 
+export const RegisterHeaders = z
+  .object({
+    'x-user-registration-key': z.string().min(1),
+  })
+  .loose();
+
 export const LoginBody = z.object({
   email: z.email(),
   password: z.string().min(1).max(128),

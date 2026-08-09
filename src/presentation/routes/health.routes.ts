@@ -23,20 +23,4 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
       });
     },
   );
-
-  app.get(
-    '/ready',
-    {
-      logLevel: 'warn',
-    },
-    async (_req, reply) => {
-      try {
-        await app.db.execute(sql`select 1`);
-        return { status: 'ok', checks: { db: 'ok' } };
-      } catch (err) {
-        app.log.error({ err }, 'readiness check failed');
-        return reply.code(503).send({ status: 'fail', checks: { db: 'fail' } });
-      }
-    },
-  );
 }

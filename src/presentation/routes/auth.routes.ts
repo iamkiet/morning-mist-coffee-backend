@@ -10,6 +10,7 @@ import {
   RefreshBody,
   RefreshResponse,
   RegisterBody,
+  RegisterHeaders,
   UserSchema,
 } from '../schemas/auth.schema.ts';
 
@@ -28,6 +29,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     config: authRateLimit,
     schema: {
       tags: ['auth'],
+      headers: RegisterHeaders,
       body: RegisterBody,
       response: { 201: AuthResponse },
     },
