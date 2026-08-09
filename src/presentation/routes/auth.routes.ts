@@ -1,9 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { env } from '../../config/env.ts';
 import { AuthController } from '../controllers/auth.controller.ts';
 import { checkRegistrationKey } from '../middlewares/registration-key.ts';
-import { aiSecurityGuard } from '../middlewares/ai-security.middleware.ts';
 import {
   AuthResponse,
   LoginBody,
@@ -31,7 +31,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       body: RegisterBody,
       response: { 201: AuthResponse },
     },
-    preHandler: [checkRegistrationKey, aiSecurityGuard('/register')],
+    preHandler: [checkRegistrationKey],
     handler: controller.register,
   });
 
@@ -42,7 +42,6 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       body: LoginBody,
       response: { 200: AuthResponse },
     },
-    preHandler: [aiSecurityGuard('/login')],
     handler: controller.login,
   });
 
@@ -60,7 +59,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ['auth'],
       body: RefreshBody,
-      response: { 204: { type: 'null' } },
+      response: { 204: z.null() },
     },
     handler: controller.logout,
   });

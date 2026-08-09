@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { UserController } from '../controllers/user.controller.ts';
 import {
   ListUsersQuery,
@@ -43,7 +44,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
       tags: ['users'],
       params: UserIdParam,
       body: UpdatePasswordBody,
-      response: { 204: { type: 'null' } },
+      response: { 204: z.null() },
       security: [{ bearerAuth: [] }],
     },
     handler: controller.updatePassword,

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { ProductController } from '../controllers/product.controller.ts';
 import {
   CreateProductBody,
@@ -70,7 +71,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ['products'],
       params: ProductIdParam,
-      response: { 204: { type: 'null' } },
+      response: { 204: z.null() },
     },
     handler: controller.delete,
   });

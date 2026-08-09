@@ -5,10 +5,13 @@ import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import {
   serializerCompiler,
   validatorCompiler,
   hasZodFastifySchemaValidationErrors,
+  jsonSchemaTransform,
 } from 'fastify-type-provider-zod';
 import { env } from './config/env.ts';
 import { logger } from './lib/logger.ts';
@@ -74,6 +77,22 @@ export async function buildApp() {
     },
   });
   await app.register(sensible);
+
+  await app.register(swagger, {
+    openapi: {
+      info: {
+        title: 'Morning Mist Coffee API',
+        version: '1.0.0',
+      },
+      components: {
+        securitySchemes: {
+          bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        },
+      },
+    },
+    transform: jsonSchemaTransform,
+  });
+  await app.register(swaggerUi, { routePrefix: '/documents' });
 
   await app.register(dbPlugin);
   await app.register(authPlugin);

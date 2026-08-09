@@ -1,8 +1,6 @@
 export type SecurityEventType =
   | 'login_fail'
   | 'register_fail'
-  | 'waf_block'
-  | 'waf_suspicious'
   | 'rate_limit_hit';
 
 export interface SecurityEvent {

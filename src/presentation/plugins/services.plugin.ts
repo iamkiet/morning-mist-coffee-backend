@@ -1,5 +1,4 @@
 import fp from 'fastify-plugin';
-import { AiSecurityService } from '../../application/ai/ai-security.service.ts';
 import { SecurityAgentService } from '../../application/security/security-agent.service.ts';
 import { env } from '../../config/env.ts';
 import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
@@ -12,7 +11,6 @@ import { GeminiClient } from '../../infrastructure/adapters/gemini.client.ts';
 import { GeminiMultimodalEmbeddingAdapter } from '../../infrastructure/adapters/gemini.multimodal-embedding.ts';
 import { GeminiProductFilterExtractionAdapter } from '../../infrastructure/adapters/gemini.product-filter-extraction.ts';
 import { GeminiSecurityDecisionAdapter } from '../../infrastructure/adapters/gemini.security-decision.ts';
-import { GeminiSecurityScanAdapter } from '../../infrastructure/adapters/gemini.security-scan.ts';
 import { GeminiTranscriptionAdapter } from '../../infrastructure/adapters/gemini.transcription.ts';
 import { JoseTokenSigner } from '../../infrastructure/adapters/jose.token-signer.ts';
 import { ResendEmailSender } from '../../infrastructure/adapters/resend.email-sender.ts';
@@ -33,7 +31,6 @@ declare module 'fastify' {
     useCases: AppUseCases;
     tokenSigner: TokenSigner;
     gemini: GeminiClient;
-    aiSecurity: AiSecurityService;
     securityEvents: SecurityEventStore;
     ipBlockList: IpBlockList;
     securityAgent: SecurityAgentService;
@@ -47,11 +44,6 @@ export const servicesPlugin = fp(
     const securityEvents = new InMemorySecurityEventStore();
     const ipBlockList = new InMemoryIpBlockList();
 
-    const aiSecurity = new AiSecurityService(
-      gemini.configured ? new GeminiSecurityScanAdapter(gemini, app.log) : null,
-      securityEvents,
-      app.log,
-    );
     const securityAgent = new SecurityAgentService(
       securityEvents,
       ipBlockList,
@@ -91,7 +83,6 @@ export const servicesPlugin = fp(
     app.decorate('useCases', useCases);
     app.decorate('tokenSigner', tokenSigner);
     app.decorate('gemini', gemini);
-    app.decorate('aiSecurity', aiSecurity);
     app.decorate('securityEvents', securityEvents);
     app.decorate('ipBlockList', ipBlockList);
     app.decorate('securityAgent', securityAgent);
