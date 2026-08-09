@@ -65,7 +65,6 @@ export type OrderSortField = 'createdAt' | 'totalCents';
 
 export interface ListOrdersFilter {
   email?: string;
-  idPrefix?: string;
   q?: string;
   status?: OrderStatus;
   currency?: Currency;

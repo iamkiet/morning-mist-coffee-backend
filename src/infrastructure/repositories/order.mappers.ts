@@ -7,8 +7,6 @@ import { containsPattern, prefixPattern } from './ilike-pattern.ts';
 export function buildOrderFilters(filter: OrderFilterCriteria): SQL[] {
   const filters: SQL[] = [];
   if (filter.email) filters.push(eq(orders.email, filter.email));
-  if (filter.idPrefix)
-    filters.push(sql`${orders.id}::text ilike ${prefixPattern(filter.idPrefix)}`);
   if (filter.q) {
     const pattern = containsPattern(filter.q);
     const match = or(

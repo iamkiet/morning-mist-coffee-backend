@@ -17,10 +17,7 @@ const orderLookupRateLimit = {
   rateLimit: {
     max: env.ORDER_LOOKUP_RATE_MAX,
     timeWindow: env.ORDER_LOOKUP_RATE_WINDOW,
-    keyGenerator: (req: FastifyRequest) => {
-      const email = (req.query as { email?: string } | undefined)?.email ?? '';
-      return `${req.ip}:${email.toLowerCase()}`;
-    },
+    keyGenerator: (req: FastifyRequest) => req.ip,
   },
 };
 
