@@ -1,3 +1,4 @@
+import { env } from '../../../config/env.ts';
 import type { OrderConfirmationEmail } from '../../../domain/ports/email-sender.port.ts';
 
 function formatCents(cents: number): string {
@@ -21,7 +22,7 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
 
   const subject = `Đơn hàng đã được xác nhận — #${data.orderId.slice(0, 8).toUpperCase()}`;
 
-  const trackOrderUrl = `https://todaywegrind.com/track-order?code=${data.orderId}`;
+  const trackOrderUrl = `${env.STOREFRONT_URL}/track-order?code=${data.orderId}`;
 
   const shippingBlock = data.shippingAddress
     ? `
