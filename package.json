@@ -34,7 +34,7 @@
     "@fastify/swagger-ui": "6.1.1",
     "@google/genai": "2.16.0",
     "bcryptjs": "3.0.3",
-    "drizzle-orm": "1.0.0-beta.22",
+    "drizzle-orm": "1.0.0-rc.4",
     "fastify": "5.11.3",
     "fastify-plugin": "5.1.0",
     "fastify-type-provider-zod": "6.1.0",
