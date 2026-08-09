@@ -62,7 +62,8 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
               </tr>
               <tr>
                 <td style="font-size:14px;font-weight:600;">${data.orderId}</td>
-                <td style="font-size:14px;font-weight:600;text-align:right;">${data.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                <td style="fo
+                nt-size:14px;font-weight:600;text-align:right;">${data.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
               </tr>
             </table>
 
