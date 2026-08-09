@@ -13,6 +13,7 @@ import {
 import { env } from './config/env.ts';
 import { logger } from './lib/logger.ts';
 import { ForbiddenError, isAppError } from './lib/errors.ts';
+import { csrfProtection } from './presentation/middlewares/csrf.ts';
 import { dbPlugin } from './presentation/plugins/db.plugin.ts';
 import { authPlugin } from './presentation/plugins/auth.plugin.ts';
 import { servicesPlugin } from './presentation/plugins/services.plugin.ts';
@@ -45,7 +46,7 @@ export async function buildApp() {
     origin: corsOrigin,
     credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
   });
   await app.register(cookie);
   await app.register(multipart, {
@@ -84,6 +85,7 @@ export async function buildApp() {
       throw new ForbiddenError('Temporarily blocked by security agent');
     }
   });
+  app.addHook('onRequest', csrfProtection);
 
   await app.register(healthRoutes);
   await app.register(authRoutes, { prefix: '/api/v1/auth' });

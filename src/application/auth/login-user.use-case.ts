@@ -1,8 +1,12 @@
-import { UnauthorizedError } from '../../lib/errors.ts';
+import { LockedError, UnauthorizedError } from '../../lib/errors.ts';
 import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts';
 import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
 import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
-import { normalizeEmail } from '../../domain/user/user.entity.ts';
+import {
+  LOGIN_LOCKOUT_MS,
+  MAX_FAILED_LOGIN_ATTEMPTS,
+  normalizeEmail,
+} from '../../domain/user/user.entity.ts';
 import type { UserRepo } from '../../domain/user/user.repo.ts';
 import type { AuthResult } from './types.ts';
 
@@ -25,8 +29,26 @@ export class LoginUserUseCase {
       throw new UnauthorizedError('Invalid email or password');
     }
 
+    if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+      throw new LockedError(
+        'Account temporarily locked due to too many failed login attempts',
+      );
+    }
+
     const ok = await this.hasher.verify(input.password, user.passwordHash);
-    if (!ok) throw new UnauthorizedError('Invalid email or password');
+    if (!ok) {
+      const attempts = user.failedLoginAttempts + 1;
+      const lockedUntil =
+        attempts >= MAX_FAILED_LOGIN_ATTEMPTS
+          ? new Date(Date.now() + LOGIN_LOCKOUT_MS)
+          : null;
+      await this.users.recordFailedLogin(user.id, lockedUntil);
+      throw new UnauthorizedError('Invalid email or password');
+    }
+
+    if (user.failedLoginAttempts > 0) {
+      await this.users.resetFailedLogins(user.id);
+    }
 
     const accessToken = await this.tokens.signAccess({
       sub: user.id,

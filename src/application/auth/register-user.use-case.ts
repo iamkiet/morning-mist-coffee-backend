@@ -3,6 +3,7 @@ import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts'
 import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
 import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
 import { normalizeEmail } from '../../domain/user/user.entity.ts';
+import type { UserRole } from '../../domain/user/user.entity.ts';
 import type { UserRepo } from '../../domain/user/user.repo.ts';
 import type { AuthResult } from './types.ts';
 
@@ -11,6 +12,7 @@ export interface RegisterUserInput {
   lastName: string;
   email: string;
   password: string;
+  role?: UserRole;
 }
 
 export class RegisterUserUseCase {
@@ -33,6 +35,7 @@ export class RegisterUserUseCase {
       lastName: input.lastName,
       email,
       passwordHash,
+      role: input.role,
     });
 
     const accessToken = await this.tokens.signAccess({

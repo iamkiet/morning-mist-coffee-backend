@@ -20,6 +20,8 @@ function rowToUser(row: UserRow): User {
     passwordHash: row.passwordHash,
     role: row.role,
     status: row.status,
+    failedLoginAttempts: row.failedLoginAttempts,
+    lockedUntil: row.lockedUntil,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -102,6 +104,28 @@ export class PostgresUserRepository implements UserRepo {
       .where(eq(users.id, id))
       .returning();
     return row ? rowToUser(row) : null;
+  }
+
+  async recordFailedLogin(
+    id: string,
+    lockedUntil: Date | null,
+  ): Promise<User | null> {
+    const [row] = await this.db
+      .update(users)
+      .set({
+        failedLoginAttempts: sql`${users.failedLoginAttempts} + 1`,
+        ...(lockedUntil !== null ? { lockedUntil } : {}),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return row ? rowToUser(row) : null;
+  }
+
+  async resetFailedLogins(id: string): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ failedLoginAttempts: 0, lockedUntil: null })
+      .where(eq(users.id, id));
   }
 
   async list(filter: ListUsersFilter): Promise<User[]> {

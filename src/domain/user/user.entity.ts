@@ -14,9 +14,14 @@ export interface User {
   passwordHash: string | null;
   role: UserRole;
   status: UserStatus;
+  failedLoginAttempts: number;
+  lockedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
+
+export const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+export const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
 
 export interface CreateUserInput {
   firstName: string;

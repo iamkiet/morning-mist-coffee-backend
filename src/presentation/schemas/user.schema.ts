@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { USER_SORT_FIELDS } from '../../domain/user/user.entity.ts';
 import { paginatedResponse, paginationFields, sortFields } from './_pagination.ts';
-import { UserRoleSchema, UserSchema, UserStatusSchema } from './auth.schema.ts';
+import {
+  PasswordSchema,
+  UserRoleSchema,
+  UserSchema,
+  UserStatusSchema,
+} from './auth.schema.ts';
 
 export { UserSchema };
 
@@ -17,7 +22,7 @@ export const UpdateUserBody = z
   });
 
 export const UpdatePasswordBody = z.object({
-  password: z.string().min(8).max(128),
+  password: PasswordSchema,
 });
 
 export const ListUsersQuery = z.object({

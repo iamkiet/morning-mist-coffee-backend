@@ -15,11 +15,21 @@ export const UserSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 
+export const PasswordSchema = z
+  .string()
+  .min(8)
+  .max(128)
+  .regex(/[a-z]/, 'Password must contain a lowercase letter')
+  .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+  .regex(/[0-9]/, 'Password must contain a digit')
+  .regex(/[^a-zA-Z0-9]/, 'Password must contain a special character');
+
 export const RegisterBody = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   email: z.email(),
-  password: z.string().min(8).max(128),
+  password: PasswordSchema,
+  role: UserRoleSchema.optional(),
 });
 
 export const LoginBody = z.object({

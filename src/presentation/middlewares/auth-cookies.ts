@@ -1,9 +1,11 @@
+import { randomBytes } from 'node:crypto';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyReply } from 'fastify';
 import { env } from '../../config/env.ts';
 
 export const ACCESS_COOKIE = 'access_token';
 export const REFRESH_COOKIE = 'refresh_token';
+export const CSRF_COOKIE = 'csrf_token';
 const REFRESH_PATH = '/api/v1/auth';
 
 function parseTtlSeconds(ttl: string): number {
@@ -30,6 +32,14 @@ const refreshCookieOpts: CookieSerializeOptions = {
   path: REFRESH_PATH,
 };
 
+const csrfCookieOpts: CookieSerializeOptions = {
+  httpOnly: false,
+  secure: env.COOKIE_SECURE,
+  sameSite: env.COOKIE_SAME_SITE,
+  path: '/',
+  maxAge: parseTtlSeconds(env.AUTH_ACCESS_TOKEN_TTL),
+};
+
 export function setAuthCookies(
   reply: FastifyReply,
   accessToken: string,
@@ -41,9 +51,11 @@ export function setAuthCookies(
     ...refreshCookieOpts,
     expires: refreshExpiresAt,
   });
+  reply.setCookie(CSRF_COOKIE, randomBytes(32).toString('hex'), csrfCookieOpts);
 }
 
 export function clearAuthCookies(reply: FastifyReply): void {
   reply.clearCookie(ACCESS_COOKIE, accessCookieOpts);
   reply.clearCookie(REFRESH_COOKIE, refreshCookieOpts);
+  reply.clearCookie(CSRF_COOKIE, csrfCookieOpts);
 }

@@ -22,6 +22,10 @@ async function main(): Promise<void> {
   process.on('unhandledRejection', (reason) => {
     app.log.error({ err: reason }, 'unhandled rejection');
   });
+  process.on('uncaughtException', (err) => {
+    app.log.error({ err }, 'uncaught exception');
+    void shutdown('uncaughtException');
+  });
 
   try {
     await app.listen({ host: env.HOST, port: env.PORT });
