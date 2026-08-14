@@ -25,7 +25,8 @@ import { chatRoutes } from './presentation/routes/chat.routes.ts';
 import { healthRoutes } from './presentation/routes/health.routes.ts';
 import { orderRoutes } from './presentation/routes/order.routes.ts';
 import { productRoutes } from './presentation/routes/product.routes.ts';
-import { productTypeRoutes } from './presentation/routes/product-type.routes.ts';
+import { productCategoryRoutes } from './presentation/routes/product-category.routes.ts';
+import { productPropertyRoutes } from './presentation/routes/product-property.routes.ts';
 import { searchRoutes } from './presentation/routes/search.routes.ts';
 import { userRoutes } from './presentation/routes/user.routes.ts';
 
@@ -110,7 +111,8 @@ export async function buildApp() {
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(chatRoutes, { prefix: '/api/v1/chat' });
   await app.register(orderRoutes, { prefix: '/api/v1/orders' });
-  await app.register(productTypeRoutes, { prefix: '/api/v1/product-types' });
+  await app.register(productCategoryRoutes, { prefix: '/api/v1/product-categories' });
+  await app.register(productPropertyRoutes, { prefix: '/api/v1/product-properties' });
   await app.register(productRoutes, { prefix: '/api/v1/products' });
   await app.register(searchRoutes, { prefix: '/api/v1/search' });
   await app.register(userRoutes, { prefix: '/api/v1/users' });

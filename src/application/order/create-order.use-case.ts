@@ -4,7 +4,7 @@ import type {
   Order,
 } from '../../domain/order/order.entity.ts';
 import type { OrderRepo } from '../../domain/order/order.repo.ts';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
 import type { EmailSender } from '../../domain/ports/email-sender.port.ts';
 import { normalizeEmail } from '../../domain/user/user.entity.ts';
@@ -17,7 +17,7 @@ export class CreateOrderUseCase {
   constructor(
     private readonly repo: OrderRepo,
     private readonly products: ProductRepo,
-    private readonly stock: ProductStockRepo,
+    private readonly variants: ProductVariantRepo,
     private readonly emailSender: EmailSender,
     private readonly logger: Logger,
   ) {}
@@ -25,30 +25,36 @@ export class CreateOrderUseCase {
   async execute(input: CreateOrderInput): Promise<Order> {
     const resolvedItems = [];
     for (const item of input.items) {
-      if (!item.productId) {
-        throw new ValidationError('Each order item must specify a product ID');
+      if (!item.productVariantId) {
+        throw new ValidationError('Each order item must specify a product variant ID');
       }
-      const product = await this.products.findById(item.productId);
+      const variant = await this.variants.findById(item.productVariantId);
+      if (!variant) {
+        throw new NotFoundError('ProductVariant', item.productVariantId);
+      }
+      const product = await this.products.findById(variant.productId);
       if (!product) {
-        throw new NotFoundError('Product', item.productId);
+        throw new NotFoundError('Product', variant.productId);
       }
-      if (product.currency !== input.currency) {
-        throw new ValidationError(`Product currency ${product.currency} does not match order currency ${input.currency}`);
+      if (variant.currency !== input.currency) {
+        throw new ValidationError(`Variant currency ${variant.currency} does not match order currency ${input.currency}`);
       }
       resolvedItems.push({
-        productId: item.productId,
+        productVariantId: item.productVariantId,
         name: product.name,
-        priceCents: product.priceCents,
+        priceCents: variant.priceCents,
         quantity: item.quantity,
       });
     }
 
-    const stockItems = resolvedItems
-      .map((item) => ({ productId: item.productId, qty: item.quantity }));
+    const stockItems = resolvedItems.map((item) => ({
+      variantId: item.productVariantId,
+      qty: item.quantity,
+    }));
 
     if (stockItems.length > 0) {
-      const ok = await this.stock.tryDecreaseBatch(stockItems);
-      if (!ok) throw new ConflictError('One or more items are out of stock');
+      const result = await this.variants.tryDecreaseStockBatch(stockItems);
+      if (!result.ok) throw new ConflictError('One or more items are out of stock');
     }
 
     const totalCents = resolvedItems.reduce(

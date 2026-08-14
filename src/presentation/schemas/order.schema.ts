@@ -11,7 +11,7 @@ export const OrderStatus = z.enum(ORDER_STATUSES);
 
 export const OrderItemSchema = z.object({
   id: z.uuid(),
-  productId: z.uuid().nullable(),
+  productVariantId: z.uuid().nullable(),
   name: z.string(),
   priceCents: z.number().int().min(0),
   quantity: z.number().int().min(1),
@@ -36,7 +36,7 @@ export const OrderSchema = z.object({
 });
 
 export const CreateOrderItemBody = z.object({
-  productId: z.uuid().optional(),
+  productVariantId: z.uuid().optional(),
   name: z.string().min(1),
   priceCents: z.number().int().min(0),
   quantity: z.number().int().min(1),

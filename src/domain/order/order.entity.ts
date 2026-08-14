@@ -12,14 +12,14 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export interface OrderItem {
   id: string;
-  productId: string | null;
+  productVariantId: string | null;
   name: string;
   priceCents: number;
   quantity: number;
 }
 
 export interface CreateOrderItemInput {
-  productId?: string;
+  productVariantId?: string;
   name: string;
   priceCents: number;
   quantity: number;

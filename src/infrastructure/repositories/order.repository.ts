@@ -104,7 +104,7 @@ export class PostgresOrderRepository implements OrderRepo {
             .values(
               input.items.map((item) => ({
                 orderId: row.id,
-                productId: item.productId ?? null,
+                productVariantId: item.productVariantId ?? null,
                 name: item.name,
                 priceCents: item.priceCents,
                 quantity: item.quantity,

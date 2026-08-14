@@ -21,7 +21,7 @@ export function toOrderDTO(order: Order): OrderDTO {
     shippingPostalCode: order.shippingPostalCode,
     items: order.items.map((item) => ({
       id: item.id,
-      productId: item.productId,
+      productVariantId: item.productVariantId,
       name: item.name,
       priceCents: item.priceCents,
       quantity: item.quantity,

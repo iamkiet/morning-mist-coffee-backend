@@ -1,25 +1,36 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
 import type { CreateProductUseCase } from '../../application/product/create-product.use-case.ts';
-import type { DecreaseStockUseCase } from '../../application/product/decrease-stock.use-case.ts';
+import type { CreateProductVariantUseCase } from '../../application/product/create-product-variant.use-case.ts';
+import type { DecreaseVariantStockUseCase } from '../../application/product/decrease-variant-stock.use-case.ts';
 import type { DeleteProductUseCase } from '../../application/product/delete-product.use-case.ts';
+import type { DeleteProductVariantUseCase } from '../../application/product/delete-product-variant.use-case.ts';
 import type { GetProductByIdUseCase } from '../../application/product/get-product-by-id.use-case.ts';
 import type { GetProductBySlugUseCase } from '../../application/product/get-product-by-slug.use-case.ts';
-import type { GetStockUseCase } from '../../application/product/get-stock.use-case.ts';
-import type { IncreaseStockUseCase } from '../../application/product/increase-stock.use-case.ts';
+import type { GetVariantStockUseCase } from '../../application/product/get-variant-stock.use-case.ts';
+import type { IncreaseVariantStockUseCase } from '../../application/product/increase-variant-stock.use-case.ts';
 import type { ListProductsUseCase } from '../../application/product/list-products.use-case.ts';
+import type { SetProductCategoriesUseCase } from '../../application/product/set-product-categories.use-case.ts';
+import type { SetVariantPropertyValuesUseCase } from '../../application/product/set-variant-property-values.use-case.ts';
 import type { UpdateProductUseCase } from '../../application/product/update-product.use-case.ts';
+import type { UpdateProductVariantUseCase } from '../../application/product/update-product-variant.use-case.ts';
 import {
   toProductDTO,
   toProductListPayload,
+  toProductVariantDTO,
 } from '../serializers/product.serializer.ts';
 import type {
   CreateProductBody,
+  CreateProductVariantBody,
   ListProductsQuery,
   ProductIdParam,
   ProductSlugParam,
+  ProductVariantIdParam,
+  SetProductCategoriesBody,
+  SetVariantPropertyValuesBody,
   StockChangeBody,
   UpdateProductBody,
+  UpdateProductVariantBody,
 } from '../schemas/product.schema.ts';
 
 export interface ProductUseCases {
@@ -29,9 +40,14 @@ export interface ProductUseCases {
   create: CreateProductUseCase;
   update: UpdateProductUseCase;
   delete: DeleteProductUseCase;
-  getStock: GetStockUseCase;
-  increaseStock: IncreaseStockUseCase;
-  decreaseStock: DecreaseStockUseCase;
+  createVariant: CreateProductVariantUseCase;
+  updateVariant: UpdateProductVariantUseCase;
+  deleteVariant: DeleteProductVariantUseCase;
+  getVariantStock: GetVariantStockUseCase;
+  increaseVariantStock: IncreaseVariantStockUseCase;
+  decreaseVariantStock: DecreaseVariantStockUseCase;
+  setCategories: SetProductCategoriesUseCase;
+  setVariantPropertyValues: SetVariantPropertyValuesUseCase;
 }
 
 export class ProductController {
@@ -88,33 +104,97 @@ export class ProductController {
     return reply.code(204).send();
   };
 
-  getStock = async (
-    req: FastifyRequest<{ Params: z.infer<typeof ProductIdParam> }>,
-    reply: FastifyReply,
-  ) => {
-    const stock = await this.uc.getStock.execute(req.params.id);
-    return reply.send(stock);
-  };
-
-  increaseStock = async (
+  setCategories = async (
     req: FastifyRequest<{
       Params: z.infer<typeof ProductIdParam>;
+      Body: z.infer<typeof SetProductCategoriesBody>;
+    }>,
+    reply: FastifyReply,
+  ) => {
+    await this.uc.setCategories.execute(req.params.id, req.body.categoryIds);
+    return reply.code(204).send();
+  };
+
+  createVariant = async (
+    req: FastifyRequest<{
+      Params: z.infer<typeof ProductIdParam>;
+      Body: z.infer<typeof CreateProductVariantBody>;
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const variant = await this.uc.createVariant.execute(req.params.id, req.body);
+    return reply.code(201).send(toProductVariantDTO(variant));
+  };
+
+  updateVariant = async (
+    req: FastifyRequest<{
+      Params: z.infer<typeof ProductVariantIdParam>;
+      Body: z.infer<typeof UpdateProductVariantBody>;
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const variant = await this.uc.updateVariant.execute(
+      req.params.variantId,
+      req.body,
+    );
+    return reply.send(toProductVariantDTO(variant));
+  };
+
+  deleteVariant = async (
+    req: FastifyRequest<{ Params: z.infer<typeof ProductVariantIdParam> }>,
+    reply: FastifyReply,
+  ) => {
+    await this.uc.deleteVariant.execute(req.params.variantId);
+    return reply.code(204).send();
+  };
+
+  setVariantPropertyValues = async (
+    req: FastifyRequest<{
+      Params: z.infer<typeof ProductVariantIdParam>;
+      Body: z.infer<typeof SetVariantPropertyValuesBody>;
+    }>,
+    reply: FastifyReply,
+  ) => {
+    await this.uc.setVariantPropertyValues.execute(
+      req.params.variantId,
+      req.body.values,
+    );
+    return reply.code(204).send();
+  };
+
+  getVariantStock = async (
+    req: FastifyRequest<{ Params: z.infer<typeof ProductVariantIdParam> }>,
+    reply: FastifyReply,
+  ) => {
+    const variant = await this.uc.getVariantStock.execute(req.params.variantId);
+    return reply.send(toProductVariantDTO(variant));
+  };
+
+  increaseVariantStock = async (
+    req: FastifyRequest<{
+      Params: z.infer<typeof ProductVariantIdParam>;
       Body: z.infer<typeof StockChangeBody>;
     }>,
     reply: FastifyReply,
   ) => {
-    const stock = await this.uc.increaseStock.execute(req.params.id, req.body);
-    return reply.send(stock);
+    const variant = await this.uc.increaseVariantStock.execute(
+      req.params.variantId,
+      req.body,
+    );
+    return reply.send(toProductVariantDTO(variant));
   };
 
-  decreaseStock = async (
+  decreaseVariantStock = async (
     req: FastifyRequest<{
-      Params: z.infer<typeof ProductIdParam>;
+      Params: z.infer<typeof ProductVariantIdParam>;
       Body: z.infer<typeof StockChangeBody>;
     }>,
     reply: FastifyReply,
   ) => {
-    const stock = await this.uc.decreaseStock.execute(req.params.id, req.body);
-    return reply.send(stock);
+    const variant = await this.uc.decreaseVariantStock.execute(
+      req.params.variantId,
+      req.body,
+    );
+    return reply.send(toProductVariantDTO(variant));
   };
 }

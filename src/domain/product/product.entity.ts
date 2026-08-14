@@ -1,31 +1,19 @@
-import type { Currency } from '../shared/currency.ts';
 import type { SortDirection } from '../shared/pagination.ts';
 
 export interface Product {
   id: string;
   slug: string;
   name: string;
-  origin: string | null;
-  tastingNotes: string[];
   description: string | null;
-  priceCents: number;
-  currency: Currency;
   image: string | null;
-  productTypeId: string;
-  stockQuantity: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateProductInput {
   name: string;
-  origin?: string | null;
-  tastingNotes?: string[];
   description?: string | null;
-  priceCents: number;
-  currency?: Currency;
   image?: string | null;
-  productTypeId: string;
 }
 
 export type CreateProductRecord = CreateProductInput & { slug: string };
@@ -33,24 +21,20 @@ export type CreateProductRecord = CreateProductInput & { slug: string };
 export interface UpdateProductInput {
   slug?: string;
   name?: string;
-  origin?: string | null;
-  tastingNotes?: string[];
   description?: string | null;
-  priceCents?: number;
-  currency?: Currency;
   image?: string | null;
-  productTypeId?: string;
-  stockQuantity?: number;
 }
 
-export type ProductSortField = 'createdAt' | 'name' | 'priceCents';
+export type ProductSortField = 'createdAt' | 'name';
 
-export interface ListProductsFilter {
-  productTypeId?: string;
-  currency?: Currency;
+export interface ProductFilterCriteria {
+  categoryId?: string;
   priceMin?: number;
   priceMax?: number;
   q?: string;
+}
+
+export interface ListProductsFilter extends ProductFilterCriteria {
   sortBy: ProductSortField;
   sortDir: SortDirection;
   limit: number;
@@ -58,3 +42,14 @@ export interface ListProductsFilter {
 }
 
 export type PriceRange = Pick<ListProductsFilter, 'priceMin' | 'priceMax'>;
+
+export interface ProductSearchFilter extends PriceRange {
+  categoryId?: string;
+}
+
+export interface ProductEmbeddingSource {
+  name: string;
+  description: string | null;
+  categoryNames: string[];
+  propertyValues: Array<{ propertyName: string; value: string }>;
+}

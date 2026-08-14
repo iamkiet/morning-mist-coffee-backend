@@ -1,19 +1,17 @@
-import type {
-  ListProductsFilter,
-  Product,
-} from '../../domain/product/product.entity.ts';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ListProductsFilter } from '../../domain/product/product.entity.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import type { ProductWithVariants } from '../../domain/product/product-variant.entity.ts';
+import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { Paginated } from '../../domain/shared/pagination.ts';
-import { attachStock } from './attach-stock.ts';
+import { attachVariants } from './attach-variants.ts';
 
 export class ListProductsUseCase {
   constructor(
     private readonly repo: ProductRepo,
-    private readonly stock: ProductStockRepo,
+    private readonly variants: ProductVariantRepo,
   ) {}
 
-  async execute(filter: ListProductsFilter): Promise<Paginated<Product>> {
+  async execute(filter: ListProductsFilter): Promise<Paginated<ProductWithVariants>> {
     const {
       sortBy: _sortBy,
       sortDir: _sortDir,
@@ -26,7 +24,7 @@ export class ListProductsUseCase {
       this.repo.count(criteria),
     ]);
     return {
-      items: await attachStock(this.stock, items),
+      items: await attachVariants(this.variants, items),
       total,
       limit: filter.limit,
       offset: filter.offset,

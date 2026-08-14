@@ -33,7 +33,7 @@ export function orderWhere(filter: OrderFilterCriteria): SQL | undefined {
 export function rowToItem(row: OrderItemRow): OrderItem {
   return {
     id: row.id,
-    productId: row.productId,
+    productVariantId: row.productVariantId,
     name: row.name,
     priceCents: row.priceCents,
     quantity: row.quantity,

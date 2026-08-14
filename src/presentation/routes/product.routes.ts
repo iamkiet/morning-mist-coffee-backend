@@ -4,14 +4,19 @@ import { z } from 'zod';
 import { ProductController } from '../controllers/product.controller.ts';
 import {
   CreateProductBody,
+  CreateProductVariantBody,
   ListProductsQuery,
   ProductIdParam,
   ProductListResponse,
-  ProductSlugParam,
   ProductSchema,
-  ProductStockSchema,
+  ProductSlugParam,
+  ProductVariantIdParam,
+  ProductVariantSchema,
+  SetProductCategoriesBody,
+  SetVariantPropertyValuesBody,
   StockChangeBody,
   UpdateProductBody,
+  UpdateProductVariantBody,
 } from '../schemas/product.schema.ts';
 
 export async function productRoutes(app: FastifyInstance): Promise<void> {
@@ -76,35 +81,89 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
     handler: controller.delete,
   });
 
-  fastify.get('/:id/stock', {
+  fastify.put('/:id/categories', {
     onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
-      response: { 200: ProductStockSchema },
+      body: SetProductCategoriesBody,
+      response: { 204: z.null() },
     },
-    handler: controller.getStock,
+    handler: controller.setCategories,
   });
 
-  fastify.post('/:id/stock/increase', {
+  fastify.post('/:id/variants', {
     onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
-      body: StockChangeBody,
-      response: { 200: ProductStockSchema },
+      body: CreateProductVariantBody,
+      response: { 201: ProductVariantSchema },
     },
-    handler: controller.increaseStock,
+    handler: controller.createVariant,
   });
 
-  fastify.post('/:id/stock/decrease', {
+  fastify.patch('/variants/:variantId', {
     onRequest: [app.authenticate, app.requireRole('admin')],
     schema: {
       tags: ['products'],
-      params: ProductIdParam,
-      body: StockChangeBody,
-      response: { 200: ProductStockSchema },
+      params: ProductVariantIdParam,
+      body: UpdateProductVariantBody,
+      response: { 200: ProductVariantSchema },
     },
-    handler: controller.decreaseStock,
+    handler: controller.updateVariant,
+  });
+
+  fastify.delete('/variants/:variantId', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['products'],
+      params: ProductVariantIdParam,
+      response: { 204: z.null() },
+    },
+    handler: controller.deleteVariant,
+  });
+
+  fastify.put('/variants/:variantId/properties', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['products'],
+      params: ProductVariantIdParam,
+      body: SetVariantPropertyValuesBody,
+      response: { 204: z.null() },
+    },
+    handler: controller.setVariantPropertyValues,
+  });
+
+  fastify.get('/variants/:variantId/stock', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['products'],
+      params: ProductVariantIdParam,
+      response: { 200: ProductVariantSchema },
+    },
+    handler: controller.getVariantStock,
+  });
+
+  fastify.post('/variants/:variantId/stock/increase', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['products'],
+      params: ProductVariantIdParam,
+      body: StockChangeBody,
+      response: { 200: ProductVariantSchema },
+    },
+    handler: controller.increaseVariantStock,
+  });
+
+  fastify.post('/variants/:variantId/stock/decrease', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['products'],
+      params: ProductVariantIdParam,
+      body: StockChangeBody,
+      response: { 200: ProductVariantSchema },
+    },
+    handler: controller.decreaseVariantStock,
   });
 }

@@ -1,18 +1,18 @@
 import { NotFoundError } from '../../lib/errors.ts';
-import type { Product } from '../../domain/product/product.entity.ts';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ProductWithVariants } from '../../domain/product/product-variant.entity.ts';
+import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
-import { attachStockOne } from './attach-stock.ts';
+import { attachVariantsOne } from './attach-variants.ts';
 
 export class GetProductBySlugUseCase {
   constructor(
     private readonly repo: ProductRepo,
-    private readonly stock: ProductStockRepo,
+    private readonly variants: ProductVariantRepo,
   ) {}
 
-  async execute(slug: string): Promise<Product> {
+  async execute(slug: string): Promise<ProductWithVariants> {
     const product = await this.repo.findBySlug(slug);
     if (!product) throw new NotFoundError('Product', slug);
-    return attachStockOne(this.stock, product);
+    return attachVariantsOne(this.variants, product);
   }
 }

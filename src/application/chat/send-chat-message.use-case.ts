@@ -4,7 +4,9 @@ import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
 import type { ProductFilterExtractionPort } from '../../domain/ports/product-filter-extraction.port.ts';
 import type { PriceRange, Product } from '../../domain/product/product.entity.ts';
+import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import { buildCatalogueProducts } from './build-catalogue-products.ts';
 import { buildChatPrompt, wrapUserMessage } from './build-chat-prompt.ts';
 
 const RETRIEVAL_LIMIT = 8;
@@ -14,6 +16,7 @@ const FALLBACK_REPLY =
 export class SendChatMessageUseCase {
   constructor(
     private readonly products: ProductRepo,
+    private readonly variants: ProductVariantRepo,
     private readonly embedding: MultimodalEmbeddingPort,
     private readonly chat: ChatPort,
     private readonly filterExtraction: ProductFilterExtractionPort,
@@ -62,8 +65,9 @@ export class SendChatMessageUseCase {
     userMessage: string,
   ): Promise<string> {
     try {
+      const catalogue = await buildCatalogueProducts(this.variants, products);
       return await this.chat.reply(
-        buildChatPrompt(products),
+        buildChatPrompt(catalogue),
         history,
         wrapUserMessage(userMessage),
       );

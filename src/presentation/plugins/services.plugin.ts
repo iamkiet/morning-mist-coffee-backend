@@ -15,8 +15,9 @@ import { GeminiTranscriptionAdapter } from '../../infrastructure/adapters/gemini
 import { JoseTokenSigner } from '../../infrastructure/adapters/jose.token-signer.ts';
 import { ResendEmailSender } from '../../infrastructure/adapters/resend.email-sender.ts';
 import { PostgresOrderRepository } from '../../infrastructure/repositories/order.repository.ts';
-import { PostgresProductStockRepository } from '../../infrastructure/repositories/product-stock.repository.ts';
-import { PostgresProductTypeRepository } from '../../infrastructure/repositories/product-type.repository.ts';
+import { PostgresProductVariantRepository } from '../../infrastructure/repositories/product-variant.repository.ts';
+import { PostgresProductCategoryRepository } from '../../infrastructure/repositories/product-category.repository.ts';
+import { PostgresProductPropertyRepository } from '../../infrastructure/repositories/product-property.repository.ts';
 import { PostgresProductRepository } from '../../infrastructure/repositories/product.repository.ts';
 import { PostgresRefreshTokenRepository } from '../../infrastructure/repositories/refresh-token.repository.ts';
 import { PostgresUserRepository } from '../../infrastructure/repositories/user.repository.ts';
@@ -67,8 +68,9 @@ export const servicesPlugin = fp(
       userRepo: new PostgresUserRepository(app.db),
       refreshTokenRepo: new PostgresRefreshTokenRepository(app.db),
       productRepo: new PostgresProductRepository(app.db),
-      productTypeRepo: new PostgresProductTypeRepository(app.db),
-      productStockRepo: new PostgresProductStockRepository(app.db),
+      productVariantRepo: new PostgresProductVariantRepository(app.db),
+      productCategoryRepo: new PostgresProductCategoryRepository(app.db),
+      productPropertyRepo: new PostgresProductPropertyRepository(app.db),
       emailSender,
       embedding: new GeminiMultimodalEmbeddingAdapter(gemini),
       transcription: new GeminiTranscriptionAdapter(gemini),

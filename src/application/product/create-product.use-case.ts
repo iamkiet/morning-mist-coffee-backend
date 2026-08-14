@@ -1,10 +1,12 @@
 import { ConflictError, NotFoundError } from '../../lib/errors.ts';
-import type { ProductTypeRepo } from '../../domain/product-type/product-type.repo.ts';
-import type {
-  CreateProductInput,
-  Product,
-} from '../../domain/product/product.entity.ts';
+import type { ProductCategoryRepo } from '../../domain/product-category/product-category.repo.ts';
+import type { CreateProductInput } from '../../domain/product/product.entity.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import type {
+  CreateProductVariantInput,
+  ProductWithVariants,
+} from '../../domain/product/product-variant.entity.ts';
+import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import { nextSlugCandidate, slugify } from '../../domain/product/slugify.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
@@ -12,21 +14,48 @@ import { syncProductEmbedding } from './sync-product-embedding.ts';
 
 const MAX_SLUG_ATTEMPTS = 50;
 
+export interface CreateProductWithVariantInput extends CreateProductInput {
+  categoryIds?: string[];
+  variant: CreateProductVariantInput & {
+    propertyValues?: Array<{ propertyId: string; value: string }>;
+  };
+}
+
 export class CreateProductUseCase {
   constructor(
     private readonly products: ProductRepo,
-    private readonly productTypes: ProductTypeRepo,
+    private readonly variants: ProductVariantRepo,
+    private readonly categories: ProductCategoryRepo,
     private readonly embedding: MultimodalEmbeddingPort,
     private readonly logger: AppLogger,
   ) {}
 
-  async execute(input: CreateProductInput): Promise<Product> {
-    const type = await this.productTypes.findById(input.productTypeId);
-    if (!type) throw new NotFoundError('ProductType', input.productTypeId);
+  async execute(input: CreateProductWithVariantInput): Promise<ProductWithVariants> {
+    if (input.categoryIds) {
+      for (const categoryId of input.categoryIds) {
+        const category = await this.categories.findById(categoryId);
+        if (!category) throw new NotFoundError('ProductCategory', categoryId);
+      }
+    }
+
     const slug = await this.resolveSlug(input.name);
-    const product = await this.products.create({ ...input, slug });
-    await syncProductEmbedding(this.products, this.embedding, this.logger, product, type);
-    return product;
+    const product = await this.products.create({
+      name: input.name,
+      description: input.description,
+      image: input.image,
+      slug,
+    });
+
+    const variant = await this.variants.create(product.id, input.variant);
+    if (input.variant.propertyValues) {
+      await this.variants.setPropertyValues(variant.id, input.variant.propertyValues);
+    }
+    if (input.categoryIds) {
+      await this.categories.setCategoriesForProduct(product.id, input.categoryIds);
+    }
+
+    await syncProductEmbedding(product.id, this.products, this.embedding, this.logger);
+    return { ...product, variants: [variant] };
   }
 
   private async resolveSlug(name: string): Promise<string> {

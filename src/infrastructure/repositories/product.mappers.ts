@@ -1,28 +1,54 @@
 import { and, eq, gte, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { Product } from '../../domain/product/product.entity.ts';
 import type { ProductFilterCriteria } from '../../domain/product/product.repo.ts';
-import { products, type ProductRow } from '../db/schema.ts';
+import {
+  productVariantPropertyValues,
+  productVariants,
+  products,
+  productsCategories,
+  type ProductRow,
+} from '../db/schema.ts';
 import { containsPattern } from './ilike-pattern.ts';
 
 export function buildProductFilters(filter: ProductFilterCriteria): SQL[] {
   const filters: SQL[] = [];
-  if (filter.productTypeId)
-    filters.push(eq(products.productTypeId, filter.productTypeId));
-  if (filter.currency) filters.push(eq(products.currency, filter.currency));
-  if (filter.priceMin !== undefined)
-    filters.push(gte(products.priceCents, filter.priceMin));
-  if (filter.priceMax !== undefined)
-    filters.push(lte(products.priceCents, filter.priceMax));
+
+  if (filter.categoryId) {
+    filters.push(sql`exists (select 1 from ${productsCategories}
+      where ${and(
+        eq(productsCategories.productId, products.id),
+        eq(productsCategories.productCategoryId, filter.categoryId),
+      )})`);
+  }
+
+  if (filter.priceMin !== undefined || filter.priceMax !== undefined) {
+    const priceConds = [eq(productVariants.productId, products.id)];
+    if (filter.priceMin !== undefined)
+      priceConds.push(gte(productVariants.priceCents, filter.priceMin));
+    if (filter.priceMax !== undefined)
+      priceConds.push(lte(productVariants.priceCents, filter.priceMax));
+    filters.push(
+      sql`exists (select 1 from ${productVariants} where ${and(...priceConds)})`,
+    );
+  }
+
   if (filter.q) {
     const pattern = containsPattern(filter.q);
+    const propertyMatch = sql`exists (select 1 from ${productVariants}
+      inner join ${productVariantPropertyValues}
+        on ${eq(productVariantPropertyValues.productVariantId, productVariants.id)}
+      where ${and(
+        eq(productVariants.productId, products.id),
+        ilike(productVariantPropertyValues.value, pattern),
+      )})`;
     const match = or(
       ilike(products.name, pattern),
-      ilike(products.origin, pattern),
       ilike(products.description, pattern),
-      sql`array_to_string(${products.tastingNotes}, ' ') ilike ${pattern}`,
+      propertyMatch,
     );
     if (match) filters.push(match);
   }
+
   return filters;
 }
 
@@ -36,14 +62,8 @@ export function rowToProduct(row: ProductRow): Product {
     id: row.id,
     slug: row.slug,
     name: row.name,
-    origin: row.origin,
-    tastingNotes: row.tastingNotes,
     description: row.description,
-    priceCents: row.priceCents,
-    currency: row.currency,
     image: row.image,
-    productTypeId: row.productTypeId,
-    stockQuantity: 0,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

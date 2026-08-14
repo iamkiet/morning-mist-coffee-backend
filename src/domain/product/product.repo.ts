@@ -1,15 +1,14 @@
 import type {
   CreateProductRecord,
   ListProductsFilter,
-  PriceRange,
   Product,
+  ProductEmbeddingSource,
+  ProductFilterCriteria,
+  ProductSearchFilter,
   UpdateProductInput,
 } from './product.entity.ts';
 
-export type ProductFilterCriteria = Omit<
-  ListProductsFilter,
-  'sortBy' | 'sortDir' | 'limit' | 'offset'
->;
+export type { ProductFilterCriteria };
 
 export interface SimilarProduct {
   product: Product;
@@ -25,9 +24,10 @@ export interface ProductRepo {
   update(id: string, input: UpdateProductInput): Promise<Product | null>;
   delete(id: string): Promise<boolean>;
   updateEmbedding(id: string, embedding: number[] | null): Promise<void>;
+  getEmbeddingSource(id: string): Promise<ProductEmbeddingSource | null>;
   findSimilarByVector(
     embedding: number[],
     limit: number,
-    priceFilter?: PriceRange,
+    filter?: ProductSearchFilter,
   ): Promise<SimilarProduct[]>;
 }

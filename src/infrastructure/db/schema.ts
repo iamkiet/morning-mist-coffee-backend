@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   check,
+  date,
   halfvec,
   index,
   integer,
@@ -55,24 +56,7 @@ export const refreshTokens = pgTable(
 );
 
 export const orderStatus = pgEnum('order_status', ORDER_STATUSES);
-
 export const currency = pgEnum('currency', CURRENCIES);
-
-export const productTypes = pgTable(
-  'product_types',
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    name: text().notNull(),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp({ withTimezone: true })
-      .notNull()
-      .defaultNow()
-      .$onUpdate(() => sql`now()`),
-  },
-  (t) => [
-    uniqueIndex('product_types_name_lower_idx').on(sql`lower(${t.name})`),
-  ],
-);
 
 export const products = pgTable(
   'products',
@@ -80,15 +64,8 @@ export const products = pgTable(
     id: uuid().primaryKey().defaultRandom(),
     slug: text().notNull(),
     name: text().notNull(),
-    origin: text(),
-    tastingNotes: text().array().notNull().default([]),
     description: text(),
-    priceCents: integer().notNull(),
-    currency: currency().notNull().default('VND'),
     image: text(),
-    productTypeId: uuid()
-      .notNull()
-      .references(() => productTypes.id, { onDelete: 'restrict' }),
     embedding: halfvec({ dimensions: env.EMBEDDING_DIMENSION }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
@@ -97,13 +74,8 @@ export const products = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => [
-    index('products_product_type_id_created_at_idx').on(
-      t.productTypeId,
-      t.createdAt.desc(),
-    ),
-    index('products_created_at_idx').on(t.createdAt.desc()),
     uniqueIndex('products_slug_idx').on(t.slug),
-    check('products_price_cents_nonneg', sql`${t.priceCents} >= 0`),
+    index('products_created_at_idx').on(t.createdAt.desc()),
     index('products_embedding_hnsw_idx').using(
       'hnsw',
       t.embedding.op('halfvec_cosine_ops'),
@@ -111,14 +83,18 @@ export const products = pgTable(
   ],
 );
 
-export const productStock = pgTable(
-  'product_stock',
+export const productVariants = pgTable(
+  'product_variants',
   {
     id: uuid().primaryKey().defaultRandom(),
     productId: uuid()
       .notNull()
       .references(() => products.id, { onDelete: 'cascade' }),
-    quantity: integer().notNull().default(0),
+    sku: text().notNull(),
+    priceCents: integer().notNull(),
+    currency: currency().notNull().default('VND'),
+    stock: integer().notNull().default(0),
+    expiresAt: date(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -126,8 +102,85 @@ export const productStock = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => [
-    uniqueIndex('product_stock_product_id_idx').on(t.productId),
-    check('product_stock_quantity_nonneg', sql`${t.quantity} >= 0`),
+    uniqueIndex('product_variants_sku_idx').on(t.sku),
+    index('product_variants_product_id_idx').on(t.productId),
+    check('product_variants_price_cents_nonneg', sql`${t.priceCents} >= 0`),
+    check('product_variants_stock_nonneg', sql`${t.stock} >= 0`),
+  ],
+);
+
+export const propertyDataType = pgEnum('property_data_type', [
+  'text',
+  'number',
+  'enum',
+]);
+
+export const productProperties = pgTable(
+  'product_properties',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: text().notNull(),
+    dataType: propertyDataType().notNull().default('text'),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('product_properties_name_lower_idx').on(sql`lower(${t.name})`),
+  ],
+);
+
+export const productVariantPropertyValues = pgTable(
+  'product_variant_property_values',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    productVariantId: uuid()
+      .notNull()
+      .references(() => productVariants.id, { onDelete: 'cascade' }),
+    productPropertyId: uuid()
+      .notNull()
+      .references(() => productProperties.id, { onDelete: 'cascade' }),
+    value: text().notNull(),
+  },
+  (t) => [
+    index('product_variant_property_values_variant_id_idx').on(
+      t.productVariantId,
+    ),
+    index('product_variant_property_values_property_id_idx').on(
+      t.productPropertyId,
+    ),
+    uniqueIndex('product_variant_property_values_unique_idx').on(
+      t.productVariantId,
+      t.productPropertyId,
+    ),
+  ],
+);
+
+export const productCategories = pgTable(
+  'product_categories',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: text().notNull(),
+    parentId: uuid(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('product_categories_parent_id_idx').on(t.parentId)],
+);
+
+export const productsCategories = pgTable(
+  'products_categories',
+  {
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    productCategoryId: uuid()
+      .notNull()
+      .references(() => productCategories.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    uniqueIndex('products_categories_unique_idx').on(
+      t.productId,
+      t.productCategoryId,
+    ),
+    index('products_categories_category_id_idx').on(t.productCategoryId),
   ],
 );
 
@@ -166,7 +219,7 @@ export const orderItems = pgTable(
     orderId: uuid()
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),
-    productId: uuid(),
+    productVariantId: uuid(),
     name: text().notNull(),
     priceCents: integer().notNull(),
     quantity: integer().notNull(),
@@ -182,9 +235,17 @@ export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type RefreshTokenRow = typeof refreshTokens.$inferSelect;
 export type NewRefreshTokenRow = typeof refreshTokens.$inferInsert;
-export type ProductTypeRow = typeof productTypes.$inferSelect;
-export type NewProductTypeRow = typeof productTypes.$inferInsert;
 export type ProductRow = typeof products.$inferSelect;
 export type NewProductRow = typeof products.$inferInsert;
-export type ProductStockRow = typeof productStock.$inferSelect;
-export type NewProductStockRow = typeof productStock.$inferInsert;
+export type ProductVariantRow = typeof productVariants.$inferSelect;
+export type NewProductVariantRow = typeof productVariants.$inferInsert;
+export type ProductPropertyRow = typeof productProperties.$inferSelect;
+export type NewProductPropertyRow = typeof productProperties.$inferInsert;
+export type ProductVariantPropertyValueRow =
+  typeof productVariantPropertyValues.$inferSelect;
+export type NewProductVariantPropertyValueRow =
+  typeof productVariantPropertyValues.$inferInsert;
+export type ProductCategoryRow = typeof productCategories.$inferSelect;
+export type NewProductCategoryRow = typeof productCategories.$inferInsert;
+export type ProductsCategoryRow = typeof productsCategories.$inferSelect;
+export type NewProductsCategoryRow = typeof productsCategories.$inferInsert;

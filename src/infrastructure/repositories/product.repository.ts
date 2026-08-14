@@ -1,9 +1,10 @@
-import { and, asc, cosineDistance, desc, eq, gte, isNotNull, lte, sql } from 'drizzle-orm';
+import { and, asc, cosineDistance, desc, eq, isNotNull, sql } from 'drizzle-orm';
 import type {
   CreateProductRecord,
   ListProductsFilter,
-  PriceRange,
   Product,
+  ProductEmbeddingSource,
+  ProductSearchFilter,
   ProductSortField,
   UpdateProductInput,
 } from '../../domain/product/product.entity.ts';
@@ -12,15 +13,20 @@ import type {
   ProductRepo,
   SimilarProduct,
 } from '../../domain/product/product.repo.ts';
-import type { Currency } from '../../domain/shared/currency.ts';
 import type { DB } from '../db/client.ts';
-import { products } from '../db/schema.ts';
-import { productWhere, rowToProduct } from './product.mappers.ts';
+import {
+  productCategories,
+  productProperties,
+  productVariantPropertyValues,
+  productVariants,
+  products,
+  productsCategories,
+} from '../db/schema.ts';
+import { buildProductFilters, productWhere, rowToProduct } from './product.mappers.ts';
 
 const SORT_COLUMNS = {
   createdAt: products.createdAt,
   name: products.name,
-  priceCents: products.priceCents,
 } as const satisfies Record<ProductSortField, unknown>;
 
 export class PostgresProductRepository implements ProductRepo {
@@ -72,15 +78,8 @@ export class PostgresProductRepository implements ProductRepo {
       .values({
         slug: input.slug,
         name: input.name,
-        origin: input.origin ?? null,
-        ...(input.tastingNotes !== undefined
-          ? { tastingNotes: input.tastingNotes }
-          : {}),
         description: input.description ?? null,
-        priceCents: input.priceCents,
-        ...(input.currency !== undefined ? { currency: input.currency } : {}),
         image: input.image ?? null,
-        productTypeId: input.productTypeId,
       })
       .returning();
     if (!row) throw new Error('Failed to create product');
@@ -91,24 +90,13 @@ export class PostgresProductRepository implements ProductRepo {
     const patch: Partial<{
       slug: string;
       name: string;
-      origin: string | null;
-      tastingNotes: string[];
       description: string | null;
-      priceCents: number;
-      currency: Currency;
       image: string | null;
-      productTypeId: string;
     }> = {};
     if (input.slug !== undefined) patch.slug = input.slug;
     if (input.name !== undefined) patch.name = input.name;
-    if (input.origin !== undefined) patch.origin = input.origin;
-    if (input.tastingNotes !== undefined) patch.tastingNotes = input.tastingNotes;
     if (input.description !== undefined) patch.description = input.description;
-    if (input.priceCents !== undefined) patch.priceCents = input.priceCents;
-    if (input.currency !== undefined) patch.currency = input.currency;
     if (input.image !== undefined) patch.image = input.image;
-    if (input.productTypeId !== undefined)
-      patch.productTypeId = input.productTypeId;
 
     if (Object.keys(patch).length === 0) {
       return this.findById(id);
@@ -126,9 +114,7 @@ export class PostgresProductRepository implements ProductRepo {
     const rows = await this.db
       .delete(products)
       .where(eq(products.id, id))
-      .returning({
-        id: products.id,
-      });
+      .returning({ id: products.id });
     return rows.length > 0;
   }
 
@@ -136,17 +122,76 @@ export class PostgresProductRepository implements ProductRepo {
     await this.db.update(products).set({ embedding }).where(eq(products.id, id));
   }
 
+  async getEmbeddingSource(id: string): Promise<ProductEmbeddingSource | null> {
+    const [product] = await this.db
+      .select({ name: products.name, description: products.description })
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
+    if (!product) return null;
+
+    const [linkedCategoryIds, allCategories, propertyRows] = await Promise.all([
+      this.db
+        .select({ id: productsCategories.productCategoryId })
+        .from(productsCategories)
+        .where(eq(productsCategories.productId, id)),
+      this.db
+        .select({
+          id: productCategories.id,
+          name: productCategories.name,
+          parentId: productCategories.parentId,
+        })
+        .from(productCategories),
+      this.db
+        .select({
+          propertyName: productProperties.name,
+          value: productVariantPropertyValues.value,
+        })
+        .from(productVariants)
+        .innerJoin(
+          productVariantPropertyValues,
+          eq(productVariantPropertyValues.productVariantId, productVariants.id),
+        )
+        .innerJoin(
+          productProperties,
+          eq(productVariantPropertyValues.productPropertyId, productProperties.id),
+        )
+        .where(eq(productVariants.productId, id)),
+    ]);
+
+    const categoryById = new Map(allCategories.map((c) => [c.id, c]));
+    const categoryNames = new Set<string>();
+    for (const { id: categoryId } of linkedCategoryIds) {
+      let current = categoryById.get(categoryId);
+      while (current) {
+        categoryNames.add(current.name);
+        current = current.parentId ? categoryById.get(current.parentId) : undefined;
+      }
+    }
+
+    const seen = new Set<string>();
+    const propertyValues = propertyRows.filter((r) => {
+      const key = `${r.propertyName}::${r.value}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return {
+      name: product.name,
+      description: product.description,
+      categoryNames: [...categoryNames],
+      propertyValues,
+    };
+  }
+
   async findSimilarByVector(
     embedding: number[],
     limit: number,
-    priceFilter?: PriceRange,
+    filter?: ProductSearchFilter,
   ): Promise<SimilarProduct[]> {
     const similarity = sql<number>`1 - (${cosineDistance(products.embedding, embedding)})`;
-    const filters = [isNotNull(products.embedding)];
-    if (priceFilter?.priceMin !== undefined)
-      filters.push(gte(products.priceCents, priceFilter.priceMin));
-    if (priceFilter?.priceMax !== undefined)
-      filters.push(lte(products.priceCents, priceFilter.priceMax));
+    const filters = [isNotNull(products.embedding), ...buildProductFilters(filter ?? {})];
 
     const rows = await this.db
       .select({ product: products, score: similarity })

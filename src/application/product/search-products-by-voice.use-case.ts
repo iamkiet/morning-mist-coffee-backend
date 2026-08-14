@@ -1,10 +1,11 @@
-import type { Product } from '../../domain/product/product.entity.ts';
-import type { ProductStockRepo } from '../../domain/product/product-stock.repo.ts';
+import type { ProductWithVariants } from '../../domain/product/product-variant.entity.ts';
+import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { AudioConverterPort } from '../../domain/ports/audio-converter.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
 import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
 import { ExternalServiceError } from '../../lib/errors.ts';
 import type { SendChatMessageUseCase } from '../chat/send-chat-message.use-case.ts';
+import { attachVariants } from './attach-variants.ts';
 
 export interface SearchProductsByVoiceInput {
   audioBytes: Buffer;
@@ -13,13 +14,13 @@ export interface SearchProductsByVoiceInput {
 
 export interface VoiceSearchResult {
   message: string;
-  items: Array<Product & { stockQuantity: number }>;
+  items: ProductWithVariants[];
   transcript: string;
 }
 
 export class SearchProductsByVoiceUseCase {
   constructor(
-    private readonly stockRepo: ProductStockRepo,
+    private readonly variants: ProductVariantRepo,
     private readonly embeddingPort: MultimodalEmbeddingPort,
     private readonly transcriptionPort: TranscriptionPort,
     private readonly audioConverter: AudioConverterPort,
@@ -47,11 +48,7 @@ export class SearchProductsByVoiceUseCase {
       transcript,
     );
 
-    const stockMap = await this.stockRepo.getByProductIds(products.map((p) => p.id));
-    const items = products.map((p) => ({
-      ...p,
-      stockQuantity: stockMap.get(p.id) ?? 0,
-    }));
+    const items = await attachVariants(this.variants, products);
 
     return { message, items, transcript };
   }
