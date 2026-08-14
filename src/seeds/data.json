@@ -1,18 +1,48 @@
 {
   "productCategories": [
-    { "id": "cat-0001", "name": "Đồ uống", "parentId": null },
-    { "id": "cat-0002", "name": "Cà phê", "parentId": "cat-0001" },
-    { "id": "cat-0003", "name": "Arabica", "parentId": "cat-0002" },
-    { "id": "cat-0004", "name": "Robusta", "parentId": "cat-0002" }
+    {
+      "id": "cat-0001",
+      "name": "Đồ uống",
+      "parentId": null
+    },
+    {
+      "id": "cat-0002",
+      "name": "Cà phê",
+      "parentId": "cat-0001"
+    },
+    {
+      "id": "cat-0003",
+      "name": "Arabica",
+      "parentId": "cat-0002"
+    },
+    {
+      "id": "cat-0004",
+      "name": "Robusta",
+      "parentId": "cat-0002"
+    }
   ],
-
   "productProperties": [
-    { "id": "prop-0001", "name": "Trọng lượng", "dataType": "text" },
-    { "id": "prop-0002", "name": "Xuất xứ", "dataType": "text" },
-    { "id": "prop-0003", "name": "Mức rang", "dataType": "enum" },
-    { "id": "prop-0004", "name": "Phương pháp chế biến", "dataType": "enum" }
+    {
+      "id": "prop-0001",
+      "name": "Trọng lượng",
+      "dataType": "text"
+    },
+    {
+      "id": "prop-0002",
+      "name": "Xuất xứ",
+      "dataType": "text"
+    },
+    {
+      "id": "prop-0003",
+      "name": "Mức rang",
+      "dataType": "enum"
+    },
+    {
+      "id": "prop-0004",
+      "name": "Phương pháp chế biến",
+      "dataType": "enum"
+    }
   ],
-
   "products": [
     {
       "id": "prod-0001",
@@ -155,7 +185,6 @@
       "image": "https://todaywegrind.com/products/coffee20.png"
     }
   ],
-
   "productVariants": [
     {
       "id": "var-0001",
@@ -336,9 +365,368 @@
       "currency": "VND",
       "stock": 47,
       "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0001-500g",
+      "productId": "prod-0001",
+      "sku": "CF-0001-500G",
+      "priceCents": 102000,
+      "currency": "VND",
+      "stock": 25,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0001-1kg",
+      "productId": "prod-0001",
+      "sku": "CF-0001-1KG",
+      "priceCents": 187000,
+      "currency": "VND",
+      "stock": 12,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0002-500g",
+      "productId": "prod-0002",
+      "sku": "CF-0002-500G",
+      "priceCents": 120000,
+      "currency": "VND",
+      "stock": 15,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0002-1kg",
+      "productId": "prod-0002",
+      "sku": "CF-0002-1KG",
+      "priceCents": 221000,
+      "currency": "VND",
+      "stock": 7,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0003-500g",
+      "productId": "prod-0003",
+      "sku": "CF-0003-500G",
+      "priceCents": 111000,
+      "currency": "VND",
+      "stock": 20,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0003-1kg",
+      "productId": "prod-0003",
+      "sku": "CF-0003-1KG",
+      "priceCents": 204000,
+      "currency": "VND",
+      "stock": 10,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0004-500g",
+      "productId": "prod-0004",
+      "sku": "CF-0004-500G",
+      "priceCents": 83000,
+      "currency": "VND",
+      "stock": 30,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0004-1kg",
+      "productId": "prod-0004",
+      "sku": "CF-0004-1KG",
+      "priceCents": 153000,
+      "currency": "VND",
+      "stock": 15,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0005-500g",
+      "productId": "prod-0005",
+      "sku": "CF-0005-500G",
+      "priceCents": 92000,
+      "currency": "VND",
+      "stock": 22,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0005-1kg",
+      "productId": "prod-0005",
+      "sku": "CF-0005-1KG",
+      "priceCents": 170000,
+      "currency": "VND",
+      "stock": 11,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0006-500g",
+      "productId": "prod-0006",
+      "sku": "CF-0006-500G",
+      "priceCents": 89000,
+      "currency": "VND",
+      "stock": 27,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0006-1kg",
+      "productId": "prod-0006",
+      "sku": "CF-0006-1KG",
+      "priceCents": 163000,
+      "currency": "VND",
+      "stock": 13,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0007-500g",
+      "productId": "prod-0007",
+      "sku": "CF-0007-500G",
+      "priceCents": 139000,
+      "currency": "VND",
+      "stock": 17,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0007-1kg",
+      "productId": "prod-0007",
+      "sku": "CF-0007-1KG",
+      "priceCents": 255000,
+      "currency": "VND",
+      "stock": 8,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0008-500g",
+      "productId": "prod-0008",
+      "sku": "CF-0008-500G",
+      "priceCents": 176000,
+      "currency": "VND",
+      "stock": 7,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0008-1kg",
+      "productId": "prod-0008",
+      "sku": "CF-0008-1KG",
+      "priceCents": 323000,
+      "currency": "VND",
+      "stock": 3,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0009-500g",
+      "productId": "prod-0009",
+      "sku": "CF-0009-500G",
+      "priceCents": 107000,
+      "currency": "VND",
+      "stock": 24,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0009-1kg",
+      "productId": "prod-0009",
+      "sku": "CF-0009-1KG",
+      "priceCents": 197000,
+      "currency": "VND",
+      "stock": 12,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0010-500g",
+      "productId": "prod-0010",
+      "sku": "CF-0010-500G",
+      "priceCents": 148000,
+      "currency": "VND",
+      "stock": 14,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0010-1kg",
+      "productId": "prod-0010",
+      "sku": "CF-0010-1KG",
+      "priceCents": 272000,
+      "currency": "VND",
+      "stock": 7,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0011-500g",
+      "productId": "prod-0011",
+      "sku": "CF-0011-500G",
+      "priceCents": 96000,
+      "currency": "VND",
+      "stock": 19,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0011-1kg",
+      "productId": "prod-0011",
+      "sku": "CF-0011-1KG",
+      "priceCents": 177000,
+      "currency": "VND",
+      "stock": 9,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0012-500g",
+      "productId": "prod-0012",
+      "sku": "CF-0012-500G",
+      "priceCents": 91000,
+      "currency": "VND",
+      "stock": 21,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0012-1kg",
+      "productId": "prod-0012",
+      "sku": "CF-0012-1KG",
+      "priceCents": 167000,
+      "currency": "VND",
+      "stock": 10,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0013-500g",
+      "productId": "prod-0013",
+      "sku": "CF-0013-500G",
+      "priceCents": 115000,
+      "currency": "VND",
+      "stock": 18,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0013-1kg",
+      "productId": "prod-0013",
+      "sku": "CF-0013-1KG",
+      "priceCents": 211000,
+      "currency": "VND",
+      "stock": 9,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0014-500g",
+      "productId": "prod-0014",
+      "sku": "CF-0014-500G",
+      "priceCents": 111000,
+      "currency": "VND",
+      "stock": 20,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0014-1kg",
+      "productId": "prod-0014",
+      "sku": "CF-0014-1KG",
+      "priceCents": 204000,
+      "currency": "VND",
+      "stock": 10,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0015-500g",
+      "productId": "prod-0015",
+      "sku": "CF-0015-500G",
+      "priceCents": 78000,
+      "currency": "VND",
+      "stock": 32,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0015-1kg",
+      "productId": "prod-0015",
+      "sku": "CF-0015-1KG",
+      "priceCents": 143000,
+      "currency": "VND",
+      "stock": 16,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0016-500g",
+      "productId": "prod-0016",
+      "sku": "CF-0016-500G",
+      "priceCents": 222000,
+      "currency": "VND",
+      "stock": 5,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0016-1kg",
+      "productId": "prod-0016",
+      "sku": "CF-0016-1KG",
+      "priceCents": 408000,
+      "currency": "VND",
+      "stock": 3,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0017-500g",
+      "productId": "prod-0017",
+      "sku": "CF-0017-500G",
+      "priceCents": 107000,
+      "currency": "VND",
+      "stock": 22,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0017-1kg",
+      "productId": "prod-0017",
+      "sku": "CF-0017-1KG",
+      "priceCents": 197000,
+      "currency": "VND",
+      "stock": 11,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0018-500g",
+      "productId": "prod-0018",
+      "sku": "CF-0018-500G",
+      "priceCents": 92000,
+      "currency": "VND",
+      "stock": 19,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0018-1kg",
+      "productId": "prod-0018",
+      "sku": "CF-0018-1KG",
+      "priceCents": 170000,
+      "currency": "VND",
+      "stock": 9,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0019-500g",
+      "productId": "prod-0019",
+      "sku": "CF-0019-500G",
+      "priceCents": 130000,
+      "currency": "VND",
+      "stock": 16,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0019-1kg",
+      "productId": "prod-0019",
+      "sku": "CF-0019-1KG",
+      "priceCents": 238000,
+      "currency": "VND",
+      "stock": 8,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0020-500g",
+      "productId": "prod-0020",
+      "sku": "CF-0020-500G",
+      "priceCents": 102000,
+      "currency": "VND",
+      "stock": 23,
+      "expiresAt": "2027-03-31"
+    },
+    {
+      "id": "var-0020-1kg",
+      "productId": "prod-0020",
+      "sku": "CF-0020-1KG",
+      "priceCents": 187000,
+      "currency": "VND",
+      "stock": 11,
+      "expiresAt": "2027-03-31"
     }
   ],
-
   "productVariantPropertyValues": [
     {
       "productVariantId": "var-0001",
@@ -350,7 +738,6 @@
       "productPropertyId": "prop-0002",
       "value": "Phối trộn nhiều vùng"
     },
-
     {
       "productVariantId": "var-0002",
       "productPropertyId": "prop-0001",
@@ -366,7 +753,6 @@
       "productPropertyId": "prop-0003",
       "value": "Nhạt"
     },
-
     {
       "productVariantId": "var-0003",
       "productPropertyId": "prop-0001",
@@ -382,7 +768,6 @@
       "productPropertyId": "prop-0004",
       "value": "Mật ong"
     },
-
     {
       "productVariantId": "var-0004",
       "productPropertyId": "prop-0001",
@@ -393,7 +778,6 @@
       "productPropertyId": "prop-0002",
       "value": "Việt Nam"
     },
-
     {
       "productVariantId": "var-0005",
       "productPropertyId": "prop-0001",
@@ -409,7 +793,6 @@
       "productPropertyId": "prop-0003",
       "value": "Đậm"
     },
-
     {
       "productVariantId": "var-0006",
       "productPropertyId": "prop-0001",
@@ -420,7 +803,6 @@
       "productPropertyId": "prop-0002",
       "value": "Việt Nam"
     },
-
     {
       "productVariantId": "var-0007",
       "productPropertyId": "prop-0001",
@@ -431,7 +813,6 @@
       "productPropertyId": "prop-0002",
       "value": "Yirgacheffe, Ethiopia"
     },
-
     {
       "productVariantId": "var-0008",
       "productPropertyId": "prop-0001",
@@ -442,7 +823,6 @@
       "productPropertyId": "prop-0002",
       "value": "Huila, Colombia"
     },
-
     {
       "productVariantId": "var-0009",
       "productPropertyId": "prop-0001",
@@ -458,7 +838,6 @@
       "productPropertyId": "prop-0004",
       "value": "Tự nhiên"
     },
-
     {
       "productVariantId": "var-0010",
       "productPropertyId": "prop-0001",
@@ -469,7 +848,6 @@
       "productPropertyId": "prop-0002",
       "value": "Nyeri, Kenya"
     },
-
     {
       "productVariantId": "var-0011",
       "productPropertyId": "prop-0001",
@@ -485,7 +863,6 @@
       "productPropertyId": "prop-0004",
       "value": "Gió mùa"
     },
-
     {
       "productVariantId": "var-0012",
       "productPropertyId": "prop-0001",
@@ -496,7 +873,6 @@
       "productPropertyId": "prop-0002",
       "value": "Lampung, Indonesia"
     },
-
     {
       "productVariantId": "var-0013",
       "productPropertyId": "prop-0001",
@@ -507,7 +883,6 @@
       "productPropertyId": "prop-0002",
       "value": "Huehuetenango, Guatemala"
     },
-
     {
       "productVariantId": "var-0014",
       "productPropertyId": "prop-0001",
@@ -518,7 +893,6 @@
       "productPropertyId": "prop-0002",
       "value": "Tarrazú, Costa Rica"
     },
-
     {
       "productVariantId": "var-0015",
       "productPropertyId": "prop-0001",
@@ -529,7 +903,6 @@
       "productPropertyId": "prop-0002",
       "value": "Đắk Lắk, Việt Nam"
     },
-
     {
       "productVariantId": "var-0016",
       "productPropertyId": "prop-0001",
@@ -540,7 +913,6 @@
       "productPropertyId": "prop-0002",
       "value": "Boquete, Panama"
     },
-
     {
       "productVariantId": "var-0017",
       "productPropertyId": "prop-0001",
@@ -551,7 +923,6 @@
       "productPropertyId": "prop-0002",
       "value": "Cajamarca, Peru"
     },
-
     {
       "productVariantId": "var-0018",
       "productPropertyId": "prop-0001",
@@ -562,7 +933,6 @@
       "productPropertyId": "prop-0002",
       "value": "Hồ Victoria, Uganda"
     },
-
     {
       "productVariantId": "var-0019",
       "productPropertyId": "prop-0001",
@@ -573,7 +943,6 @@
       "productPropertyId": "prop-0002",
       "value": "Kilimanjaro, Tanzania"
     },
-
     {
       "productVariantId": "var-0020",
       "productPropertyId": "prop-0001",
@@ -583,29 +952,538 @@
       "productVariantId": "var-0020",
       "productPropertyId": "prop-0002",
       "value": "Oaxaca, Mexico"
+    },
+    {
+      "productVariantId": "var-0001-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0001-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Phối trộn nhiều vùng"
+    },
+    {
+      "productVariantId": "var-0001-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0001-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Phối trộn nhiều vùng"
+    },
+    {
+      "productVariantId": "var-0002-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0002-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Đà Lạt, Việt Nam"
+    },
+    {
+      "productVariantId": "var-0002-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Nhạt"
+    },
+    {
+      "productVariantId": "var-0002-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0002-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Đà Lạt, Việt Nam"
+    },
+    {
+      "productVariantId": "var-0002-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Nhạt"
+    },
+    {
+      "productVariantId": "var-0003-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0003-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Lâm Đồng, Việt Nam"
+    },
+    {
+      "productVariantId": "var-0003-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Mật ong"
+    },
+    {
+      "productVariantId": "var-0003-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0003-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Lâm Đồng, Việt Nam"
+    },
+    {
+      "productVariantId": "var-0003-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Mật ong"
+    },
+    {
+      "productVariantId": "var-0004-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0004-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Việt Nam"
+    },
+    {
+      "productVariantId": "var-0004-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0004-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Việt Nam"
+    },
+    {
+      "productVariantId": "var-0005-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0005-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Việt Nam"
+    },
+    {
+      "productVariantId": "var-0005-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Đậm"
+    },
+    {
+      "productVariantId": "var-0005-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0005-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Việt Nam"
+    },
+    {
+      "productVariantId": "var-0005-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Đậm"
+    },
+    {
+      "productVariantId": "var-0006-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0006-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Việt Nam"
+    },
+    {
+      "productVariantId": "var-0006-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0006-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Việt Nam"
+    },
+    {
+      "productVariantId": "var-0007-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0007-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Yirgacheffe, Ethiopia"
+    },
+    {
+      "productVariantId": "var-0007-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0007-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Yirgacheffe, Ethiopia"
+    },
+    {
+      "productVariantId": "var-0008-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0008-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Huila, Colombia"
+    },
+    {
+      "productVariantId": "var-0008-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0008-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Huila, Colombia"
+    },
+    {
+      "productVariantId": "var-0009-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0009-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Cerrado, Brazil"
+    },
+    {
+      "productVariantId": "var-0009-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Tự nhiên"
+    },
+    {
+      "productVariantId": "var-0009-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0009-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Cerrado, Brazil"
+    },
+    {
+      "productVariantId": "var-0009-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Tự nhiên"
+    },
+    {
+      "productVariantId": "var-0010-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0010-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Nyeri, Kenya"
+    },
+    {
+      "productVariantId": "var-0010-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0010-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Nyeri, Kenya"
+    },
+    {
+      "productVariantId": "var-0011-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0011-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Malabar, Ấn Độ"
+    },
+    {
+      "productVariantId": "var-0011-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Gió mùa"
+    },
+    {
+      "productVariantId": "var-0011-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0011-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Malabar, Ấn Độ"
+    },
+    {
+      "productVariantId": "var-0011-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Gió mùa"
+    },
+    {
+      "productVariantId": "var-0012-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0012-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Lampung, Indonesia"
+    },
+    {
+      "productVariantId": "var-0012-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0012-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Lampung, Indonesia"
+    },
+    {
+      "productVariantId": "var-0013-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0013-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Huehuetenango, Guatemala"
+    },
+    {
+      "productVariantId": "var-0013-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0013-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Huehuetenango, Guatemala"
+    },
+    {
+      "productVariantId": "var-0014-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0014-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Tarrazú, Costa Rica"
+    },
+    {
+      "productVariantId": "var-0014-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0014-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Tarrazú, Costa Rica"
+    },
+    {
+      "productVariantId": "var-0015-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0015-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Đắk Lắk, Việt Nam"
+    },
+    {
+      "productVariantId": "var-0015-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0015-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Đắk Lắk, Việt Nam"
+    },
+    {
+      "productVariantId": "var-0016-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0016-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Boquete, Panama"
+    },
+    {
+      "productVariantId": "var-0016-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0016-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Boquete, Panama"
+    },
+    {
+      "productVariantId": "var-0017-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0017-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Cajamarca, Peru"
+    },
+    {
+      "productVariantId": "var-0017-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0017-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Cajamarca, Peru"
+    },
+    {
+      "productVariantId": "var-0018-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0018-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Hồ Victoria, Uganda"
+    },
+    {
+      "productVariantId": "var-0018-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0018-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Hồ Victoria, Uganda"
+    },
+    {
+      "productVariantId": "var-0019-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0019-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Kilimanjaro, Tanzania"
+    },
+    {
+      "productVariantId": "var-0019-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0019-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Kilimanjaro, Tanzania"
+    },
+    {
+      "productVariantId": "var-0020-500g",
+      "productPropertyId": "prop-0001",
+      "value": "500g"
+    },
+    {
+      "productVariantId": "var-0020-500g",
+      "productPropertyId": "prop-0002",
+      "value": "Oaxaca, Mexico"
+    },
+    {
+      "productVariantId": "var-0020-1kg",
+      "productPropertyId": "prop-0001",
+      "value": "1kg"
+    },
+    {
+      "productVariantId": "var-0020-1kg",
+      "productPropertyId": "prop-0002",
+      "value": "Oaxaca, Mexico"
     }
   ],
-
   "productsCategories": [
-    { "productId": "prod-0001", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0002", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0003", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0004", "productCategoryId": "cat-0004" },
-    { "productId": "prod-0005", "productCategoryId": "cat-0004" },
-    { "productId": "prod-0006", "productCategoryId": "cat-0004" },
-    { "productId": "prod-0007", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0008", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0009", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0010", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0011", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0012", "productCategoryId": "cat-0004" },
-    { "productId": "prod-0013", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0014", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0015", "productCategoryId": "cat-0004" },
-    { "productId": "prod-0016", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0017", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0018", "productCategoryId": "cat-0004" },
-    { "productId": "prod-0019", "productCategoryId": "cat-0003" },
-    { "productId": "prod-0020", "productCategoryId": "cat-0003" }
+    {
+      "productId": "prod-0001",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0002",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0003",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0004",
+      "productCategoryId": "cat-0004"
+    },
+    {
+      "productId": "prod-0005",
+      "productCategoryId": "cat-0004"
+    },
+    {
+      "productId": "prod-0006",
+      "productCategoryId": "cat-0004"
+    },
+    {
+      "productId": "prod-0007",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0008",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0009",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0010",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0011",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0012",
+      "productCategoryId": "cat-0004"
+    },
+    {
+      "productId": "prod-0013",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0014",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0015",
+      "productCategoryId": "cat-0004"
+    },
+    {
+      "productId": "prod-0016",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0017",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0018",
+      "productCategoryId": "cat-0004"
+    },
+    {
+      "productId": "prod-0019",
+      "productCategoryId": "cat-0003"
+    },
+    {
+      "productId": "prod-0020",
+      "productCategoryId": "cat-0003"
+    }
   ]
 }

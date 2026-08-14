@@ -19,7 +19,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env src/seed.ts",
-    "db:backfill-embeddings": "tsx --env-file=.env src/backfill-embeddings.ts",
+    "db:backfill": "tsx --env-file=.env src/backfill-embeddings.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

@@ -156,6 +156,9 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
       createVariant: new CreateProductVariantUseCase(
         deps.productRepo,
         deps.productVariantRepo,
+        deps.productPropertyRepo,
+        deps.embedding,
+        deps.logger,
       ),
       updateVariant: new UpdateProductVariantUseCase(deps.productVariantRepo),
       deleteVariant: new DeleteProductVariantUseCase(deps.productVariantRepo),
