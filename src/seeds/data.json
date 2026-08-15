@@ -1402,6 +1402,531 @@
       "productVariantId": "var-0020-1kg",
       "productPropertyId": "prop-0002",
       "value": "Oaxaca, Mexico"
+    },
+    {
+      "productVariantId": "var-0001",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0001",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0002",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0003",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Vừa"
+    },
+    {
+      "productVariantId": "var-0004",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Đậm"
+    },
+    {
+      "productVariantId": "var-0004",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0005",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0006",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0006",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0007",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0007",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0008",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0008",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0009",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0010",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0010",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0011",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Vừa"
+    },
+    {
+      "productVariantId": "var-0012",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0012",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0013",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0013",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0014",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0014",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0015",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0015",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0016",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0016",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0017",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0017",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0018",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0018",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0019",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0019",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0020",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0020",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0001-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0001-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0001-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0001-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0002-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0002-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0003-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Vừa"
+    },
+    {
+      "productVariantId": "var-0003-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Vừa"
+    },
+    {
+      "productVariantId": "var-0004-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Đậm"
+    },
+    {
+      "productVariantId": "var-0004-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0004-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Đậm"
+    },
+    {
+      "productVariantId": "var-0004-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0005-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0005-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0006-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0006-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0006-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0006-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0007-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0007-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0007-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0007-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0008-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0008-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0008-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0008-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0009-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0009-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0010-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0010-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0010-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0010-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0011-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Vừa"
+    },
+    {
+      "productVariantId": "var-0011-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Vừa"
+    },
+    {
+      "productVariantId": "var-0012-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0012-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0012-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0012-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0013-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0013-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0013-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0013-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0014-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0014-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0014-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0014-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0015-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0015-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0015-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0015-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0016-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0016-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0016-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0016-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0017-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0017-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0017-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0017-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0018-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0018-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0018-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0018-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0019-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0019-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0019-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0019-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0020-500g",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0020-500g",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
+    },
+    {
+      "productVariantId": "var-0020-1kg",
+      "productPropertyId": "prop-0003",
+      "value": "Rang Sáng"
+    },
+    {
+      "productVariantId": "var-0020-1kg",
+      "productPropertyId": "prop-0004",
+      "value": "Chế Biến Ướt"
     }
   ],
   "productsCategories": [

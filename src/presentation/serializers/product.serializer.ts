@@ -1,11 +1,17 @@
-import type { ProductVariant, ProductWithVariants } from '../../domain/product/product-variant.entity.ts';
+import type {
+  ProductVariant,
+  ProductVariantWithProperties,
+  ProductWithVariants,
+} from '../../domain/product/product-variant.entity.ts';
 import {
   mapPaginated,
   type Paginated,
 } from '../../domain/shared/pagination.ts';
 import type { ProductDTO, ProductVariantDTO } from '../schemas/product.schema.ts';
 
-export function toProductVariantDTO(v: ProductVariant): ProductVariantDTO {
+export function toProductVariantDTO(
+  v: ProductVariant | ProductVariantWithProperties,
+): ProductVariantDTO {
   return {
     id: v.id,
     productId: v.productId,
@@ -16,6 +22,7 @@ export function toProductVariantDTO(v: ProductVariant): ProductVariantDTO {
     expiresAt: v.expiresAt,
     createdAt: v.createdAt.toISOString(),
     updatedAt: v.updatedAt.toISOString(),
+    ...('propertyValues' in v ? { propertyValues: v.propertyValues } : {}),
   };
 }
 

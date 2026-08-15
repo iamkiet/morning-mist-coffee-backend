@@ -8,6 +8,12 @@ import {
 
 export const CurrencySchema = z.enum(CURRENCIES);
 
+export const VariantPropertyValueSchema = z.object({
+  propertyId: z.uuid(),
+  propertyName: z.string(),
+  value: z.string(),
+});
+
 export const ProductVariantSchema = z.object({
   id: z.uuid(),
   productId: z.uuid(),
@@ -18,6 +24,7 @@ export const ProductVariantSchema = z.object({
   expiresAt: z.string().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
+  propertyValues: z.array(VariantPropertyValueSchema).optional(),
 });
 
 export const ProductSchema = z.object({

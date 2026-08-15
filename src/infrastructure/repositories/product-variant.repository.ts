@@ -213,6 +213,32 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
     return rows;
   }
 
+  async getPropertyValuesByVariantIds(
+    variantIds: string[],
+  ): Promise<Map<string, VariantPropertyValue[]>> {
+    const map = new Map<string, VariantPropertyValue[]>();
+    if (variantIds.length === 0) return map;
+    const rows = await this.db
+      .select({
+        productVariantId: productVariantPropertyValues.productVariantId,
+        propertyId: productProperties.id,
+        propertyName: productProperties.name,
+        value: productVariantPropertyValues.value,
+      })
+      .from(productVariantPropertyValues)
+      .innerJoin(
+        productProperties,
+        eq(productVariantPropertyValues.productPropertyId, productProperties.id),
+      )
+      .where(inArray(productVariantPropertyValues.productVariantId, variantIds));
+    for (const { productVariantId, ...value } of rows) {
+      const list = map.get(productVariantId);
+      if (list) list.push(value);
+      else map.set(productVariantId, [value]);
+    }
+    return map;
+  }
+
   async setPropertyValues(
     variantId: string,
     values: Array<{ propertyId: string; value: string }>,

@@ -35,8 +35,12 @@ export interface VariantPropertyValue {
   value: string;
 }
 
+export interface ProductVariantWithProperties extends ProductVariant {
+  propertyValues: VariantPropertyValue[];
+}
+
 export interface ProductWithVariants extends Product {
-  variants: ProductVariant[];
+  variants: ProductVariantWithProperties[];
 }
 
 export interface StockChange {

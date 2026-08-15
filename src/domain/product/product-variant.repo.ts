@@ -31,6 +31,9 @@ export interface ProductVariantRepo {
   tryDecreaseStock(variantId: string, qty: number): Promise<ProductVariant | null>;
   tryDecreaseStockBatch(items: StockDecreaseItem[]): Promise<BatchStockResult>;
   getPropertyValues(variantId: string): Promise<VariantPropertyValue[]>;
+  getPropertyValuesByVariantIds(
+    variantIds: string[],
+  ): Promise<Map<string, VariantPropertyValue[]>>;
   setPropertyValues(
     variantId: string,
     values: Array<{ propertyId: string; value: string }>,

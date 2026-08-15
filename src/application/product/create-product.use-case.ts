@@ -10,6 +10,7 @@ import type { ProductVariantRepo } from '../../domain/product/product-variant.re
 import { nextSlugCandidate, slugify } from '../../domain/product/slugify.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
+import { attachVariantsOne } from './attach-variants.ts';
 import { syncProductEmbedding } from './sync-product-embedding.ts';
 
 const MAX_SLUG_ATTEMPTS = 50;
@@ -55,7 +56,7 @@ export class CreateProductUseCase {
     }
 
     await syncProductEmbedding(product.id, this.products, this.embedding, this.logger);
-    return { ...product, variants: [variant] };
+    return attachVariantsOne(this.variants, product);
   }
 
   private async resolveSlug(name: string): Promise<string> {
