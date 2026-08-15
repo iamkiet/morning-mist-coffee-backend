@@ -1,7 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ForbiddenError, UnauthorizedError } from '../../lib/errors.ts';
 import type { UserRole } from '../../domain/user/user.entity.ts';
-import { ACCESS_COOKIE } from './auth-cookies.ts';
 
 export interface AuthUser {
   id: string;
@@ -21,8 +20,6 @@ function extractAccessToken(req: FastifyRequest): string | null {
     const token = header.slice('Bearer '.length).trim();
     if (token) return token;
   }
-  const cookieToken = req.cookies[ACCESS_COOKIE];
-  if (cookieToken && cookieToken.length > 0) return cookieToken;
   return null;
 }
 

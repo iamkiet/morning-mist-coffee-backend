@@ -63,12 +63,7 @@ export class AuthController {
       req.body.email,
       () => this.uc.register.execute(req.body),
     );
-    setAuthCookies(
-      reply,
-      result.accessToken,
-      result.refreshToken,
-      result.refreshExpiresAt,
-    );
+    setAuthCookies(reply, result.refreshToken, result.refreshExpiresAt);
     req.log.info(
       { event: 'auth.register.success', userId: result.user.id },
       'register success',
@@ -87,12 +82,7 @@ export class AuthController {
       req.body.email,
       () => this.uc.login.execute(req.body),
     );
-    setAuthCookies(
-      reply,
-      result.accessToken,
-      result.refreshToken,
-      result.refreshExpiresAt,
-    );
+    setAuthCookies(reply, result.refreshToken, result.refreshExpiresAt);
     req.log.info(
       { event: 'auth.login.success', userId: result.user.id },
       'login success',
@@ -106,12 +96,7 @@ export class AuthController {
   ) => {
     const refreshToken = resolveRefreshToken(req);
     const result = await this.uc.refresh.execute({ refreshToken });
-    setAuthCookies(
-      reply,
-      result.accessToken,
-      result.refreshToken,
-      result.refreshExpiresAt,
-    );
+    setAuthCookies(reply, result.refreshToken, result.refreshExpiresAt);
     return reply.send({
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
