@@ -64,7 +64,7 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
         <tr>
-          <td style="background:#1f5c3d;padding:28px 32px;text-align:center;">
+          <td style="background:#556254;padding:28px 32px;text-align:center;">
             <h1 style="margin:0;color:#e3f0e8;font-size:22px;font-weight:600;letter-spacing:1px;">Morning Mist Coffee</h1>
           </td>
         </tr>
@@ -86,7 +86,7 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
               </tr>
               <tr>
                 <td colspan="2" style="padding-top:12px;">
-                  <a href="${trackOrderUrl}" style="display:inline-block;background:#1f5c3d;color:#e3f0e8;font-size:13px;font-weight:600;text-decoration:none;padding:10px 18px;border-radius:6px;">Theo dõi đơn hàng</a>
+                  <a href="${trackOrderUrl}" style="display:inline-block;background:#556254;color:#e3f0e8;font-size:13px;font-weight:600;text-decoration:none;padding:10px 18px;border-radius:6px;">Theo dõi đơn hàng</a>
                 </td>
               </tr>
             </table>
