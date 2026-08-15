@@ -43,7 +43,7 @@ export class CreateProductUseCase {
     const product = await this.products.create({
       name: input.name,
       description: input.description,
-      image: input.image,
+      imageUrl: input.imageUrl,
       slug,
     });
 

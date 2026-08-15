@@ -63,7 +63,7 @@ export function rowToProduct(row: ProductRow): Product {
     slug: row.slug,
     name: row.name,
     description: row.description,
-    image: row.image,
+    imageUrl: row.imageUrl,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

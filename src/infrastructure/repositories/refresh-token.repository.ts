@@ -1,13 +1,13 @@
-import { eq, or, lt, isNotNull } from 'drizzle-orm';
+import { and, eq, isNull, or, lt, isNotNull } from 'drizzle-orm';
 import type {
   CreateRefreshTokenInput,
   RefreshToken,
 } from '../../domain/auth/refresh-token.entity.ts';
 import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
 import type { DB } from '../db/client.ts';
-import { refreshTokens, type RefreshTokenRow } from '../db/schema.ts';
+import { authTokens, type AuthTokenRow } from '../db/schema.ts';
 
-function rowToRefreshToken(row: RefreshTokenRow): RefreshToken {
+function rowToRefreshToken(row: AuthTokenRow): RefreshToken {
   return {
     id: row.id,
     userId: row.userId,
@@ -22,7 +22,7 @@ export class PostgresRefreshTokenRepository implements RefreshTokenRepo {
 
   async create(input: CreateRefreshTokenInput): Promise<RefreshToken> {
     const [row] = await this.db
-      .insert(refreshTokens)
+      .insert(authTokens)
       .values({
         id: input.id,
         userId: input.userId,
@@ -36,22 +36,31 @@ export class PostgresRefreshTokenRepository implements RefreshTokenRepo {
   async findById(id: string): Promise<RefreshToken | null> {
     const [row] = await this.db
       .select()
-      .from(refreshTokens)
-      .where(eq(refreshTokens.id, id))
+      .from(authTokens)
+      .where(eq(authTokens.id, id))
       .limit(1);
     return row ? rowToRefreshToken(row) : null;
   }
 
   async revoke(id: string): Promise<void> {
     await this.db
-      .update(refreshTokens)
+      .update(authTokens)
       .set({ revokedAt: new Date() })
-      .where(eq(refreshTokens.id, id));
+      .where(eq(authTokens.id, id));
+  }
+
+  async revokeAllForUser(userId: string): Promise<void> {
+    await this.db
+      .update(authTokens)
+      .set({ revokedAt: new Date() })
+      .where(
+        and(eq(authTokens.userId, userId), isNull(authTokens.revokedAt)),
+      );
   }
 
   async deleteStale(now: Date): Promise<void> {
     await this.db
-      .delete(refreshTokens)
-      .where(or(lt(refreshTokens.expiresAt, now), isNotNull(refreshTokens.revokedAt)));
+      .delete(authTokens)
+      .where(or(lt(authTokens.expiresAt, now), isNotNull(authTokens.revokedAt)));
   }
 }

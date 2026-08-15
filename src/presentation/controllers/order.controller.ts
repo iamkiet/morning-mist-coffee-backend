@@ -57,7 +57,7 @@ export class OrderController {
     reply: FastifyReply,
   ) => {
     const order = await this.uc.create.execute({
-      email: req.body.email,
+      customerEmail: req.body.customerEmail,
       totalCents: req.body.totalCents,
       currency: req.body.currency,
       cashReceivedCents: req.body.cashReceivedCents,

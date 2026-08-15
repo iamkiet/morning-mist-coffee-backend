@@ -10,24 +10,33 @@ export const ORDER_STATUSES = [
 ] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+export interface OrderItemPropertyValue {
+  propertyName: string;
+  value: string;
+}
+
 export interface OrderItem {
   id: string;
   productVariantId: string | null;
-  name: string;
+  productName: string;
+  variantSku: string | null;
+  variantPropertyValues: OrderItemPropertyValue[];
   priceCents: number;
   quantity: number;
 }
 
 export interface CreateOrderItemInput {
   productVariantId?: string;
-  name: string;
+  productName: string;
+  variantSku?: string;
+  variantPropertyValues?: OrderItemPropertyValue[];
   priceCents: number;
   quantity: number;
 }
 
 export interface Order {
   id: string;
-  email: string;
+  customerEmail: string;
   status: OrderStatus;
   totalCents: number;
   currency: Currency;
@@ -44,7 +53,7 @@ export interface Order {
 }
 
 export interface CreateOrderInput {
-  email: string;
+  customerEmail: string;
   totalCents: number;
   currency: Currency;
   cashReceivedCents?: number;
@@ -64,7 +73,7 @@ export interface UpdateOrderStatusInput {
 export type OrderSortField = 'createdAt' | 'totalCents';
 
 export interface ListOrdersFilter {
-  email?: string;
+  customerEmail?: string;
   q?: string;
   status?: OrderStatus;
   currency?: Currency;

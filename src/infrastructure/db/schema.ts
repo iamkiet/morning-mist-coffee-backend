@@ -5,6 +5,7 @@ import {
   halfvec,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -41,8 +42,8 @@ export const users = pgTable(
   (t) => [uniqueIndex('users_email_lower_idx').on(sql`lower(${t.email})`)],
 );
 
-export const refreshTokens = pgTable(
-  'refresh_tokens',
+export const authTokens = pgTable(
+  'auth_tokens',
   {
     id: uuid().primaryKey(),
     userId: uuid()
@@ -52,7 +53,7 @@ export const refreshTokens = pgTable(
     revokedAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('refresh_tokens_user_id_idx').on(t.userId)],
+  (t) => [index('auth_tokens_user_id_idx').on(t.userId)],
 );
 
 export const orderStatus = pgEnum('order_status', ORDER_STATUSES);
@@ -65,7 +66,7 @@ export const products = pgTable(
     slug: text().notNull(),
     name: text().notNull(),
     description: text(),
-    image: text(),
+    imageUrl: text(),
     embedding: halfvec({ dimensions: env.EMBEDDING_DIMENSION }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
@@ -188,7 +189,7 @@ export const orders = pgTable(
   'orders',
   {
     id: uuid().primaryKey().defaultRandom(),
-    email: text().notNull(),
+    customerEmail: text().notNull(),
     status: orderStatus().notNull().default('pending'),
     totalCents: integer().notNull(),
     currency: currency().notNull().default('VND'),
@@ -206,7 +207,10 @@ export const orders = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => [
-    index('orders_email_created_at_idx').on(t.email, t.createdAt.desc()),
+    index('orders_customer_email_created_at_idx').on(
+      t.customerEmail,
+      t.createdAt.desc(),
+    ),
     index('orders_status_created_at_idx').on(t.status, t.createdAt.desc()),
     index('orders_created_at_idx').on(t.createdAt.desc()),
   ],
@@ -219,8 +223,14 @@ export const orderItems = pgTable(
     orderId: uuid()
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),
-    productVariantId: uuid(),
-    name: text().notNull(),
+    productVariantId: uuid().references(() => productVariants.id, {
+      onDelete: 'set null',
+    }),
+    productName: text().notNull(),
+    variantSku: text(),
+    variantPropertyValues: jsonb().$type<
+      Array<{ propertyName: string; value: string }>
+    >(),
     priceCents: integer().notNull(),
     quantity: integer().notNull(),
   },
@@ -233,8 +243,8 @@ export type OrderItemRow = typeof orderItems.$inferSelect;
 export type NewOrderItemRow = typeof orderItems.$inferInsert;
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
-export type RefreshTokenRow = typeof refreshTokens.$inferSelect;
-export type NewRefreshTokenRow = typeof refreshTokens.$inferInsert;
+export type AuthTokenRow = typeof authTokens.$inferSelect;
+export type NewAuthTokenRow = typeof authTokens.$inferInsert;
 export type ProductRow = typeof products.$inferSelect;
 export type NewProductRow = typeof products.$inferInsert;
 export type ProductVariantRow = typeof productVariants.$inferSelect;

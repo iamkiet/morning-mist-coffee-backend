@@ -9,17 +9,24 @@ import { CurrencySchema } from './product.schema.ts';
 
 export const OrderStatus = z.enum(ORDER_STATUSES);
 
+export const OrderItemPropertyValueSchema = z.object({
+  propertyName: z.string(),
+  value: z.string(),
+});
+
 export const OrderItemSchema = z.object({
   id: z.uuid(),
   productVariantId: z.uuid().nullable(),
-  name: z.string(),
+  productName: z.string(),
+  variantSku: z.string().nullable(),
+  variantPropertyValues: z.array(OrderItemPropertyValueSchema),
   priceCents: z.number().int().min(0),
   quantity: z.number().int().min(1),
 });
 
 export const OrderSchema = z.object({
   id: z.uuid(),
-  email: z.email(),
+  customerEmail: z.email(),
   status: OrderStatus,
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
@@ -37,13 +44,13 @@ export const OrderSchema = z.object({
 
 export const CreateOrderItemBody = z.object({
   productVariantId: z.uuid().optional(),
-  name: z.string().min(1),
+  productName: z.string().min(1),
   priceCents: z.number().int().min(0),
   quantity: z.number().int().min(1),
 });
 
 export const CreateOrderBody = z.object({
-  email: z.email(),
+  customerEmail: z.email(),
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
   cashReceivedCents: z.number().int().min(0).optional(),
@@ -64,7 +71,7 @@ export const OrderIdParam = z.object({
 });
 
 export const ListOrdersQuery = z.object({
-  email: z.email().optional(),
+  customerEmail: z.email().optional(),
   q: z.string().min(1).max(200).optional(),
   status: OrderStatus.optional(),
   currency: CurrencySchema.optional(),

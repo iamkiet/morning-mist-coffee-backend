@@ -79,7 +79,7 @@ export class PostgresProductRepository implements ProductRepo {
         slug: input.slug,
         name: input.name,
         description: input.description ?? null,
-        image: input.image ?? null,
+        imageUrl: input.imageUrl ?? null,
       })
       .returning();
     if (!row) throw new Error('Failed to create product');
@@ -91,12 +91,12 @@ export class PostgresProductRepository implements ProductRepo {
       slug: string;
       name: string;
       description: string | null;
-      image: string | null;
+      imageUrl: string | null;
     }> = {};
     if (input.slug !== undefined) patch.slug = input.slug;
     if (input.name !== undefined) patch.name = input.name;
     if (input.description !== undefined) patch.description = input.description;
-    if (input.image !== undefined) patch.image = input.image;
+    if (input.imageUrl !== undefined) patch.imageUrl = input.imageUrl;
 
     if (Object.keys(patch).length === 0) {
       return this.findById(id);

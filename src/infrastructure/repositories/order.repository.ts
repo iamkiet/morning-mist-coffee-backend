@@ -83,7 +83,7 @@ export class PostgresOrderRepository implements OrderRepo {
     const [row] = await this.db
       .insert(orders)
       .values({
-        email: input.email,
+        customerEmail: input.customerEmail,
         totalCents: input.totalCents,
         currency: input.currency,
         cashReceivedCents: input.cashReceivedCents ?? null,
@@ -105,7 +105,9 @@ export class PostgresOrderRepository implements OrderRepo {
               input.items.map((item) => ({
                 orderId: row.id,
                 productVariantId: item.productVariantId ?? null,
-                name: item.name,
+                productName: item.productName,
+                variantSku: item.variantSku ?? null,
+                variantPropertyValues: item.variantPropertyValues ?? [],
                 priceCents: item.priceCents,
                 quantity: item.quantity,
               })),

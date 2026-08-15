@@ -8,7 +8,7 @@ import type { OrderDTO } from '../schemas/order.schema.ts';
 export function toOrderDTO(order: Order): OrderDTO {
   return {
     id: order.id,
-    email: order.email,
+    customerEmail: order.customerEmail,
     status: order.status,
     totalCents: order.totalCents,
     currency: order.currency,
@@ -22,7 +22,9 @@ export function toOrderDTO(order: Order): OrderDTO {
     items: order.items.map((item) => ({
       id: item.id,
       productVariantId: item.productVariantId,
-      name: item.name,
+      productName: item.productName,
+      variantSku: item.variantSku,
+      variantPropertyValues: item.variantPropertyValues,
       priceCents: item.priceCents,
       quantity: item.quantity,
     })),

@@ -5,19 +5,36 @@ function formatCents(cents: number): string {
   return `${cents.toLocaleString('vi-VN')} ₫`;
 }
 
+const WEIGHT_SUFFIX = /-(\d+(?:[.,]\d+)?(?:kg|g|ml|l))$/i;
+
+function getVariantLabelFromSku(sku: string): string {
+  const match = sku.match(WEIGHT_SUFFIX);
+  return match?.[1] ? match[1].toLowerCase() : sku;
+}
+
 export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
   subject: string;
   html: string;
 } {
   const rows = data.items
-    .map(
-      (item) => `
+    .map((item) => {
+      const variantLabel = item.variantSku
+        ? getVariantLabelFromSku(item.variantSku)
+        : null;
+      const properties = item.variantPropertyValues
+        .map((p) => p.value)
+        .join(' · ');
+      const subtitle = [variantLabel, properties].filter(Boolean).join(' · ');
+      return `
       <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #e3ede7;">${item.name}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e3ede7;">
+          ${item.productName}
+          ${subtitle ? `<br/><span style="font-size:12px;color:#5c7a6c;">${subtitle}</span>` : ''}
+        </td>
         <td style="padding:8px 12px;border-bottom:1px solid #e3ede7;text-align:center;">${item.quantity}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #e3ede7;text-align:right;">${formatCents(item.priceCents)}</td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join('');
 
   const subject = `Đơn hàng đã được xác nhận — #${data.orderId.slice(0, 8).toUpperCase()}`;

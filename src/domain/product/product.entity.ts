@@ -5,7 +5,7 @@ export interface Product {
   slug: string;
   name: string;
   description: string | null;
-  image: string | null;
+  imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,7 +13,7 @@ export interface Product {
 export interface CreateProductInput {
   name: string;
   description?: string | null;
-  image?: string | null;
+  imageUrl?: string | null;
 }
 
 export type CreateProductRecord = CreateProductInput & { slug: string };
@@ -22,7 +22,7 @@ export interface UpdateProductInput {
   slug?: string;
   name?: string;
   description?: string | null;
-  image?: string | null;
+  imageUrl?: string | null;
 }
 
 export type ProductSortField = 'createdAt' | 'name';

@@ -32,7 +32,7 @@ export function toProductDTO(p: ProductWithVariants): ProductDTO {
     slug: p.slug,
     name: p.name,
     description: p.description,
-    image: p.image,
+    imageUrl: p.imageUrl,
     variants: p.variants.map(toProductVariantDTO),
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),

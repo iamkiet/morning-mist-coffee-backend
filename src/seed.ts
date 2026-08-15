@@ -57,7 +57,7 @@ async function seed() {
         slug: product.slug,
         name: product.name,
         description: product.description,
-        image: product.image,
+        imageUrl: product.image,
       })
       .returning();
     if (!row) throw new Error(`Failed to seed product ${product.name}`);

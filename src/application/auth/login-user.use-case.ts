@@ -56,6 +56,7 @@ export class LoginUserUseCase {
       role: user.role,
     });
     const refresh = await this.tokens.signRefresh(user.id);
+    await this.refreshTokens.revokeAllForUser(user.id);
     await this.refreshTokens.create({
       id: refresh.jti,
       userId: user.id,

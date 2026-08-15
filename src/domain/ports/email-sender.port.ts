@@ -10,7 +10,13 @@ export interface OrderConfirmationEmail {
   shippingAddress: string | null;
   shippingCity: string | null;
   shippingPostalCode: string | null;
-  items: Array<{ name: string; quantity: number; priceCents: number }>;
+  items: Array<{
+    productName: string;
+    variantSku: string | null;
+    variantPropertyValues: Array<{ propertyName: string; value: string }>;
+    quantity: number;
+    priceCents: number;
+  }>;
   createdAt: Date;
 }
 

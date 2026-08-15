@@ -32,7 +32,7 @@ export const ProductSchema = z.object({
   slug: z.string(),
   name: z.string(),
   description: z.string().nullable(),
-  image: z.string().nullable(),
+  imageUrl: z.string().nullable(),
   variants: z.array(ProductVariantSchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -64,7 +64,7 @@ export const UpdateProductVariantBody = z
 export const CreateProductBody = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(5000).nullable().optional(),
-  image: z.string().url().max(2048).nullable().optional(),
+  imageUrl: z.string().url().max(2048).nullable().optional(),
   categoryIds: z.array(z.uuid()).optional(),
   variant: CreateProductVariantBody,
 });
@@ -74,7 +74,7 @@ export const UpdateProductBody = z
     slug: z.string().min(1).max(220).optional(),
     name: z.string().min(1).max(200).optional(),
     description: z.string().max(5000).nullable().optional(),
-    image: z.string().url().max(2048).nullable().optional(),
+    imageUrl: z.string().url().max(2048).nullable().optional(),
   })
   .refine((v) => Object.keys(v).length > 0, {
     message: 'At least one field required',

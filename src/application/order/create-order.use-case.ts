@@ -39,9 +39,15 @@ export class CreateOrderUseCase {
       if (variant.currency !== input.currency) {
         throw new ValidationError(`Variant currency ${variant.currency} does not match order currency ${input.currency}`);
       }
+      const propertyValues = await this.variants.getPropertyValues(variant.id);
       resolvedItems.push({
         productVariantId: item.productVariantId,
-        name: product.name,
+        productName: product.name,
+        variantSku: variant.sku,
+        variantPropertyValues: propertyValues.map((p) => ({
+          propertyName: p.propertyName,
+          value: p.value,
+        })),
         priceCents: variant.priceCents,
         quantity: item.quantity,
       });
@@ -81,12 +87,12 @@ export class CreateOrderUseCase {
       totalCents,
       cashReceivedCents,
       changeCents,
-      email: normalizeEmail(input.email),
+      customerEmail: normalizeEmail(input.customerEmail),
     });
 
     try {
       await this.emailSender.sendOrderConfirmation({
-        to: order.email,
+        to: order.customerEmail,
         orderId: order.id,
         totalCents: order.totalCents,
         currency: order.currency,
@@ -98,7 +104,9 @@ export class CreateOrderUseCase {
         shippingCity: order.shippingCity,
         shippingPostalCode: order.shippingPostalCode,
         items: order.items.map((item) => ({
-          name: item.name,
+          productName: item.productName,
+          variantSku: item.variantSku,
+          variantPropertyValues: item.variantPropertyValues,
           quantity: item.quantity,
           priceCents: item.priceCents,
         })),

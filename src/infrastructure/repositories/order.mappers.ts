@@ -6,11 +6,12 @@ import { containsPattern, prefixPattern } from './ilike-pattern.ts';
 
 export function buildOrderFilters(filter: OrderFilterCriteria): SQL[] {
   const filters: SQL[] = [];
-  if (filter.email) filters.push(eq(orders.email, filter.email));
+  if (filter.customerEmail)
+    filters.push(eq(orders.customerEmail, filter.customerEmail));
   if (filter.q) {
     const pattern = containsPattern(filter.q);
     const match = or(
-      ilike(orders.email, pattern),
+      ilike(orders.customerEmail, pattern),
       sql`${orders.id}::text ilike ${prefixPattern(filter.q)}`,
       sql`${orders.status}::text ilike ${pattern}`,
     );
@@ -34,7 +35,9 @@ export function rowToItem(row: OrderItemRow): OrderItem {
   return {
     id: row.id,
     productVariantId: row.productVariantId,
-    name: row.name,
+    productName: row.productName,
+    variantSku: row.variantSku,
+    variantPropertyValues: row.variantPropertyValues ?? [],
     priceCents: row.priceCents,
     quantity: row.quantity,
   };
@@ -43,7 +46,7 @@ export function rowToItem(row: OrderItemRow): OrderItem {
 export function rowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
   return {
     id: row.id,
-    email: row.email,
+    customerEmail: row.customerEmail,
     status: row.status,
     totalCents: row.totalCents,
     currency: row.currency,
