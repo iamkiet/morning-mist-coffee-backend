@@ -49,15 +49,20 @@ export const RefreshBody = z.object({
 
 export const AuthResponse = z.object({
   user: UserSchema,
-  accessToken: z.string(),
-  refreshToken: z.string(),
+  accessToken: z.string().optional(),
+  refreshToken: z.string().optional(),
   csrfToken: z.string(),
 });
 
 export const RefreshResponse = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string(),
+  accessToken: z.string().optional(),
+  refreshToken: z.string().optional(),
   csrfToken: z.string(),
+});
+
+export const MeResponse = z.object({
+  user: UserSchema,
+  csrfToken: z.string().optional(),
 });
 
 export type UserDTO = z.infer<typeof UserSchema>;

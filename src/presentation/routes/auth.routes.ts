@@ -7,11 +7,11 @@ import { checkRegistrationKey } from '../middlewares/registration-key.ts';
 import {
   AuthResponse,
   LoginBody,
+  MeResponse,
   RefreshBody,
   RefreshResponse,
   RegisterBody,
   RegisterHeaders,
-  UserSchema,
 } from '../schemas/auth.schema.ts';
 
 const authRateLimit = {
@@ -70,7 +70,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     onRequest: app.authenticate,
     schema: {
       tags: ['auth'],
-      response: { 200: UserSchema },
+      response: { 200: MeResponse },
       security: [{ bearerAuth: [] }],
     },
     handler: controller.me,

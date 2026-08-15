@@ -6,8 +6,10 @@ import type { LogoutUseCase } from '../../application/auth/logout.use-case.ts';
 import type { RefreshTokenUseCase } from '../../application/auth/refresh-token.use-case.ts';
 import type { RegisterUserUseCase } from '../../application/auth/register-user.use-case.ts';
 import type { AuthResult } from '../../application/auth/types.ts';
+import { env } from '../../config/env.ts';
 import { UnauthorizedError } from '../../lib/errors.ts';
 import {
+  CSRF_COOKIE,
   REFRESH_COOKIE,
   clearAuthCookies,
   setAuthCookies,
@@ -31,9 +33,10 @@ export interface AuthUseCases {
 function toAuthPayload(result: AuthResult, csrfToken: string) {
   return {
     user: toUserDTO(result.user),
-    accessToken: result.accessToken,
-    refreshToken: result.refreshToken,
     csrfToken,
+    ...(env.NODE_ENV !== 'production'
+      ? { accessToken: result.accessToken, refreshToken: result.refreshToken }
+      : {}),
   };
 }
 
@@ -114,9 +117,10 @@ export class AuthController {
       result.refreshExpiresAt,
     );
     return reply.send({
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
       csrfToken,
+      ...(env.NODE_ENV !== 'production'
+        ? { accessToken: result.accessToken, refreshToken: result.refreshToken }
+        : {}),
     });
   };
 
@@ -134,6 +138,10 @@ export class AuthController {
   me = async (req: FastifyRequest, reply: FastifyReply) => {
     if (!req.user) throw new UnauthorizedError();
     const user = await this.uc.me.execute(req.user.id);
-    return reply.send(toUserDTO(user));
+    const csrfToken = req.cookies[CSRF_COOKIE];
+    return reply.send({
+      user: toUserDTO(user),
+      ...(csrfToken ? { csrfToken } : {}),
+    });
   };
 }
