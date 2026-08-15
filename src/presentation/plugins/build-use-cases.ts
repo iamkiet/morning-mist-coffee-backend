@@ -161,7 +161,12 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
         deps.logger,
       ),
       updateVariant: new UpdateProductVariantUseCase(deps.productVariantRepo),
-      deleteVariant: new DeleteProductVariantUseCase(deps.productVariantRepo),
+      deleteVariant: new DeleteProductVariantUseCase(
+        deps.productRepo,
+        deps.productVariantRepo,
+        deps.embedding,
+        deps.logger,
+      ),
       getVariantStock: new GetVariantStockUseCase(deps.productVariantRepo),
       increaseVariantStock: new IncreaseVariantStockUseCase(deps.productVariantRepo),
       decreaseVariantStock: new DecreaseVariantStockUseCase(deps.productVariantRepo),
