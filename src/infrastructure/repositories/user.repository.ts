@@ -128,6 +128,11 @@ export class PostgresUserRepository implements UserRepo {
       .where(eq(users.id, id));
   }
 
+  async delete(id: string): Promise<boolean> {
+    const rows = await this.db.delete(users).where(eq(users.id, id)).returning();
+    return rows.length > 0;
+  }
+
   async list(filter: ListUsersFilter): Promise<User[]> {
     const { sortBy, sortDir, limit, offset, ...criteria } = filter;
     const where = buildConditions(criteria);

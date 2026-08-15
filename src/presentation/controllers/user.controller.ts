@@ -3,6 +3,8 @@ import type { z } from 'zod';
 import type { ListUsersUseCase } from '../../application/user/list-users.use-case.ts';
 import type { UpdateUserUseCase } from '../../application/user/update-user.use-case.ts';
 import type { UpdateUserPasswordUseCase } from '../../application/user/update-user-password.use-case.ts';
+import type { DeleteUserUseCase } from '../../application/user/delete-user.use-case.ts';
+import { UnauthorizedError } from '../../lib/errors.ts';
 import { mapPaginated } from '../../domain/shared/pagination.ts';
 import { toUserDTO } from '../serializers/auth.serializer.ts';
 import type { ListUsersQuery, UpdateUserBody, UpdatePasswordBody, UserIdParam } from '../schemas/user.schema.ts';
@@ -11,6 +13,7 @@ export interface UserUseCases {
   list: ListUsersUseCase;
   update: UpdateUserUseCase;
   updatePassword: UpdateUserPasswordUseCase;
+  delete: DeleteUserUseCase;
 }
 
 export class UserController {
@@ -43,6 +46,15 @@ export class UserController {
     reply: FastifyReply,
   ) => {
     await this.uc.updatePassword.execute(req.params.id, req.body.password);
+    return reply.code(204).send();
+  };
+
+  delete = async (
+    req: FastifyRequest<{ Params: z.infer<typeof UserIdParam> }>,
+    reply: FastifyReply,
+  ) => {
+    if (!req.user) throw new UnauthorizedError();
+    await this.uc.delete.execute(req.params.id, req.user.id);
     return reply.code(204).send();
   };
 }

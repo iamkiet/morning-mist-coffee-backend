@@ -14,6 +14,7 @@ export interface UserRepo {
   updatePassword(id: string, passwordHash: string): Promise<User | null>;
   recordFailedLogin(id: string, lockedUntil: Date | null): Promise<User | null>;
   resetFailedLogins(id: string): Promise<void>;
+  delete(id: string): Promise<boolean>;
   list(filter: ListUsersFilter): Promise<User[]>;
   count(criteria: UserFilterCriteria): Promise<number>;
 }

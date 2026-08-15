@@ -2,24 +2,40 @@ import chatSystemPrompt from '../../prompts/chat-system.prompt.json' with { type
 
 const BASE_INSTRUCTION = chatSystemPrompt.template;
 
+export interface ChatCatalogueVariant {
+  priceCents: number;
+  stock: number;
+  propertyValues: Array<{ propertyName: string; value: string }>;
+}
+
 export interface ChatCatalogueProduct {
   name: string;
   description: string | null;
-  priceCents: number | null;
-  propertyLines: Array<{ propertyName: string; value: string }>;
+  categoryNames: string[];
+  variants: ChatCatalogueVariant[];
 }
 
 export function wrapUserMessage(text: string): string {
   return `<user_message>\n${text}\n</user_message>`;
 }
 
+function formatVariant(v: ChatCatalogueVariant): string {
+  const price = `${v.priceCents.toLocaleString('vi-VN')} ₫`;
+  const stock = v.stock > 0 ? `còn ${v.stock}` : 'hết hàng';
+  const properties = v.propertyValues.map((p) => `${p.propertyName}: ${p.value}`).join(', ');
+  return `    - ${price} — ${stock}${properties ? ` — ${properties}` : ''}`;
+}
+
 function formatProduct(p: ChatCatalogueProduct): string {
-  const price = p.priceCents !== null ? `${p.priceCents.toLocaleString('vi-VN')} ₫` : '—';
-  const lines = [`- ${p.name} (${price})`];
-  for (const { propertyName, value } of p.propertyLines) {
-    lines.push(`  ${propertyName}: ${value}`);
+  const lines = [`- ${p.name}`];
+  if (p.categoryNames.length > 0) {
+    lines.push(`  danh mục: ${p.categoryNames.join(', ')}`);
   }
   lines.push(`  mô tả: ${p.description ?? '—'}`);
+  lines.push('  các loại:');
+  for (const variant of p.variants) {
+    lines.push(formatVariant(variant));
+  }
   return lines.join('\n');
 }
 

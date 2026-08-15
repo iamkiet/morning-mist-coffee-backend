@@ -5,26 +5,13 @@ function formatCents(cents: number): string {
   return `${cents.toLocaleString('vi-VN')} ₫`;
 }
 
-const WEIGHT_SUFFIX = /-(\d+(?:[.,]\d+)?(?:kg|g|ml|l))$/i;
-
-function getVariantLabelFromSku(sku: string): string {
-  const match = sku.match(WEIGHT_SUFFIX);
-  return match?.[1] ? match[1].toLowerCase() : sku;
-}
-
 export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
   subject: string;
   html: string;
 } {
   const rows = data.items
     .map((item) => {
-      const variantLabel = item.variantSku
-        ? getVariantLabelFromSku(item.variantSku)
-        : null;
-      const properties = item.variantPropertyValues
-        .map((p) => p.value)
-        .join(' · ');
-      const subtitle = [variantLabel, properties].filter(Boolean).join(' · ');
+      const subtitle = item.variantPropertyValues.map((p) => p.value).join(' · ');
       return `
       <tr>
         <td style="padding:8px 12px;border-bottom:1px solid #e3ede7;">

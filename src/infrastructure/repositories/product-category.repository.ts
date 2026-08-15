@@ -1,4 +1,4 @@
-import { asc, eq, sql } from 'drizzle-orm';
+import { asc, eq, inArray, sql } from 'drizzle-orm';
 import type {
   CreateProductCategoryInput,
   ProductCategory,
@@ -59,6 +59,26 @@ export class PostgresProductCategoryRepository implements ProductCategoryRepo {
       .from(productsCategories)
       .where(eq(productsCategories.productId, productId));
     return rows.map((r) => r.id);
+  }
+
+  async getCategoryIdsForProducts(
+    productIds: string[],
+  ): Promise<Map<string, string[]>> {
+    if (productIds.length === 0) return new Map();
+    const rows = await this.db
+      .select({
+        productId: productsCategories.productId,
+        categoryId: productsCategories.productCategoryId,
+      })
+      .from(productsCategories)
+      .where(inArray(productsCategories.productId, productIds));
+    const map = new Map<string, string[]>();
+    for (const row of rows) {
+      const list = map.get(row.productId) ?? [];
+      list.push(row.categoryId);
+      map.set(row.productId, list);
+    }
+    return map;
   }
 
   async setCategoriesForProduct(

@@ -49,4 +49,15 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     },
     handler: controller.updatePassword,
   });
+
+  fastify.delete('/:id', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['users'],
+      params: UserIdParam,
+      response: { 204: z.null() },
+      security: [{ bearerAuth: [] }],
+    },
+    handler: controller.delete,
+  });
 }

@@ -41,6 +41,7 @@ export interface ProductVariantWithProperties extends ProductVariant {
 
 export interface ProductWithVariants extends Product {
   variants: ProductVariantWithProperties[];
+  categoryIds?: string[];
 }
 
 export interface StockChange {

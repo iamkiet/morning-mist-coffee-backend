@@ -56,7 +56,10 @@ export class CreateProductUseCase {
     }
 
     await syncProductEmbedding(product.id, this.products, this.embedding, this.logger);
-    return attachVariantsOne(this.variants, product);
+    return {
+      ...(await attachVariantsOne(this.variants, product)),
+      categoryIds: input.categoryIds ?? [],
+    };
   }
 
   private async resolveSlug(name: string): Promise<string> {

@@ -65,7 +65,7 @@ export class SendChatMessageUseCase {
     userMessage: string,
   ): Promise<string> {
     try {
-      const catalogue = await buildCatalogueProducts(this.variants, products);
+      const catalogue = await buildCatalogueProducts(this.products, this.variants, products);
       return await this.chat.reply(
         buildChatPrompt(catalogue),
         history,

@@ -9,6 +9,7 @@ export interface ProductCategoryRepo {
   findByName(name: string): Promise<ProductCategory | null>;
   create(input: CreateProductCategoryInput): Promise<ProductCategory>;
   getCategoryIdsForProduct(productId: string): Promise<string[]>;
+  getCategoryIdsForProducts(productIds: string[]): Promise<Map<string, string[]>>;
   setCategoriesForProduct(
     productId: string,
     categoryIds: string[],

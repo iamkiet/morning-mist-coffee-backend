@@ -28,6 +28,7 @@ import { SetProductCategoriesUseCase } from '../../application/product/set-produ
 import { SetVariantPropertyValuesUseCase } from '../../application/product/set-variant-property-values.use-case.ts';
 import { UpdateProductUseCase } from '../../application/product/update-product.use-case.ts';
 import { UpdateProductVariantUseCase } from '../../application/product/update-product-variant.use-case.ts';
+import { DeleteUserUseCase } from '../../application/user/delete-user.use-case.ts';
 import { ListUsersUseCase } from '../../application/user/list-users.use-case.ts';
 import { UpdateUserPasswordUseCase } from '../../application/user/update-user-password.use-case.ts';
 import { UpdateUserUseCase } from '../../application/user/update-user.use-case.ts';
@@ -131,7 +132,11 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
       send: chatSend,
     },
     product: {
-      list: new ListProductsUseCase(deps.productRepo, deps.productVariantRepo),
+      list: new ListProductsUseCase(
+        deps.productRepo,
+        deps.productVariantRepo,
+        deps.productCategoryRepo,
+      ),
       getById: new GetProductByIdUseCase(deps.productRepo, deps.productVariantRepo),
       getBySlug: new GetProductBySlugUseCase(deps.productRepo, deps.productVariantRepo),
       create: new CreateProductUseCase(
@@ -191,6 +196,7 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
       list: new ListUsersUseCase(deps.userRepo),
       update: new UpdateUserUseCase(deps.userRepo),
       updatePassword: new UpdateUserPasswordUseCase(deps.userRepo, deps.passwordHasher),
+      delete: new DeleteUserUseCase(deps.userRepo),
     },
     search: {
       voiceSearch: new SearchProductsByVoiceUseCase(
