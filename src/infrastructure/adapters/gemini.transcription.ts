@@ -25,11 +25,7 @@ export class GeminiTranscriptionAdapter implements TranscriptionPort {
           httpOptions: { timeout: TIMEOUT_MS },
         },
       });
-      const text = response.text;
-      if (text === undefined) {
-        throw new ExternalServiceError('Gemini', 'Transcription returned no text');
-      }
-      return text.trim();
+      return response.text?.trim() ?? '';
     } catch (error) {
       throw new ExternalServiceError('Gemini', 'Failed to transcribe audio', error);
     }

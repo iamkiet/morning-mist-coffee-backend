@@ -3,7 +3,7 @@ import type { ProductVariantRepo } from '../../domain/product/product-variant.re
 import type { AudioConverterPort } from '../../domain/ports/audio-converter.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
 import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
-import { ExternalServiceError } from '../../lib/errors.ts';
+import { ValidationError } from '../../lib/errors.ts';
 import type { SendChatMessageUseCase } from '../chat/send-chat-message.use-case.ts';
 import { attachVariants } from './attach-variants.ts';
 import { preferVariantByWeight } from './prefer-variant-by-weight.ts';
@@ -36,11 +36,9 @@ export class SearchProductsByVoiceUseCase {
       this.maxDurationSeconds,
     );
 
-    const transcript = await this.transcriptionPort
-      .transcribe(wavBytes, 'audio/wav')
-      .catch(() => null);
+    const transcript = await this.transcriptionPort.transcribe(wavBytes, 'audio/wav');
     if (!transcript) {
-      throw new ExternalServiceError('transcription', 'Could not understand the audio');
+      throw new ValidationError('Could not understand the audio');
     }
 
     const queryVectorPromise = this.embeddingPort.embedAudioQuery(wavBytes, 'audio/wav');
