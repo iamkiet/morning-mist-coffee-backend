@@ -16,11 +16,6 @@ declare module 'fastify' {
 }
 
 function extractAccessToken(req: FastifyRequest): string | null {
-  const header = req.headers.authorization;
-  if (header && header.startsWith('Bearer ')) {
-    const token = header.slice('Bearer '.length).trim();
-    if (token) return token;
-  }
   return req.cookies[ACCESS_COOKIE] ?? null;
 }
 

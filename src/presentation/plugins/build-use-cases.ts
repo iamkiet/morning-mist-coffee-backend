@@ -99,12 +99,7 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
 
   return {
     auth: {
-      register: new RegisterUserUseCase(
-        deps.userRepo,
-        deps.refreshTokenRepo,
-        deps.passwordHasher,
-        deps.tokenSigner,
-      ),
+      register: new RegisterUserUseCase(deps.userRepo, deps.passwordHasher),
       login: new LoginUserUseCase(
         deps.userRepo,
         deps.refreshTokenRepo,

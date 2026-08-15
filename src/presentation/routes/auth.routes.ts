@@ -8,10 +8,10 @@ import {
   AuthResponse,
   LoginBody,
   MeResponse,
-  RefreshBody,
   RefreshResponse,
   RegisterBody,
   RegisterHeaders,
+  UserSchema,
 } from '../schemas/auth.schema.ts';
 
 const authRateLimit = {
@@ -31,7 +31,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       tags: ['auth'],
       headers: RegisterHeaders,
       body: RegisterBody,
-      response: { 201: AuthResponse },
+      response: { 201: UserSchema },
     },
     preHandler: [checkRegistrationKey],
     handler: controller.register,
@@ -51,7 +51,6 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     config: authRateLimit,
     schema: {
       tags: ['auth'],
-      body: RefreshBody,
       response: { 200: RefreshResponse },
     },
     handler: controller.refresh,
@@ -60,7 +59,6 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   fastify.post('/logout', {
     schema: {
       tags: ['auth'],
-      body: RefreshBody,
       response: { 204: z.null() },
     },
     handler: controller.logout,

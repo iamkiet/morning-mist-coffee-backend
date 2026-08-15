@@ -43,10 +43,6 @@ export const LoginBody = z.object({
   password: z.string().min(1).max(128),
 });
 
-export const RefreshBody = z.object({
-  refreshToken: z.string().min(1).optional(),
-});
-
 export const AuthResponse = z.object({
   user: UserSchema,
   accessToken: z.string().optional(),

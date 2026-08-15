@@ -14,11 +14,7 @@ import {
   clearAuthCookies,
   setAuthCookies,
 } from '../middlewares/auth-cookies.ts';
-import type {
-  LoginBody,
-  RefreshBody,
-  RegisterBody,
-} from '../schemas/auth.schema.ts';
+import type { LoginBody, RegisterBody } from '../schemas/auth.schema.ts';
 import { toUserDTO } from '../serializers/auth.serializer.ts';
 import { withAuthFailureLogging } from './record-auth-failure.ts';
 
@@ -40,44 +36,31 @@ function toAuthPayload(result: AuthResult, csrfToken: string) {
   };
 }
 
-function resolveRefreshToken(
-  req: FastifyRequest<{ Body: z.infer<typeof RefreshBody> }>,
-): string {
-  const fromBody = req.body?.refreshToken;
-  if (fromBody && fromBody.length > 0) return fromBody;
+function resolveRefreshToken(req: FastifyRequest): string {
   const fromCookie = req.cookies[REFRESH_COOKIE];
   if (fromCookie && fromCookie.length > 0) return fromCookie;
   throw new UnauthorizedError('Missing refresh token');
 }
 
-
 export class AuthController {
-  constructor(
-    private readonly uc: AuthUseCases,
-  ) {}
+  constructor(private readonly uc: AuthUseCases) {}
 
   register = async (
     req: FastifyRequest<{ Body: z.infer<typeof RegisterBody> }>,
     reply: FastifyReply,
   ) => {
-    const result = await withAuthFailureLogging(
+    const user = await withAuthFailureLogging(
       req,
       'register_fail',
       '/api/v1/auth/register',
       req.body.email,
       () => this.uc.register.execute(req.body),
     );
-    const csrfToken = setAuthCookies(
-      reply,
-      result.accessToken,
-      result.refreshToken,
-      result.refreshExpiresAt,
-    );
     req.log.info(
-      { event: 'auth.register.success', userId: result.user.id },
+      { event: 'auth.register.success', userId: user.id },
       'register success',
     );
-    return reply.code(201).send(toAuthPayload(result, csrfToken));
+    return reply.code(201).send(toUserDTO(user));
   };
 
   login = async (
@@ -104,10 +87,7 @@ export class AuthController {
     return reply.send(toAuthPayload(result, csrfToken));
   };
 
-  refresh = async (
-    req: FastifyRequest<{ Body: z.infer<typeof RefreshBody> }>,
-    reply: FastifyReply,
-  ) => {
+  refresh = async (req: FastifyRequest, reply: FastifyReply) => {
     const refreshToken = resolveRefreshToken(req);
     const result = await this.uc.refresh.execute({ refreshToken });
     const csrfToken = setAuthCookies(
@@ -124,10 +104,7 @@ export class AuthController {
     });
   };
 
-  logout = async (
-    req: FastifyRequest<{ Body: z.infer<typeof RefreshBody> }>,
-    reply: FastifyReply,
-  ) => {
+  logout = async (req: FastifyRequest, reply: FastifyReply) => {
     const refreshToken = resolveRefreshToken(req);
     await this.uc.logout.execute({ refreshToken });
     clearAuthCookies(reply);
