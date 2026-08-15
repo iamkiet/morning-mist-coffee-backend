@@ -6,6 +6,7 @@ import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts
 import { ExternalServiceError } from '../../lib/errors.ts';
 import type { SendChatMessageUseCase } from '../chat/send-chat-message.use-case.ts';
 import { attachVariants } from './attach-variants.ts';
+import { preferVariantByWeight } from './prefer-variant-by-weight.ts';
 
 export interface SearchProductsByVoiceInput {
   audioBytes: Buffer;
@@ -43,12 +44,13 @@ export class SearchProductsByVoiceUseCase {
     }
 
     const queryVectorPromise = this.embeddingPort.embedAudioQuery(wavBytes, 'audio/wav');
-    const { message, products } = await this.chatUseCase.replyToMessage(
+    const { message, products, weight } = await this.chatUseCase.replyToMessage(
       queryVectorPromise,
       transcript,
     );
 
-    const items = await attachVariants(this.variants, products);
+    const attached = await attachVariants(this.variants, products);
+    const items = weight ? attached.map((p) => preferVariantByWeight(p, weight)) : attached;
 
     return { message, items, transcript };
   }

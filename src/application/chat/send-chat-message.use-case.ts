@@ -23,40 +23,46 @@ export class SendChatMessageUseCase {
     private readonly logger: AppLogger,
   ) {}
 
-  async execute(messages: ChatTurn[]): Promise<{ message: string; products: Product[] }> {
+  async execute(
+    messages: ChatTurn[],
+  ): Promise<{ message: string; products: Product[]; weight?: string }> {
     const last = messages.at(-1);
     if (!last || last.role !== 'user') {
       throw new ValidationError('Last message must be from user');
     }
 
-    const [vector, priceFilter] = await Promise.all([
+    const [vector, filter] = await Promise.all([
       this.embedding.embedQuery(last.content).catch((err: unknown) => {
         this.logger.warn({ err }, 'Chat semantic retrieval failed, using keyword fallback');
         return null;
       }),
       this.filterExtraction.extract(last.content),
     ]);
-    const relevant = await this.retrieveByVector(vector, last.content, priceFilter);
+    const relevant = await this.retrieveByVector(vector, last.content, filter);
     const history = messages.slice(0, -1).map((m) => ({
       role: m.role,
       content: m.role === 'user' ? wrapUserMessage(m.content) : m.content,
     }));
 
     const message = await this.reply(relevant, history, last.content);
-    return { message, products: this.filterMentioned(relevant, message) };
+    return { message, products: this.filterMentioned(relevant, message), weight: filter?.weight };
   }
 
   async replyToMessage(
     vector: number[] | null | Promise<number[] | null>,
     message: string,
-  ): Promise<{ message: string; products: Product[] }> {
-    const [resolvedVector, priceFilter] = await Promise.all([
+  ): Promise<{ message: string; products: Product[]; weight?: string }> {
+    const [resolvedVector, filter] = await Promise.all([
       vector,
       this.filterExtraction.extract(message),
     ]);
-    const relevant = await this.retrieveByVector(resolvedVector, message, priceFilter);
+    const relevant = await this.retrieveByVector(resolvedVector, message, filter);
     const reply = await this.reply(relevant, [], message);
-    return { message: reply, products: this.filterMentioned(relevant, reply) };
+    return {
+      message: reply,
+      products: this.filterMentioned(relevant, reply),
+      weight: filter?.weight,
+    };
   }
 
   private async reply(
