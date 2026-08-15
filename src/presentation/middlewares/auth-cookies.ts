@@ -17,6 +17,14 @@ function parseTtlSeconds(ttl: string): number {
   return parseInt(match[1]!, 10) * unitValue;
 }
 
+const accessCookieOpts: CookieSerializeOptions = {
+  httpOnly: true,
+  secure: env.COOKIE_SECURE,
+  sameSite: env.COOKIE_SAME_SITE,
+  path: '/',
+  maxAge: parseTtlSeconds(env.AUTH_ACCESS_TOKEN_TTL),
+};
+
 const refreshCookieOpts: CookieSerializeOptions = {
   httpOnly: true,
   secure: env.COOKIE_SECURE,
@@ -34,17 +42,22 @@ const csrfCookieOpts: CookieSerializeOptions = {
 
 export function setAuthCookies(
   reply: FastifyReply,
+  accessToken: string,
   refreshToken: string,
   refreshExpiresAt: Date,
-): void {
+): string {
+  const csrfToken = randomBytes(32).toString('hex');
+  reply.setCookie(ACCESS_COOKIE, accessToken, accessCookieOpts);
   reply.setCookie(REFRESH_COOKIE, refreshToken, {
     ...refreshCookieOpts,
     expires: refreshExpiresAt,
   });
-  reply.setCookie(CSRF_COOKIE, randomBytes(32).toString('hex'), csrfCookieOpts);
+  reply.setCookie(CSRF_COOKIE, csrfToken, csrfCookieOpts);
+  return csrfToken;
 }
 
 export function clearAuthCookies(reply: FastifyReply): void {
+  reply.clearCookie(ACCESS_COOKIE, accessCookieOpts);
   reply.clearCookie(REFRESH_COOKIE, refreshCookieOpts);
   reply.clearCookie(CSRF_COOKIE, csrfCookieOpts);
 }

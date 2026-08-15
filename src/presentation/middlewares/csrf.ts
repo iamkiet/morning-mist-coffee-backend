@@ -17,9 +17,7 @@ export async function csrfProtection(
   _reply: FastifyReply,
 ): Promise<void> {
   if (SAFE_METHODS.has(req.method)) return;
-
-  // No ambient session cookie: caller authenticates purely via Bearer header
-  // (not automatically replayable by a third-party site), so CSRF doesn't apply.
+  if (req.url.startsWith('/api/v1/auth')) return;
   if (!req.cookies[ACCESS_COOKIE]) return;
 
   const cookieToken = req.cookies[CSRF_COOKIE];

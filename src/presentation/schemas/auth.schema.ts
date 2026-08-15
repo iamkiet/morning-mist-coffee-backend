@@ -51,11 +51,13 @@ export const AuthResponse = z.object({
   user: UserSchema,
   accessToken: z.string(),
   refreshToken: z.string(),
+  csrfToken: z.string(),
 });
 
 export const RefreshResponse = z.object({
   accessToken: z.string(),
   refreshToken: z.string(),
+  csrfToken: z.string(),
 });
 
 export type UserDTO = z.infer<typeof UserSchema>;
