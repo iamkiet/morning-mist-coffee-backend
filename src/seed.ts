@@ -1,5 +1,4 @@
 import { randomBytes } from 'node:crypto';
-import { sql } from 'drizzle-orm';
 import { env } from './config/env.ts';
 import { buildDb } from './infrastructure/db/client.ts';
 import { BcryptPasswordHasher } from './infrastructure/adapters/bcrypt.password-hasher.ts';
@@ -23,19 +22,11 @@ const { client, db } = buildDb(env.DATABASE_URL);
 const passwordHasher = new BcryptPasswordHasher();
 
 async function seedAdminUser() {
-  const [existing] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(sql`lower(${users.email}) = lower(${ADMIN_EMAIL})`);
-  if (existing) {
-    logger.info('Admin user already exists, skipping');
-    return;
-  }
+  await db.delete(users);
 
   const password = randomBytes(12).toString('base64url');
-  logger.info({ email: ADMIN_EMAIL, password }, 'Created admin user with generated password');
-
   const passwordHash = await passwordHasher.hash(password);
+
   await db.insert(users).values({
     firstName: 'Admin',
     lastName: '',
@@ -43,6 +34,7 @@ async function seedAdminUser() {
     passwordHash,
     role: 'admin',
   });
+  logger.info({ email: ADMIN_EMAIL, password }, 'Recreated admin user with generated password');
 }
 
 async function seed() {
