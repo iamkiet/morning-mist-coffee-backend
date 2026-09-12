@@ -1,6 +1,6 @@
 # Morning Mist Coffee — Backend
 
-Backend API cho cửa hàng cà phê **Morning Mist Coffee**. Fastify 5 + TypeScript, clean architecture, PostgreSQL + pgvector (Drizzle ORM), JWT auth, quản lý sản phẩm/đơn hàng, email xác nhận (Resend), AI chat tư vấn, voice semantic search và Security Agent tự động cảnh báo.
+Backend API cho cửa hàng cà phê **Morning Mist Coffee**. Fastify 5 + TypeScript, clean architecture, PostgreSQL + pgvector (Drizzle ORM), JWT auth, quản lý sản phẩm (variant + EAV property)/đơn hàng/đánh giá, email xác nhận (Resend), AI chat tư vấn, voice semantic search và Security Agent tự động cảnh báo.
 
 Chi tiết từng endpoint: Swagger UI tại `/documents` khi server chạy (tự sinh từ Zod schema, luôn khớp thực tế).
 
@@ -11,25 +11,25 @@ Chi tiết từng endpoint: Swagger UI tại `/documents` khi server chạy (t�
 | Runtime | Node.js 22+, ESM, TypeScript 6 |
 | HTTP | Fastify 5 + `fastify-type-provider-zod` |
 | Validation | Zod (request/response + env) |
-| Database | PostgreSQL via Drizzle ORM (`postgres-js`) |
+| Database | PostgreSQL + pgvector via Drizzle ORM (`postgres-js`) |
 | Auth | JWT HS256 (`jose`) + JTI refresh tokens in DB + HttpOnly cookies |
 | Password | bcryptjs |
 | Email | Resend |
-| AI | Google Gemini (`gemini-3.6-flash`) — chat assistant + security agent |
-| Security | `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit` |
+| AI | Google Gemini (`@google/genai`) — chat assistant, voice search, review classification, security agent |
+| Security | `@fastify/helmet`, `@fastify/cors`, `@fastify/rate-limit`, CSRF double-submit |
 
 ## Architecture
 
-Clean architecture — inner layers không import outer layers (enforced bởi `npm run check:arch`).
+Clean architecture — inner layers không import outer layers (enforced bởi `npm run check:arch`, chạy tự động như Stop hook).
 
 ```
 domain/          entities, repo interfaces, ports — no framework, no I/O
 application/     use cases — depend only on domain abstractions
-infrastructure/  Drizzle repos, adapters (jose, bcrypt, resend) — implements ports
+infrastructure/  Drizzle repos, adapters (jose, bcrypt, resend, Gemini) — implements ports
 presentation/    Fastify routes, controllers, schemas, serializers, plugins, middlewares
 ```
 
-**Domains:** `user`, `auth` (refresh token), `product`, `product-type`, `order`, `chat`
+**Domains:** `employee`, `customer`, `auth` (refresh token), `order`, `product` (+ `product-variant`), `product-category`, `product-property` (EAV), `product-review`, `chat`, `security`
 
 **Request flow:**
 
@@ -47,55 +47,49 @@ routes → controllers → use cases → repos/adapters → DB / external servic
 
 ### Auth
 
-- **Register** — cần header `X-User-Registration-Key`; hash password; trả access + refresh token; set HttpOnly cookies
-- **Login** — verify email/password; token pair + cookies
-- **Refresh** — đổi refresh token (body hoặc cookie) lấy token pair mới; JTI lưu DB
+- **Login tách 2 endpoint riêng theo bảng**: `POST /api/v1/auth/employee-login` chỉ query `employees`, `POST /api/v1/auth/customer-login` chỉ query `customers` — không fallback chéo, không có endpoint `/register` chung
+- **Refresh** — đổi refresh token (cookie only) lấy token pair mới; JTI rotate mỗi lần dùng (stolen token chỉ dùng được 1 lần)
 - **Logout** — revoke refresh token; xóa cookies
-- **Me** — lấy profile user hiện tại (Bearer header hoặc access cookie)
+- **Me** — `GET /api/v1/auth/me`, lấy profile user hiện tại từ `access_token` cookie (không hỗ trợ `Authorization: Bearer`)
 
-Access token là HttpOnly cookie (không dùng `Authorization: Bearer`). Role: `admin` | `staff` | `customer`, lấy từ 1 trong 2 bảng riêng biệt `employees` (`admin`/`staff`) và `customers`.
+Access token là HttpOnly cookie. Role: `admin` | `staff` | `customer`, lấy từ 1 trong 2 bảng riêng biệt `employees` (`admin`/`staff`) và `customers` — không có bảng `users` chung, 1 JWT duy nhất mang `{ sub, email, role }` để mọi route guard chỉ cần check role.
+
+**CSRF** — double-submit cookie (`X-CSRF-Token` header phải khớp `csrf_token` cookie), global `onRequest` hook. Exempt: GET/HEAD/OPTIONS, các route session-lifecycle (login/refresh/logout), và request không có `access_token` cookie (khách chưa đăng nhập).
 
 ### Customers
 
-- `POST /api/v1/customers` — public, tạo tài khoản customer (khách tự đăng ký hoặc admin/staff tạo hộ từ mist-ops, cùng 1 endpoint)
-- `GET/PATCH /api/v1/customers/me` — customer tự xem/sửa hồ sơ của chính mình (không có `status`/`loyaltyPoints`)
-- `GET/PATCH/PATCH .../password/DELETE /api/v1/customers/*` (admin/staff) — list, sửa `status`/`loyaltyPoints`, đổi mật khẩu, xoá
+- `POST /api/v1/customers` — public (rate-limited + registration-key header), tạo tài khoản customer (khách tự đăng ký hoặc admin/staff tạo hộ, cùng 1 endpoint)
+- `GET/PATCH /api/v1/customers/me` — customer tự xem/sửa hồ sơ chính mình (không có `status`/`loyaltyPoints`)
+- `GET/PATCH/DELETE /api/v1/customers/*`, `PATCH .../password` (admin/staff) — list, sửa `status`/`loyaltyPoints`, đổi mật khẩu hộ, xoá
 
 ### Employees (admin/staff only)
 
 - List / create / update / xoá nhân viên (`PATCH /api/v1/employees/:id/password` để đổi mật khẩu)
-- Staff không được set role `admin`, xoá tài khoản `admin`, hay tạo tài khoản `admin` mới
+- Staff không được set role `admin`, xoá tài khoản `admin`, hay tạo tài khoản `admin` mới (enforce trong use case, không phải route guard)
 
-### Product Types
+### Product Categories & Properties
 
-- List / create product types — cần đăng nhập (bất kỳ role nào, không giới hạn admin)
+- `product-categories` — cây phân cấp qua `parentId` (vd. Đồ uống → Cà phê → Arabica); CRUD admin/staff
+- `product-properties` — định nghĩa thuộc tính EAV (Xuất xứ, Mức rang, ...) với `dataType`; CRUD admin/staff
 
 ### Products
 
-- **Public:** list (search, filter, sort, paginate, kèm `stockQuantity`), get by id, get by slug (`GET /api/v1/products/slug/:slug`, dùng cho trang chi tiết sản phẩm)
-- **Admin:** create, update, delete
-- **Slug:** derive tự động từ `name`, dedupe bằng suffix `-2`, `-3`, …; đổi tên sản phẩm **không** đổi slug — sửa slug là `PATCH { slug }` tường minh (400 nếu sai định dạng, 409 nếu trùng)
-- **Stock (admin):** tồn kho lưu bảng `product_stock` riêng — get / increase / decrease
-
-Giá lưu bằng **cents**, currency hiện chỉ hỗ trợ **VND**.
+- **Public:** list (search, filter, sort, paginate), get by id, get by slug (`GET /api/v1/products/slug/:slug`)
+- **Admin/staff:** create, update, delete; gán categories (`PUT /:id/categories`); quản lý variant (`POST/PATCH/DELETE .../variants`), thuộc tính variant (`PUT .../variants/:id/properties`), stock (`GET/POST .../variants/:id/stock/*`)
+- **Slug:** derive tự động từ `name` (`slugify()` — NFD fold, `đ`→`d`, non-alphanumeric→`-`), dedupe bằng suffix `-2`, `-3`, …; đổi tên sản phẩm **không** đổi slug — sửa slug là `PATCH { slug }` tường minh (400 nếu sai định dạng, 409 nếu trùng)
+- **Variant-based:** `products` chỉ giữ identity/copy (slug, name, description, image, embedding). Giá (cents, VND), SKU, stock nằm trên `product_variants` — 1 sản phẩm → nhiều variant (vd. khác trọng lượng). Tạo sản phẩm bắt buộc kèm variant đầu tiên.
+- **Thuộc tính variant (EAV):** `product_variant_property_values` gắn giá trị vào 1 variant + 1 property, set qua use case replace-all per variant
 
 ### Orders
 
-- **Public:** `POST /api/v1/orders` — khách đặt hàng bằng email (không dùng `customerId`)
-- **Public:** `GET /api/v1/orders/lookup?email=&code=` — tra cứu đơn theo email (guest checkout không có tài khoản, không thể ép login). Fix A01 IDOR gồm 2 lớp:
-  - **Bắt buộc mã đơn hàng** (`code`, 8 ký tự hex đầu của order id, in trên biên nhận) bên cạnh email. Trước đây chỉ cần email là trả về tối đa 50 đơn kèm toàn bộ chi tiết — ai biết/đoán được email khách là đọc được lịch sử mua hàng. Nay phải biết cả email **và** mã đơn, và chỉ trả về đúng 1 đơn khớp.
-  - **Rate-limit riêng theo IP + email** (`ORDER_LOOKUP_RATE_MAX`/`ORDER_LOOKUP_RATE_WINDOW`, default 5 req/phút) — key gồm cả email nên đổi IP không reset được counter của 1 email, chặn dò mã đơn hàng loạt. Trước đây route này chỉ nằm dưới rate-limit chung 100 req/phút/IP.
-- **Admin:** list, get by id, cập nhật status
+- **`POST /api/v1/orders` yêu cầu đăng nhập customer** — không có guest checkout; `customerEmail` lấy từ session (`req.user.email`), không nhận từ body
+- **`GET /api/v1/orders/lookup?code=`** — public, rate-limit riêng theo IP (`ORDER_LOOKUP_RATE_MAX`/`ORDER_LOOKUP_RATE_WINDOW`), tra cứu bằng mã đơn (8 ký tự đầu order id) — dành cho khách có link xác nhận nhưng không đăng nhập
+- **`GET /api/v1/orders/me`** — customer xem đơn của chính mình
+- **Admin/staff:** list, get by id, cập nhật status
 
-**Create order flow:**
+**Create order flow:** validate item → server ghi đè `name`/`priceCents` từ DB (chống sửa giá client-side) → giảm stock batch (fail nếu hết hàng) → tính lại `totalCents` → lưu order + gửi email xác nhận (Resend, best-effort)
 
-1. Validate từng item — `productId` bắt buộc, product phải tồn tại, currency khớp
-2. Server **ghi đè** `name` / `priceCents` từ DB (chống sửa giá client-side)
-3. Giảm stock batch — fail nếu hết hàng
-4. Tính lại `totalCents`; tùy chọn `cashReceivedCents` → tính `changeCents`
-5. Lưu order + items + thông tin giao hàng (`shippingFirstName`/`shippingLastName`/`shippingAddress`/`shippingCity`/`shippingPostalCode`, bắt buộc trên mọi order mới — nullable trong response vì order đặt trước khi field này tồn tại không có giá trị); gửi email xác nhận qua Resend (best-effort, không block nếu email fail)
-
-**Order status state machine** (bỏ bước sẽ bị `409 CONFLICT`):
+**Order status state machine** (bỏ bước sẽ bị `409 CONFLICT`, xem `canTransition()` trong `src/domain/order/order.entity.ts`):
 
 ```
 pending  → paid | cancelled
@@ -105,49 +99,69 @@ delivered → (terminal)
 cancelled → (terminal)
 ```
 
+Shipping info: `shippingFullName` + `shippingAddress` (cả hai nullable ở DB nhưng bắt buộc khi tạo order — 1 field tên, 1 field địa chỉ tự do, không tách city/postal code).
+
+### Product Reviews
+
+- `POST /api/v1/product-reviews` — customer, bắt buộc `productId` hợp lệ; classify đồng bộ qua Gemini ngay khi tạo
+- `POST /:reviewId/replies` — customer reply, kích hoạt reclassify lại review
+- `POST /:reviewId/admin-replies` — admin/staff reply, không reclassify
+- `PATCH /:id/status` — admin/staff force set status
+- `GET /product/:productId` — public, chỉ trả review `category != 'spam' AND status IN ('auto_responded', 'resolved')`
+
+**Classification routing:**
+
+```
+Gemini call fails                          → pending_review (người xử lý)
+confidence = 'low' OR severity = 'high'    → pending_review
+otherwise                                  → auto_responded (AI tự đăng reply)
+```
+
 ### Voice Semantic Search
 
-`POST /api/v1/search/voice` — public, rate-limit riêng (`SEARCH_VOICE_RATE_MAX`/`SEARCH_VOICE_RATE_WINDOW`).
+`POST /api/v1/search/voice` — public, rate-limit riêng (`SEARCH_VOICE_RATE_MAX`/`SEARCH_VOICE_RATE_WINDOW`), multipart audio (webm/wav/mp3/ogg, tối đa 10MB và `SEARCH_VOICE_MAX_DURATION_SECONDS`).
 
-- **Audio-native + transcript, cả hai đều dùng để search**: audio ghi âm (webm/wav/mp3/ogg, tối đa 10MB và `SEARCH_VOICE_MAX_DURATION_SECONDS` giây — độ dài được ffprobe kiểm tra và reject **trước** khi tốn công convert) được convert sang WAV qua ffmpeg, rồi (a) transcribe bằng `gemini-3.6-flash` ra transcript, và (b) embed thẳng bằng `gemini-embedding-2` (`embedAudioQuery`, task type `RETRIEVAL_QUERY` — cùng model, cùng không gian vector với embedding sản phẩm, không trộn model khác) để so khớp cosine similarity. Vector đi vào `SendChatMessageUseCase.replyToMessage` cùng transcript.
-- Transcript **không chỉ để hiển thị UI** — nó được dùng để: trích ràng buộc giá (`ProductFilterExtractionPort`), làm câu hỏi cho keyword fallback (`ilike`) khi vector search rỗng/lỗi, và làm message cho Gemini soạn câu trả lời tự nhiên (`ChatPort.reply`).
-- Fallback không dựa trên ngưỡng similarity cấu hình được — logic nằm trong `SendChatMessageUseCase.retrieveByVector`: vector search lỗi hoặc rỗng → fallback `ilike` theo transcript (giữ nguyên filter giá) → nếu vẫn rỗng, fallback danh sách mới nhất (vẫn giữ filter giá).
-- Đã kiểm chứng thực nghiệm ở `scripts/spike/voice-search-spike.ts` trước khi build: 91.7% top-3 accuracy trên bộ câu hỏi tiếng Việt mẫu (100% câu nói tên sản phẩm, 85.7% câu mô tả mơ hồ) — số liệu + script giữ lại làm bằng chứng thực nghiệm.
-- Embedding sản phẩm (cột `products.embedding`, `halfvec(3072)`, HNSW index `halfvec_cosine_ops`) nhúng từ `name`/`type` (tên loại sản phẩm)/`origin`/`tastingNotes`/`description` (`syncProductEmbedding`, dùng chung bởi create/update/backfill), tự động sinh lại khi bất kỳ field nào trong số đó đổi, kể cả đổi `productTypeId` (hook trong `CreateProductUseCase`/`UpdateProductUseCase`, best-effort — lỗi Gemini không làm fail request tạo/sửa sản phẩm). Backfill sản phẩm cũ: `npm run db:backfill-embeddings`.
-- **Vì sao `halfvec` chứ không phải `vector`**: `gemini-embedding-2` trả về 3072 chiều, trong khi pgvector giới hạn index (HNSW/IVFFlat) ở **2000 chiều** cho kiểu `vector` — `CREATE INDEX ... USING hnsw` trên `vector(3072)` fail thẳng với lỗi `column cannot have more than 2000 dimensions for hnsw index`. Kiểu `halfvec` (fp16, pgvector ≥ 0.7) nâng trần index lên 4000 chiều, nên giữ nguyên được đủ 3072 chiều mà vẫn index được. Đây là lựa chọn kỹ thuật đáng nêu trong báo cáo: giải pháp thay thế là hạ số chiều xuống 1536 (mất thông tin) hoặc bỏ index (full scan mọi query).
+- Audio convert sang WAV (ffmpeg) → (a) transcribe bằng Gemini ra transcript, (b) embed thẳng bằng `gemini-embedding-2` (`embedAudioQuery`, cùng không gian vector với embedding sản phẩm) để cosine similarity search
+- Transcript dùng để: trích ràng buộc giá, làm keyword fallback (`ilike`) khi vector rỗng/lỗi, và làm input cho Gemini soạn câu trả lời
+- Response: `{ message, items, transcript }`
+- `halfvec(3072)` thay vì `vector` — pgvector giới hạn index HNSW/IVFFlat ở 2000 chiều cho kiểu `vector`, `gemini-embedding-2` trả 3072 chiều nên phải dùng `halfvec` (fp16, trần index 4000 chiều) để giữ đủ chiều mà vẫn index được
+- Embedding sản phẩm nhúng từ `name` + category (kể cả ancestor) + property values của mọi variant + `description` (`buildProductEmbeddingText`), tự sinh lại sau mọi mutation ảnh hưởng đến nội dung tìm kiếm được (create/update product, set categories, set variant properties), best-effort (lỗi Gemini không fail request). Backfill sản phẩm cũ: `npm run db:backfill`.
 
 ### AI Chat Assistant
 
-`POST /api/v1/chat` — public, không cần auth, rate-limit riêng (`CHAT_RATE_MAX`/`CHAT_RATE_WINDOW`).
+`POST /api/v1/chat` — public, rate-limit riêng (`CHAT_RATE_MAX`/`CHAT_RATE_WINDOW`), cần `GEMINI_API_KEY` (thiếu → `503 AI_NOT_CONFIGURED`).
 
-- Model: `gemini-3.6-flash`
-- Persona: trợ lý Morning Mist Coffee, trả lời tiếng Việt, phong cách nhã nhặn tối giản
-- **RAG bằng vector:** embed tin nhắn mới nhất của khách (`MultimodalEmbeddingPort.embedQuery` — `RETRIEVAL_QUERY`, khác task type với `embedDocument` dùng khi index sản phẩm), lấy 8 sản phẩm gần nhất theo cosine similarity trên cùng chỉ mục `pgvector` mà voice search dùng (`findSimilarByVector`), rồi mới tiêm vào system prompt — không còn nạp tĩnh N sản phẩm mới nhất. Song song đó, `ProductFilterExtractionPort` (Gemini structured output) trích ràng buộc giá (VND) nếu khách có nêu, áp thành `WHERE priceCents BETWEEN ...` trong cùng query — vector similarity không tự hiểu được ngưỡng số. Nếu vector không có kết quả (embedding chưa sinh), fallback tìm kiếm từ khoá (`ilike`) rồi tới danh sách sản phẩm mới nhất, cả hai đều giữ nguyên filter giá, đảm bảo không bao giờ trả lời với catalogue rỗng hoặc gợi ý sai khoảng giá.
-- Duy trì lịch sử hội thoại (chuẩn hóa luân phiên user/model)
-- Trả về `{ "message": "..." }`
-- Cần `GEMINI_API_KEY`; thiếu key → `503 AI_NOT_CONFIGURED`
-- **Fail-soft ở bước soạn câu trả lời**: nếu `ChatPort.reply` lỗi (hết quota, timeout, lỗi mạng — sau khi retrieval đã xong) thì **không** trả lỗi cho client — trả `200` với message xin lỗi cố định (`FALLBACK_REPLY` trong `SendChatMessageUseCase`), voice search vẫn kèm `items` tìm được bình thường vì retrieval không phụ thuộc bước này. Khác với việc thiếu `GEMINI_API_KEY` hẳn (fail cứng `503` vì không thể chạy embedding/retrieval nào cả).
+- Model Gemini, persona trợ lý Morning Mist Coffee, trả lời tiếng Việt
+- **RAG bằng vector:** embed tin nhắn mới nhất (`embedQuery`), lấy top 8 sản phẩm gần nhất (`findSimilarByVector`, cùng index với voice search), enrich với giá/property values (`buildCatalogueProducts`) rồi mới tiêm vào system prompt
+- `ProductFilterExtractionPort` (Gemini structured output) trích ràng buộc giá từ câu hỏi, áp `EXISTS` subquery lên `product_variants` (match "có variant trong khoảng giá", không phải giá min của sản phẩm)
+- Fallback chain: vector lỗi/rỗng → `ilike` keyword → danh sách mới nhất, luôn giữ filter giá
+- **Fail-soft ở bước soạn câu trả lời:** nếu `ChatPort.reply` lỗi (quota, timeout...) sau khi retrieval đã xong → trả `200` với apology string cố định thay vì lỗi cho client
+- Request: `{ messages: [{ role: 'user'|'assistant', content }] }`, response: `{ message }`
 
 ### Prompt Injection (A05) — phòng thủ
 
-AI WAF đã bị bỏ (không cần thiết cho phạm vi đồ án — A05/Injection thật sự được chặn bằng Drizzle tham số hoá + Zod validate, không phụ thuộc AI). Phòng thủ prompt injection giờ chỉ còn ở bề mặt LLM duy nhất còn lại — chat:
+Phòng thủ prompt injection ở bề mặt LLM: mọi tin nhắn khách (role `user`, kể cả lịch sử) bọc trong tag `<user_message>`, system instruction cấm thực thi chỉ thị nằm trong tag đó. A05/Injection thật sự (SQL) được chặn bằng Drizzle tham số hoá + Zod validate, không phụ thuộc AI.
 
-- **Chat** (`chat.controller.ts`): mọi tin nhắn của khách (cả lịch sử hội thoại lẫn tin nhắn hiện tại, role `user`) được bọc trong tag `<user_message>`; system instruction nêu rõ không được thực thi/đi theo chỉ thị nằm trong tag đó, kể cả khi nó yêu cầu bỏ qua chỉ thị trước, lộ system prompt, hay đổi persona. Phản hồi của chính assistant (role `model`) không bọc vì đó là output tin cậy của hệ thống.
+### Security Agent — OWASP Top 10 for Agentic Applications 2026: **6/10 covered**
 
-> `scripts/spike/prompt-injection-spike.ts` là script đo thực nghiệm cũ, từng đo cả nhánh WAF (đã xoá) lẫn nhánh chat — hiện chỉ còn phần đo chat còn phù hợp, phần đo WAF trong script/log cũ (`prompt-injection-first-run.log`) không còn phản ánh hệ thống hiện tại.
+> Danh sách này (ASI01-10) chỉ đánh giá riêng tính năng **Security Agent** (agent tự ra quyết định block IP / gửi email). Không nhầm với bảng OWASP Top 10:2025 (web app thường, A01-A10) áp dụng cho **toàn bộ backend** — bảng đó đã 10/10 hoàn thành, chi tiết ở `report.md` (root repo, ngoài thư mục này).
 
-### Security Agent (A09 logging + OWASP ASI Top 10 2026)
+Agentic job (`SecurityAgentService`, chạy mỗi 60s) đọc log sự kiện bảo mật gần đây (login fail, register fail, rate-limit hit — `SecurityEventStore`, giữ 5 phút gần nhất) và giao cho Gemini quyết định action: `IGNORE` | `LOG_ONLY` | `ALERT_EMAIL` | `TEMP_BLOCK_IP` (structured output).
 
-Agentic AI job (`SecurityAgentService`, chạy mỗi 60s trong tiến trình backend) đọc log sự kiện bảo mật gần đây (login fail, register fail, WAF block/suspicious, rate-limit hit — thu thập qua `SecurityEventStore`, giữ trong 5 phút gần nhất) và giao cho Gemini quyết định action: `IGNORE` | `LOG_ONLY` | `ALERT_EMAIL` | `TEMP_BLOCK_IP` (structured output, ép Zod-tương-đương enum).
+| ASI | Hạng mục | Trạng thái | Cơ chế / lý do |
+|-----|----------|:---:|--------|
+| ASI01 | Prompt Injection | ✅ Đã cover | `sanitizeSecurityEvent()` strip ký tự không in được + `` {}<>` ``, truncate 300 ký tự, bọc `<events>` tag + chỉ thị không theo lệnh giả bên trong |
+| ASI02 | Tool/Action Misuse | ✅ Đã cover | `isSecurityAgentAction()` allow-list cố định (reject action lạ); rate-limit riêng cho action thật (`ALERT_EMAIL`/`TEMP_BLOCK_IP`, tối đa 5 lần/10 phút) |
+| ASI03 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
+| ASI04 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
+| ASI05 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
+| ASI06 | Unbounded Consumption / State | ✅ Đã cover | Event store + IP block list đều có TTL/expiry và cap kích thước, không tồn tại vĩnh viễn |
+| ASI07 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
+| ASI08 | Cascading/Runaway Actions | ✅ Đã cover | Circuit breaker: quá 3 lần `TEMP_BLOCK_IP` trong 10 phút → tự hạ xuống `LOG_ONLY` |
+| ASI09 | Unsafe Output Rendering | ✅ Đã cover | Email cảnh báo gửi `reason` do Gemini sinh ra dưới dạng **plain text only**, không HTML/link |
+| ASI10 | No Kill Switch / Human Override | ✅ Đã cover | `SECURITY_AGENT_ENABLED=false` tắt hoàn toàn hành động tự động, agent chỉ còn log |
 
-Vì agent có quyền tự hành động (gửi email, block IP), thiết kế áp dụng thêm **OWASP Top 10 for Agentic Applications 2026**:
-
-- **ASI01** — nội dung event (user-agent, email...) được coi là input không đáng tin, sanitize (strip non-printable + ký tự template) trước khi đưa vào prompt, bọc `<events>` tag + chỉ thị không theo lệnh giả bên trong.
-- **ASI02** — action phải nằm trong allow-list cố định (reject nếu Gemini trả action lạ); rate-limit riêng cho hành động thật (`ALERT_EMAIL`/`TEMP_BLOCK_IP`, tối đa 5 lần/10 phút).
-- **ASI06** — lịch sử block/event đều có TTL/expiry, không tồn tại vĩnh viễn.
-- **ASI08** — circuit breaker: quá 3 lần `TEMP_BLOCK_IP` trong 10 phút → tự hạ xuống `LOG_ONLY`.
-- **ASI09** — nội dung `reason` do Gemini sinh ra trong email cảnh báo chỉ render **plain text**, không HTML/link.
-- **ASI10** — kill switch `SECURITY_AGENT_ENABLED=false` tắt hoàn toàn hành động tự động, agent chỉ còn log.
+ASI03/04/05/07: chưa xác nhận được tên chính xác từng hạng mục trong bản OWASP ASI Top 10 2026 chính thức (không có bản gốc lưu trong repo để đối chiếu tiêu đề) — cần đối chiếu lại nguồn OWASP trước khi đưa vào báo cáo chính thức. Hiện tại coi là ngoài phạm vi đồ án.
 
 `TEMP_BLOCK_IP` chặn IP 5 phút qua `IpBlockList` (in-memory), kiểm tra ở `onRequest` hook toàn app (trừ `/health`) → `403 FORBIDDEN`.
 
@@ -163,11 +177,11 @@ docker compose up -d pg-db   # image pgvector/pgvector:pg18 — cần cho voice 
 npm install
 npm run db:migrate           # áp migration có sẵn (bao gồm extension pgvector + cột embedding)
 npm run db:seed              # optional: seed product types + products
-npm run db:backfill-embeddings  # optional: sinh embedding cho sản phẩm đã seed (cần GEMINI_API_KEY)
+npm run db:backfill          # optional: sinh embedding cho sản phẩm đã seed (cần GEMINI_API_KEY)
 npm run dev                  # http://localhost:3000
 ```
 
-Production: dùng `npm run db:generate` + `npm run db:migrate` (không dùng `db:push`, để có file migration SQL làm bằng chứng thay đổi schema).
+Production: dùng `npm run db:generate` + `npm run db:migrate` (không dùng `db:push`, để có file migration SQL làm bằng chứng thay đổi schema). Hoặc `npm run db:provision` (migrate + seed + backfill) trong 1 lệnh.
 
 ## Environment variables
 
@@ -175,21 +189,25 @@ App không boot nếu thiếu hoặc sai env. Xem `.env.example` đầy đủ.
 
 | Variable | Purpose |
 |----------|---------|
+| `NODE_ENV` | `development` / `production` / ... |
+| `HOST` / `PORT` | Bind address (default `localhost:3000`) |
+| `LOG_LEVEL` | Pino log level |
 | `DATABASE_URL` | PostgreSQL connection string |
 | `AUTH_JWT_SECRET` | HMAC key cho JWT (min 32 chars) |
 | `AUTH_ACCESS_TOKEN_TTL` | e.g. `15m` |
 | `AUTH_REFRESH_TOKEN_TTL` | e.g. `30d` |
 | `CORS_ORIGINS` | Comma-separated origins (phải có frontend origin) |
-| `COOKIE_SECURE` / `COOKIE_SAME_SITE` | Cookie settings (`none` + secure=true cho cross-domain prod) |
-| `RESEND_API_KEY` / `RESEND_FROM` | Email order confirmation |
-| `GEMINI_API_KEY` | AI chat + security WAF + security agent + voice search (optional — dùng heuristic fallback nếu thiếu, voice search sẽ lỗi nếu thiếu) |
+| `COOKIE_SECURE` / `COOKIE_SAME_SITE` | Cookie settings |
+| `CUSTOMER_REGISTRATION_KEY` / `EMPLOYEE_REGISTRATION_KEY` | Header bắt buộc khi tạo tài khoản qua `POST /customers` / `POST /employees` |
+| `STOREFRONT_URL` | Dùng trong link email xác nhận đơn hàng |
+| `RESEND_API_KEY` / `RESEND_FROM` | Email order confirmation + security alert |
+| `GEMINI_API_KEY` | AI chat + voice search + review classification + security agent (optional — thiếu thì các tính năng AI lỗi/fallback) |
 | `SECURITY_AGENT_ENABLED` | Kill switch (ASI10) cho Security Agent — `false` = chỉ log, không tự hành động |
 | `SECURITY_AGENT_ALERT_EMAIL` | Email admin nhận cảnh báo `ALERT_EMAIL` từ agent |
-| `EMBEDDING_DIMENSION` | Số chiều output của `gemini-embedding-2` (cột `products.embedding` là `halfvec(N)`). Đổi giá trị này bắt buộc tạo migration mới + chạy lại `db:backfill-embeddings` |
-| `SEARCH_VOICE_SIMILARITY_THRESHOLD` | Ngưỡng cosine similarity (0-1) để quyết định dùng kết quả audio-native hay fallback keyword search |
-| `SEARCH_VOICE_MAX_DURATION_SECONDS` | Độ dài audio tối đa chấp nhận (dưới hẳn giới hạn 180s của `gemini-embedding-2`) |
+| `EMBEDDING_DIMENSION` | Số chiều output embedding (cột `products.embedding` là `halfvec(N)`). Đổi giá trị bắt buộc tạo migration mới + chạy lại `db:backfill` |
+| `SEARCH_VOICE_MAX_DURATION_SECONDS` | Độ dài audio tối đa chấp nhận |
 | `SEARCH_VOICE_RATE_MAX` / `SEARCH_VOICE_RATE_WINDOW` | Rate limit riêng cho `/api/v1/search/voice` |
-| `ORDER_LOOKUP_RATE_MAX` / `ORDER_LOOKUP_RATE_WINDOW` | Rate limit riêng cho `/api/v1/orders/lookup`, key theo IP + email (fix A01 IDOR) |
+| `ORDER_LOOKUP_RATE_MAX` / `ORDER_LOOKUP_RATE_WINDOW` | Rate limit riêng cho `/api/v1/orders/lookup`, key theo IP |
 | `AUTH_LOGIN_RATE_MAX` / `AUTH_LOGIN_RATE_WINDOW` | Rate limit cho login/register/refresh |
 | `CHAT_RATE_MAX` / `CHAT_RATE_WINDOW` | Rate limit riêng cho `/api/v1/chat` |
 | `EXPOSE_INTERNAL_ERRORS` | `true` dev/staging, `false` prod |
@@ -216,7 +234,8 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 | `npm run db:push` | push schema directly (dev) |
 | `npm run db:studio` | Drizzle Studio |
 | `npm run db:seed` | seed sample products |
-| `npm run db:backfill-embeddings` | generate `products.embedding` for rows missing it |
+| `npm run db:backfill` | generate `products.embedding` for rows missing it |
+| `npm run db:provision` | migrate + seed + backfill in one command |
 | `npm run format` | Prettier write |
 | `npm run format:check` | Prettier check |
 
@@ -225,21 +244,26 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 | Method | Path | Auth |
 |--------|------|------|
 | GET | `/health` | — |
-| POST | `/api/v1/customers` | — (public: self-registration or admin/staff-created) |
 | POST | `/api/v1/auth/employee-login`, `/customer-login` | — |
-| POST | `/api/v1/auth/refresh`, `/logout` | refresh token |
+| POST | `/api/v1/auth/refresh`, `/logout` | refresh cookie |
 | GET | `/api/v1/auth/me` | user |
+| POST | `/api/v1/customers` | — (rate-limited, registration key) |
 | GET/PATCH | `/api/v1/customers/me` | customer |
 | GET/PATCH/DELETE | `/api/v1/customers/*` | admin/staff |
 | GET/POST/PATCH/DELETE | `/api/v1/employees/*` | admin/staff |
-| GET/POST | `/api/v1/product-types/*` | user |
-| GET | `/api/v1/products`, `/api/v1/products/:id`, `/api/v1/products/slug/:slug` | — |
-| POST/PATCH/DELETE | `/api/v1/products/*` | admin |
-| GET/POST | `/api/v1/products/:id/stock/*` | admin |
-| POST | `/api/v1/orders` | — |
-| GET | `/api/v1/orders/lookup` | — (rate-limit riêng, xem `ORDER_LOOKUP_RATE_MAX`) |
-| GET | `/api/v1/orders`, `/api/v1/orders/:id` | admin |
-| PATCH | `/api/v1/orders/:id/status` | admin |
+| GET/POST/PATCH/DELETE | `/api/v1/product-categories/*` | admin/staff |
+| GET/POST | `/api/v1/product-properties/*` | admin/staff |
+| GET | `/api/v1/products`, `/products/:id`, `/products/slug/:slug` | — |
+| POST/PATCH/DELETE | `/api/v1/products` (+ `/categories`, `/variants/*`, `/variants/:id/properties`, `/variants/:id/stock/*`) | admin/staff |
+| POST | `/api/v1/orders` | customer |
+| GET | `/api/v1/orders/me` | customer |
+| GET | `/api/v1/orders/lookup` | — (rate-limit riêng theo IP) |
+| GET | `/api/v1/orders`, `/orders/:id` | admin/staff |
+| PATCH | `/api/v1/orders/:id/status` | admin/staff |
+| GET | `/api/v1/product-reviews/product/:productId` | — |
+| POST | `/api/v1/product-reviews`, `/:id/replies` | customer |
+| GET/PATCH | `/api/v1/product-reviews`, `/:id`, `/:id/status` | admin/staff |
+| POST | `/api/v1/product-reviews/:id/admin-replies` | admin/staff |
 | POST | `/api/v1/chat` | — (cần `GEMINI_API_KEY`) |
 | POST | `/api/v1/search/voice` | — (rate-limit riêng, cần `GEMINI_API_KEY`) |
 
@@ -247,21 +271,15 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 
 ```json
 {
-  "email": "customer@example.com",
-  "currency": "VND",
-  "totalCents": 100000,
   "items": [
-    {
-      "productId": "550e8400-e29b-41d4-a716-446655440000",
-      "name": "placeholder",
-      "priceCents": 50000,
-      "quantity": 2
-    }
-  ]
+    { "variantId": "550e8400-e29b-41d4-a716-446655440000", "quantity": 2 }
+  ],
+  "shippingFullName": "Nguyen Van A",
+  "shippingAddress": "123 Le Loi, Q1, TP.HCM"
 }
 ```
 
-`name`, `priceCents`, `totalCents` trong request chỉ để pass validation — server tính lại từ DB.
+Server tự tính `name`/`priceCents`/`totalCents` từ DB — không nhận giá từ client. `customerEmail` lấy từ session đăng nhập.
 
 ## Error responses
 
@@ -282,9 +300,9 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 | `429` | `RATE_LIMIT_EXCEEDED` | Too many requests |
 | `502` | `EXTERNAL_SERVICE_ERROR` | External service failure (email, etc.) |
 | `500` | `INTERNAL_ERROR` | Unexpected error |
-| `503` | `AI_NOT_CONFIGURED` | Chat called without Gemini key |
+| `503` | `AI_NOT_CONFIGURED` | Chat/voice search called without Gemini key |
 
-Global rate limit: **100 requests/minute** (mọi route). Login/register/refresh có rate limit riêng qua `AUTH_LOGIN_RATE_*`.
+Global rate limit: **100 requests/minute** (mọi route). Login/register/refresh, chat, voice search, order lookup có rate limit riêng.
 
 ## Conventions
 
