@@ -1,4 +1,5 @@
 import { loadPromptTemplate } from '../../lib/load-template.ts';
+import { toNaturalCategoryLabel } from '../../domain/product-category/format-category-label.ts';
 import chatSystemPrompt from '../../prompts/configs/chat-system.json' with { type: 'json' };
 
 const BASE_INSTRUCTION = loadPromptTemplate(chatSystemPrompt.templateFile);
@@ -30,7 +31,8 @@ function formatVariant(v: ChatCatalogueVariant): string {
 function formatProduct(p: ChatCatalogueProduct): string {
   const lines = [`- ${p.name}`];
   if (p.categoryNames.length > 0) {
-    lines.push(`  danh mục: ${p.categoryNames.join(', ')}`);
+    const categories = p.categoryNames.map(toNaturalCategoryLabel);
+    lines.push(`  danh mục: ${categories.join(', ')}`);
   }
   lines.push(`  mô tả: ${p.description ?? '—'}`);
   lines.push('  các loại:');

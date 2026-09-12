@@ -1,24 +1,44 @@
 {
   "productCategories": [
     {
-      "id": "cat-0001",
-      "name": "Đồ uống",
+      "id": "cat-0003",
+      "name": "Đồ uống | Cà Phê | Arabica",
       "parentId": null
     },
     {
-      "id": "cat-0002",
-      "name": "Cà phê",
-      "parentId": "cat-0001"
-    },
-    {
-      "id": "cat-0003",
-      "name": "Arabica",
-      "parentId": "cat-0002"
-    },
-    {
       "id": "cat-0004",
-      "name": "Robusta",
-      "parentId": "cat-0002"
+      "name": "Đồ uống | Cà Phê | Robusta",
+      "parentId": null
+    },
+    {
+      "id": "cat-0005",
+      "name": "Đồ uống | Trà",
+      "parentId": null
+    },
+    {
+      "id": "cat-0006",
+      "name": "Đồ uống | Đồ Uống Khác",
+      "parentId": null
+    },
+    {
+      "id": "cat-0007",
+      "name": "Đồ Ăn Chế Biến Sẵn | Bánh Ngọt",
+      "parentId": null
+    },
+    {
+      "id": "cat-0008",
+      "name": "Đồ Ăn Chế Biến Sẵn | Đồ Ăn Vặt",
+      "parentId": null
+    },
+    {
+      "id": "cat-0009",
+      "name": "Đồ Ăn Chế Biến Sẵn | Đồ Ăn Khác",
+      "parentId": null
+    },
+    {
+      "id": "cat-0010",
+      "name": "Phụ Kiện",
+      "parentId": null
     }
   ],
   "productProperties": [
