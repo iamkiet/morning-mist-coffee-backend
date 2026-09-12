@@ -15,6 +15,13 @@ import {
 } from 'drizzle-orm/pg-core';
 import { env } from '../../config/env.ts';
 import { ORDER_STATUSES } from '../../domain/order/order.entity.ts';
+import {
+  REVIEW_CATEGORIES,
+  REVIEW_SENTIMENTS,
+  REVIEW_SEVERITIES,
+  REVIEW_SOURCES,
+  REVIEW_STATUSES,
+} from '../../domain/order-review/order-review.entity.ts';
 import { CURRENCIES } from '../../domain/shared/currency.ts';
 import { USER_ROLES, USER_STATUSES } from '../../domain/user/user.entity.ts';
 
@@ -237,10 +244,50 @@ export const orderItems = pgTable(
   (t) => [index('order_items_order_id_idx').on(t.orderId)],
 );
 
+export const orderReviewSource = pgEnum('order_review_source', REVIEW_SOURCES);
+export const orderReviewCategory = pgEnum('order_review_category', REVIEW_CATEGORIES);
+export const orderReviewSeverity = pgEnum('order_review_severity', REVIEW_SEVERITIES);
+export const orderReviewSentiment = pgEnum('order_review_sentiment', REVIEW_SENTIMENTS);
+export const orderReviewStatus = pgEnum('order_review_status', REVIEW_STATUSES);
+
+export const orderReviews = pgTable(
+  'order_reviews',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    productId: uuid().references(() => products.id, { onDelete: 'set null' }),
+    orderId: uuid().references(() => orders.id, { onDelete: 'set null' }),
+    customerEmail: text(),
+    rating: integer(),
+    commentText: text().notNull(),
+    source: orderReviewSource().notNull().default('app'),
+    category: orderReviewCategory(),
+    severity: orderReviewSeverity(),
+    sentiment: orderReviewSentiment(),
+    topics: jsonb().$type<string[]>(),
+    suggestedResponse: text(),
+    classificationRaw: jsonb(),
+    classifiedAt: timestamp({ withTimezone: true }),
+    status: orderReviewStatus().notNull().default('pending_classification'),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => sql`now()`),
+  },
+  (t) => [
+    index('order_reviews_product_id_idx').on(t.productId),
+    index('order_reviews_status_created_at_idx').on(t.status, t.createdAt.desc()),
+    index('order_reviews_severity_idx').on(t.severity),
+    check('order_reviews_rating_range', sql`${t.rating} BETWEEN 1 AND 5`),
+  ],
+);
+
 export type OrderRow = typeof orders.$inferSelect;
 export type NewOrderRow = typeof orders.$inferInsert;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type NewOrderItemRow = typeof orderItems.$inferInsert;
+export type OrderReviewRow = typeof orderReviews.$inferSelect;
+export type NewOrderReviewRow = typeof orderReviews.$inferInsert;
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type AuthTokenRow = typeof authTokens.$inferSelect;

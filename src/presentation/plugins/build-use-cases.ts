@@ -9,6 +9,11 @@ import { GetOrderByIdUseCase } from '../../application/order/get-order-by-id.use
 import { ListOrdersUseCase } from '../../application/order/list-orders.use-case.ts';
 import { LookupOrderUseCase } from '../../application/order/lookup-order.use-case.ts';
 import { UpdateOrderStatusUseCase } from '../../application/order/update-order-status.use-case.ts';
+import { CreateOrderReviewUseCase } from '../../application/order-review/create-order-review.use-case.ts';
+import { GetOrderReviewByIdUseCase } from '../../application/order-review/get-order-review-by-id.use-case.ts';
+import { ListOrderReviewsUseCase } from '../../application/order-review/list-order-reviews.use-case.ts';
+import { ListPublicOrderReviewsUseCase } from '../../application/order-review/list-public-order-reviews.use-case.ts';
+import { UpdateOrderReviewStatusUseCase } from '../../application/order-review/update-order-review-status.use-case.ts';
 import { CreateProductCategoryUseCase } from '../../application/product-category/create-product-category.use-case.ts';
 import { ListProductCategoriesUseCase } from '../../application/product-category/list-product-categories.use-case.ts';
 import { CreateProductPropertyUseCase } from '../../application/product-property/create-product-property.use-case.ts';
@@ -40,9 +45,11 @@ import type { EmailSender } from '../../domain/ports/email-sender.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
 import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts';
 import type { ProductFilterExtractionPort } from '../../domain/ports/product-filter-extraction.port.ts';
+import type { ReviewClassificationPort } from '../../domain/ports/review-classification.port.ts';
 import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
 import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
 import type { OrderRepo } from '../../domain/order/order.repo.ts';
+import type { OrderReviewRepo } from '../../domain/order-review/order-review.repo.ts';
 import type { ProductCategoryRepo } from '../../domain/product-category/product-category.repo.ts';
 import type { ProductPropertyRepo } from '../../domain/product-property/product-property.repo.ts';
 import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
@@ -52,6 +59,7 @@ import type { UserRepo } from '../../domain/user/user.repo.ts';
 import type { AuthUseCases } from '../controllers/auth.controller.ts';
 import type { ChatUseCases } from '../controllers/chat.controller.ts';
 import type { OrderUseCases } from '../controllers/order.controller.ts';
+import type { OrderReviewUseCases } from '../controllers/order-review.controller.ts';
 import type { ProductCategoryUseCases } from '../controllers/product-category.controller.ts';
 import type { ProductPropertyUseCases } from '../controllers/product-property.controller.ts';
 import type { ProductUseCases } from '../controllers/product.controller.ts';
@@ -62,6 +70,7 @@ export interface AppUseCases {
   auth: AuthUseCases;
   chat: ChatUseCases;
   order: OrderUseCases;
+  orderReview: OrderReviewUseCases;
   product: ProductUseCases;
   productCategory: ProductCategoryUseCases;
   productProperty: ProductPropertyUseCases;
@@ -71,6 +80,7 @@ export interface AppUseCases {
 
 export interface UseCaseDeps {
   orderRepo: OrderRepo;
+  orderReviewRepo: OrderReviewRepo;
   userRepo: UserRepo;
   refreshTokenRepo: RefreshTokenRepo;
   productRepo: ProductRepo;
@@ -82,6 +92,7 @@ export interface UseCaseDeps {
   transcription: TranscriptionPort;
   chat: ChatPort;
   filterExtraction: ProductFilterExtractionPort;
+  reviewClassification: ReviewClassificationPort;
   audioConverter: AudioConverterPort;
   passwordHasher: PasswordHasher;
   tokenSigner: TokenSigner;
@@ -127,6 +138,18 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
         deps.logger,
       ),
       updateStatus: new UpdateOrderStatusUseCase(deps.orderRepo),
+    },
+    orderReview: {
+      list: new ListOrderReviewsUseCase(deps.orderReviewRepo),
+      listPublic: new ListPublicOrderReviewsUseCase(deps.orderReviewRepo),
+      getById: new GetOrderReviewByIdUseCase(deps.orderReviewRepo),
+      create: new CreateOrderReviewUseCase(
+        deps.orderReviewRepo,
+        deps.productRepo,
+        deps.reviewClassification,
+        deps.logger,
+      ),
+      updateStatus: new UpdateOrderReviewStatusUseCase(deps.orderReviewRepo),
     },
     chat: {
       send: chatSend,

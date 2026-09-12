@@ -99,8 +99,11 @@ export const ListProductsQuery = z.object({
   categoryId: z.uuid().optional(),
   priceMin: z.coerce.number().int().min(0).optional(),
   priceMax: z.coerce.number().int().min(0).optional(),
+  origin: z.string().min(1).max(100).optional(),
+  roast: z.string().min(1).max(100).optional(),
+  process: z.string().min(1).max(100).optional(),
   q: z.string().min(1).max(200).optional(),
-  ...sortFields(['createdAt', 'name']),
+  ...sortFields(['createdAt', 'name', 'price']),
   ...paginationFields,
 });
 

@@ -24,9 +24,12 @@ import {
 } from '../db/schema.ts';
 import { buildProductFilters, productWhere, rowToProduct } from './product.mappers.ts';
 
+const minVariantPriceCents = sql`(select min(${productVariants.priceCents}) from ${productVariants} where ${productVariants.productId} = ${products.id})`;
+
 const SORT_COLUMNS = {
   createdAt: products.createdAt,
   name: products.name,
+  price: minVariantPriceCents,
 } as const satisfies Record<ProductSortField, unknown>;
 
 export class PostgresProductRepository implements ProductRepo {

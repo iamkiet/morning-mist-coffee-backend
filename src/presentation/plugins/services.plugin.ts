@@ -10,11 +10,13 @@ import { GeminiChatAdapter } from '../../infrastructure/adapters/gemini.chat.ts'
 import { GeminiClient } from '../../infrastructure/adapters/gemini.client.ts';
 import { GeminiMultimodalEmbeddingAdapter } from '../../infrastructure/adapters/gemini.multimodal-embedding.ts';
 import { GeminiProductFilterExtractionAdapter } from '../../infrastructure/adapters/gemini.product-filter-extraction.ts';
+import { GeminiReviewClassificationAdapter } from '../../infrastructure/adapters/gemini.review-classification.ts';
 import { GeminiSecurityDecisionAdapter } from '../../infrastructure/adapters/gemini.security-decision.ts';
 import { GeminiTranscriptionAdapter } from '../../infrastructure/adapters/gemini.transcription.ts';
 import { JoseTokenSigner } from '../../infrastructure/adapters/jose.token-signer.ts';
 import { ResendEmailSender } from '../../infrastructure/adapters/resend.email-sender.ts';
 import { PostgresOrderRepository } from '../../infrastructure/repositories/order.repository.ts';
+import { PostgresOrderReviewRepository } from '../../infrastructure/repositories/order-review.repository.ts';
 import { PostgresProductVariantRepository } from '../../infrastructure/repositories/product-variant.repository.ts';
 import { PostgresProductCategoryRepository } from '../../infrastructure/repositories/product-category.repository.ts';
 import { PostgresProductPropertyRepository } from '../../infrastructure/repositories/product-property.repository.ts';
@@ -65,6 +67,7 @@ export const servicesPlugin = fp(
 
     const useCases = buildUseCases({
       orderRepo: new PostgresOrderRepository(app.db),
+      orderReviewRepo: new PostgresOrderReviewRepository(app.db),
       userRepo: new PostgresUserRepository(app.db),
       refreshTokenRepo: new PostgresRefreshTokenRepository(app.db),
       productRepo: new PostgresProductRepository(app.db),
@@ -76,6 +79,7 @@ export const servicesPlugin = fp(
       transcription: new GeminiTranscriptionAdapter(gemini),
       chat: new GeminiChatAdapter(gemini),
       filterExtraction: new GeminiProductFilterExtractionAdapter(gemini, app.log),
+      reviewClassification: new GeminiReviewClassificationAdapter(gemini, app.log),
       audioConverter: new FfmpegAudioConverterAdapter(),
       passwordHasher: new BcryptPasswordHasher(),
       tokenSigner,

@@ -25,12 +25,15 @@ export interface UpdateProductInput {
   imageUrl?: string | null;
 }
 
-export type ProductSortField = 'createdAt' | 'name';
+export type ProductSortField = 'createdAt' | 'name' | 'price';
 
 export interface ProductFilterCriteria {
   categoryId?: string;
   priceMin?: number;
   priceMax?: number;
+  origin?: string;
+  roast?: string;
+  process?: string;
   q?: string;
 }
 

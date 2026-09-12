@@ -1,7 +1,9 @@
 import { and, eq, gte, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { Product } from '../../domain/product/product.entity.ts';
+import { PROPERTY_FILTER_NAMES } from '../../domain/product/property-filter.ts';
 import type { ProductFilterCriteria } from '../../domain/product/product.repo.ts';
 import {
+  productProperties,
   productVariantPropertyValues,
   productVariants,
   products,
@@ -9,6 +11,25 @@ import {
   type ProductRow,
 } from '../db/schema.ts';
 import { containsPattern } from './ilike-pattern.ts';
+
+const PROPERTY_FILTER_NAMES = {
+  origin: 'Xuất xứ',
+  roast: 'Mức rang',
+  process: 'Phương pháp chế biến',
+} as const;
+
+function propertyValueExists(propertyName: string, value: string): SQL {
+  return sql`exists (select 1 from ${productVariants}
+    inner join ${productVariantPropertyValues}
+      on ${eq(productVariantPropertyValues.productVariantId, productVariants.id)}
+    inner join ${productProperties}
+      on ${eq(productVariantPropertyValues.productPropertyId, productProperties.id)}
+    where ${and(
+      eq(productVariants.productId, products.id),
+      eq(productProperties.name, propertyName),
+      eq(productVariantPropertyValues.value, value),
+    )})`;
+}
 
 export function buildProductFilters(filter: ProductFilterCriteria): SQL[] {
   const filters: SQL[] = [];
@@ -30,6 +51,11 @@ export function buildProductFilters(filter: ProductFilterCriteria): SQL[] {
     filters.push(
       sql`exists (select 1 from ${productVariants} where ${and(...priceConds)})`,
     );
+  }
+
+  for (const [key, propertyName] of Object.entries(PROPERTY_FILTER_NAMES)) {
+    const value = filter[key as keyof typeof PROPERTY_FILTER_NAMES];
+    if (value) filters.push(propertyValueExists(propertyName, value));
   }
 
   if (filter.q) {
