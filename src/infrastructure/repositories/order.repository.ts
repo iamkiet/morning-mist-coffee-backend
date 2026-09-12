@@ -90,6 +90,7 @@ export class PostgresOrderRepository implements OrderRepo {
         changeCents: input.changeCents ?? null,
         shippingFullName: input.shippingFullName,
         shippingAddress: input.shippingAddress,
+        shippingPhone: input.shippingPhone,
       })
       .returning();
     if (!row) throw new Error('Failed to create order');

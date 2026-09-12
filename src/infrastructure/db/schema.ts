@@ -235,6 +235,7 @@ export const orders = pgTable(
     changeCents: integer(),
     shippingFullName: text(),
     shippingAddress: text(),
+    shippingPhone: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

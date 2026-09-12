@@ -1,10 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { ProductCategoryController } from '../controllers/product-category.controller.ts';
 import {
   CreateProductCategoryBody,
+  ProductCategoryIdParam,
   ProductCategoryListResponse,
   ProductCategorySchema,
+  UpdateProductCategoryBody,
 } from '../schemas/product-category.schema.ts';
 
 export async function productCategoryRoutes(app: FastifyInstance): Promise<void> {
@@ -29,5 +32,24 @@ export async function productCategoryRoutes(app: FastifyInstance): Promise<void>
       response: { 201: ProductCategorySchema },
     },
     handler: controller.create,
+  });
+
+  fastify.patch('/:id', {
+    schema: {
+      tags: ['product-categories'],
+      params: ProductCategoryIdParam,
+      body: UpdateProductCategoryBody,
+      response: { 200: ProductCategorySchema },
+    },
+    handler: controller.update,
+  });
+
+  fastify.delete('/:id', {
+    schema: {
+      tags: ['product-categories'],
+      params: ProductCategoryIdParam,
+      response: { 204: z.null() },
+    },
+    handler: controller.delete,
   });
 }

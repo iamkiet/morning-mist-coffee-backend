@@ -12,6 +12,7 @@ import {
 } from '../serializers/order.serializer.ts';
 import type {
   CreateOrderBody,
+  ListMyOrdersQuery,
   ListOrdersQuery,
   LookupOrdersQuery,
   OrderIdParam,
@@ -34,6 +35,18 @@ export class OrderController {
     reply: FastifyReply,
   ) => {
     const result = await this.uc.list.execute(req.query);
+    return reply.send(toOrderListPayload(result));
+  };
+
+  listMine = async (
+    req: FastifyRequest<{ Querystring: z.infer<typeof ListMyOrdersQuery> }>,
+    reply: FastifyReply,
+  ) => {
+    if (!req.user) throw new UnauthorizedError();
+    const result = await this.uc.list.execute({
+      ...req.query,
+      customerEmail: req.user.email,
+    });
     return reply.send(toOrderListPayload(result));
   };
 
@@ -65,6 +78,7 @@ export class OrderController {
       cashReceivedCents: req.body.cashReceivedCents,
       shippingFullName: req.body.shippingFullName,
       shippingAddress: req.body.shippingAddress,
+      shippingPhone: req.body.shippingPhone,
       items: req.body.items,
     });
     return reply.code(201).send(toOrderDTO(order));

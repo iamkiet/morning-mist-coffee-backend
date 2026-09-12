@@ -16,6 +16,7 @@ export function toOrderDTO(order: Order): OrderDTO {
     changeCents: order.changeCents,
     shippingFullName: order.shippingFullName,
     shippingAddress: order.shippingAddress,
+    shippingPhone: order.shippingPhone,
     items: order.items.map((item) => ({
       id: item.id,
       productVariantId: item.productVariantId,

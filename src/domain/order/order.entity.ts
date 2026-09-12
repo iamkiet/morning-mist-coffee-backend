@@ -44,6 +44,7 @@ export interface Order {
   changeCents: number | null;
   shippingFullName: string | null;
   shippingAddress: string | null;
+  shippingPhone: string | null;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +58,7 @@ export interface CreateOrderInput {
   changeCents?: number;
   shippingFullName: string;
   shippingAddress: string;
+  shippingPhone: string;
   items: CreateOrderItemInput[];
 }
 

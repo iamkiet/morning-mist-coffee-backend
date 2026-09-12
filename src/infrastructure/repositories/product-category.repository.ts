@@ -1,7 +1,8 @@
-import { asc, eq, inArray, sql } from 'drizzle-orm';
+import { asc, count, eq, inArray, sql } from 'drizzle-orm';
 import type {
   CreateProductCategoryInput,
   ProductCategory,
+  UpdateProductCategoryInput,
 } from '../../domain/product-category/product-category.entity.ts';
 import type { ProductCategoryRepo } from '../../domain/product-category/product-category.repo.ts';
 import type { DB } from '../db/client.ts';
@@ -51,6 +52,38 @@ export class PostgresProductCategoryRepository implements ProductCategoryRepo {
       .returning();
     if (!row) throw new Error('Failed to create product category');
     return rowToCategory(row);
+  }
+
+  async update(
+    id: string,
+    input: UpdateProductCategoryInput,
+  ): Promise<ProductCategory | null> {
+    const values: Partial<typeof productCategories.$inferInsert> = {};
+    if (input.name !== undefined) values.name = input.name;
+    if (input.parentId !== undefined) values.parentId = input.parentId;
+
+    const [row] = await this.db
+      .update(productCategories)
+      .set(values)
+      .where(eq(productCategories.id, id))
+      .returning();
+    return row ? rowToCategory(row) : null;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await this.db
+      .delete(productCategories)
+      .where(eq(productCategories.id, id))
+      .returning({ id: productCategories.id });
+    return result.length > 0;
+  }
+
+  async hasChildren(id: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ count: count() })
+      .from(productCategories)
+      .where(eq(productCategories.parentId, id));
+    return (row?.count ?? 0) > 0;
   }
 
   async getCategoryIdsForProduct(productId: string): Promise<string[]> {

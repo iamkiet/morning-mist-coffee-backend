@@ -34,6 +34,7 @@ export const OrderSchema = z.object({
   changeCents: z.number().int().min(0).nullable(),
   shippingFullName: z.string().nullable(),
   shippingAddress: z.string().nullable(),
+  shippingPhone: z.string().nullable(),
   items: z.array(OrderItemSchema),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -52,6 +53,7 @@ export const CreateOrderBody = z.object({
   cashReceivedCents: z.number().int().min(0).optional(),
   shippingFullName: z.string().min(1).max(150),
   shippingAddress: z.string().min(5).max(500),
+  shippingPhone: z.string().min(8).max(20),
   items: z.array(CreateOrderItemBody).min(1),
 });
 
@@ -75,6 +77,11 @@ export const ListOrdersQuery = z.object({
 });
 
 export const OrderListResponse = paginatedResponse(OrderSchema);
+
+export const ListMyOrdersQuery = z.object({
+  ...sortFields(['createdAt', 'totalCents']),
+  ...paginationFields,
+});
 
 export const LookupOrdersQuery = z.object({
   code: z.uuid('Order code must be the full order ID shown on your receipt'),

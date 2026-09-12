@@ -4,6 +4,7 @@ import { env } from '../../config/env.ts';
 import { OrderController } from '../controllers/order.controller.ts';
 import {
   CreateOrderBody,
+  ListMyOrdersQuery,
   ListOrdersQuery,
   LookupOrdersQuery,
   OrderIdParam,
@@ -33,6 +34,17 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
       response: { 200: OrderListResponse },
     },
     handler: controller.list,
+  });
+
+  fastify.get('/me', {
+    onRequest: [app.authenticate, app.requireRole('customer')],
+    schema: {
+      tags: ['orders'],
+      querystring: ListMyOrdersQuery,
+      response: { 200: OrderListResponse },
+      security: [{ bearerAuth: [] }],
+    },
+    handler: controller.listMine,
   });
 
   fastify.get('/lookup', {

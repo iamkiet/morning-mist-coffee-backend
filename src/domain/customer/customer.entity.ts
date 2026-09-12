@@ -19,9 +19,6 @@ export interface Customer {
   updatedAt: Date;
 }
 
-export const MAX_FAILED_LOGIN_ATTEMPTS = 5;
-export const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
-
 export interface CreateCustomerInput {
   firstName: string;
   lastName: string;

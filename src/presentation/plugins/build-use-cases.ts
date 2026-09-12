@@ -16,6 +16,8 @@ import { ListProductReviewsUseCase } from '../../application/product-review/list
 import { ListPublicProductReviewsUseCase } from '../../application/product-review/list-public-product-reviews.use-case.ts';
 import { UpdateProductReviewStatusUseCase } from '../../application/product-review/update-product-review-status.use-case.ts';
 import { CreateProductCategoryUseCase } from '../../application/product-category/create-product-category.use-case.ts';
+import { UpdateProductCategoryUseCase } from '../../application/product-category/update-product-category.use-case.ts';
+import { DeleteProductCategoryUseCase } from '../../application/product-category/delete-product-category.use-case.ts';
 import { ListProductCategoriesUseCase } from '../../application/product-category/list-product-categories.use-case.ts';
 import { CreateProductPropertyUseCase } from '../../application/product-property/create-product-property.use-case.ts';
 import { ListProductPropertiesUseCase } from '../../application/product-property/list-product-properties.use-case.ts';
@@ -234,6 +236,8 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
     productCategory: {
       list: new ListProductCategoriesUseCase(deps.productCategoryRepo),
       create: new CreateProductCategoryUseCase(deps.productCategoryRepo),
+      update: new UpdateProductCategoryUseCase(deps.productCategoryRepo),
+      delete: new DeleteProductCategoryUseCase(deps.productCategoryRepo),
     },
     productProperty: {
       list: new ListProductPropertiesUseCase(deps.productPropertyRepo),

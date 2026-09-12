@@ -9,3 +9,8 @@ export interface CreateProductCategoryInput {
   name: string;
   parentId?: string | null;
 }
+
+export interface UpdateProductCategoryInput {
+  name?: string;
+  parentId?: string | null;
+}

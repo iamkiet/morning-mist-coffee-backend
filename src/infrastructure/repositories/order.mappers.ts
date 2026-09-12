@@ -54,6 +54,7 @@ export function rowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
     changeCents: row.changeCents,
     shippingFullName: row.shippingFullName,
     shippingAddress: row.shippingAddress,
+    shippingPhone: row.shippingPhone,
     items,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
