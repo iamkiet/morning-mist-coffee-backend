@@ -12,12 +12,6 @@ import {
 } from '../db/schema.ts';
 import { containsPattern } from './ilike-pattern.ts';
 
-const PROPERTY_FILTER_NAMES = {
-  origin: 'Xuất xứ',
-  roast: 'Mức rang',
-  process: 'Phương pháp chế biến',
-} as const;
-
 function propertyValueExists(propertyName: string, value: string): SQL {
   return sql`exists (select 1 from ${productVariants}
     inner join ${productVariantPropertyValues}
