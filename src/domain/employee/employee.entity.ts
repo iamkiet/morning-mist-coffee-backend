@@ -6,12 +6,22 @@ export type EmployeeRole = (typeof EMPLOYEE_ROLES)[number];
 export const EMPLOYEE_STATUSES = ['active', 'inactive', 'banned'] as const;
 export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number];
 
+export const EMPLOYEE_DEPARTMENTS = [
+  'Vận hành',
+  'Pha chế',
+  'Kho',
+  'Marketing',
+  'CSKH',
+  'Kế toán',
+] as const;
+export type EmployeeDepartment = (typeof EMPLOYEE_DEPARTMENTS)[number];
+
 export interface Employee {
   id: string;
   firstName: string;
   lastName: string;
   companyEmail: string;
-  department: string | null;
+  department: EmployeeDepartment | null;
   passwordHash: string | null;
   role: EmployeeRole;
   status: EmployeeStatus;
@@ -28,13 +38,13 @@ export interface CreateEmployeeInput {
   firstName: string;
   lastName: string;
   companyEmail: string;
-  department?: string;
+  department?: EmployeeDepartment;
   passwordHash: string | null;
   role: EmployeeRole;
 }
 
 export interface UpdateEmployeeInput {
-  department?: string;
+  department?: EmployeeDepartment;
   role?: EmployeeRole;
   status?: EmployeeStatus;
 }

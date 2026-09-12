@@ -1,24 +1,9 @@
-import { timingSafeEqual } from 'node:crypto';
-import type { FastifyRequest } from 'fastify';
 import { env } from '../../config/env.ts';
-import { ForbiddenError } from '../../lib/errors.ts';
+import { createRegistrationKeyChecker } from './registration-key.ts';
 
-const HEADER = 'x-employee-registration-key';
+export const EMPLOYEE_REGISTRATION_KEY_HEADER = 'x-employee-registration-key';
 
-export async function checkEmployeeRegistrationKey(req: FastifyRequest): Promise<void> {
-  const provided = req.headers[HEADER];
-  if (typeof provided !== 'string' || provided.length === 0) {
-    throw new ForbiddenError('Registration key required');
-  }
-
-  const a = Buffer.from(provided);
-  const b = Buffer.from(env.EMPLOYEE_REGISTRATION_KEY);
-
-  const lengthMatch = a.length === b.length;
-  const compareWith = lengthMatch ? b : a;
-  const equal = timingSafeEqual(a, compareWith);
-
-  if (!lengthMatch || !equal) {
-    throw new ForbiddenError('Invalid registration key');
-  }
-}
+export const checkEmployeeRegistrationKey = createRegistrationKeyChecker(
+  EMPLOYEE_REGISTRATION_KEY_HEADER,
+  () => env.EMPLOYEE_REGISTRATION_KEY,
+);

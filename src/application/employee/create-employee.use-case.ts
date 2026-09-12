@@ -2,6 +2,7 @@ import { ConflictError, ForbiddenError } from '../../lib/errors.ts';
 import { normalizeEmail } from '../../domain/shared/email.ts';
 import type {
   Employee,
+  EmployeeDepartment,
   EmployeeRole,
 } from '../../domain/employee/employee.entity.ts';
 import type { AuthRole } from '../../domain/auth/auth-role.ts';
@@ -12,7 +13,7 @@ export interface CreateEmployeeByAdminInput {
   firstName: string;
   lastName: string;
   companyEmail: string;
-  department?: string;
+  department?: EmployeeDepartment;
   password: string;
   role: EmployeeRole;
 }

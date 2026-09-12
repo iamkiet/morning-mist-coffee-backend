@@ -1,7 +1,8 @@
-import { NotFoundError } from '../../lib/errors.ts';
+import { ForbiddenError, NotFoundError } from '../../lib/errors.ts';
 import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts';
 import type { Employee } from '../../domain/employee/employee.entity.ts';
 import type { EmployeeRepo } from '../../domain/employee/employee.repo.ts';
+import type { AuthRole } from '../../domain/auth/auth-role.ts';
 
 export class UpdateEmployeePasswordUseCase {
   constructor(
@@ -9,7 +10,16 @@ export class UpdateEmployeePasswordUseCase {
     private readonly hasher: PasswordHasher,
   ) {}
 
-  async execute(id: string, newPassword: string): Promise<Employee> {
+  async execute(
+    id: string,
+    newPassword: string,
+    actingRole: AuthRole,
+    actingUserId: string,
+  ): Promise<Employee> {
+    if (actingRole === 'staff' && id !== actingUserId) {
+      throw new ForbiddenError('Staff can only reset their own password');
+    }
+
     const existing = await this.repo.findById(id);
     if (!existing) throw new NotFoundError('Employee', id);
     const passwordHash = await this.hasher.hash(newPassword);

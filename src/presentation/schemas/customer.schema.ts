@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CUSTOMER_SORT_FIELDS } from '../../domain/customer/customer.entity.ts';
+import { CUSTOMER_REGISTRATION_KEY_HEADER } from '../middlewares/customer-registration-key.ts';
 import { paginatedResponse, paginationFields, sortFields } from './_pagination.ts';
 import { PasswordSchema, UserStatusSchema } from './auth.schema.ts';
 
@@ -20,7 +21,7 @@ export const CustomerIdParam = z.object({ id: z.uuid() });
 
 export const CreateCustomerHeaders = z
   .object({
-    'x-customer-registration-key': z.string().min(1),
+    [CUSTOMER_REGISTRATION_KEY_HEADER]: z.string().min(1),
   })
   .loose();
 

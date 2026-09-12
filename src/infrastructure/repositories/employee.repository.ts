@@ -2,6 +2,7 @@ import { and, asc, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import type {
   CreateEmployeeInput,
   Employee,
+  EmployeeDepartment,
   EmployeeFilterCriteria,
   ListEmployeesFilter,
   UpdateEmployeeInput,
@@ -17,7 +18,7 @@ function rowToEmployee(row: EmployeeRow): Employee {
     firstName: row.firstName,
     lastName: row.lastName,
     companyEmail: row.companyEmail,
-    department: row.department,
+    department: row.department as EmployeeDepartment | null,
     passwordHash: row.passwordHash,
     role: row.role,
     status: row.status,
