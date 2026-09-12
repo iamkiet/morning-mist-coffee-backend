@@ -15,6 +15,8 @@ const EnvSchema = z.object({
   AUTH_REFRESH_TOKEN_TTL: z.string().min(1),
 
   CORS_ORIGINS: z.string().min(1),
+  CUSTOMER_REGISTRATION_KEY: z.string().min(32),
+  EMPLOYEE_REGISTRATION_KEY: z.string().min(32),
 
   AUTH_LOGIN_RATE_MAX: z.coerce.number().int().positive(),
   AUTH_LOGIN_RATE_WINDOW: z.string().min(1),

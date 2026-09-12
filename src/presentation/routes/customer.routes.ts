@@ -3,8 +3,10 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { env } from '../../config/env.ts';
 import { CustomerController } from '../controllers/customer.controller.ts';
+import { checkCustomerRegistrationKey } from '../middlewares/customer-registration-key.ts';
 import {
   CreateCustomerBody,
+  CreateCustomerHeaders,
   CustomerIdParam,
   CustomerListResponse,
   CustomerSchema,
@@ -33,9 +35,11 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
     config: createRateLimit,
     schema: {
       tags: ['customers'],
+      headers: CreateCustomerHeaders,
       body: CreateCustomerBody,
       response: { 201: CustomerSchema },
     },
+    preHandler: [checkCustomerRegistrationKey],
     handler: controller.create,
   });
 

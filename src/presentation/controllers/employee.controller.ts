@@ -56,6 +56,7 @@ export class EmployeeController {
       req.params.id,
       req.body,
       req.user.role,
+      req.user.id,
     );
     return reply.send(toEmployeeDTO(employee));
   };

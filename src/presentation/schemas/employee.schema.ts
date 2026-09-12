@@ -22,6 +22,12 @@ export const EmployeeSchema = z.object({
 
 export const EmployeeIdParam = z.object({ id: z.uuid() });
 
+export const CreateEmployeeHeaders = z
+  .object({
+    'x-employee-registration-key': z.string().min(1),
+  })
+  .loose();
+
 export const CreateEmployeeBody = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),

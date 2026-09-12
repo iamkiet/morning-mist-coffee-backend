@@ -2,8 +2,10 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { EmployeeController } from '../controllers/employee.controller.ts';
+import { checkEmployeeRegistrationKey } from '../middlewares/employee-registration-key.ts';
 import {
   CreateEmployeeBody,
+  CreateEmployeeHeaders,
   EmployeeIdParam,
   EmployeeListResponse,
   EmployeeSchema,
@@ -32,10 +34,12 @@ export async function employeeRoutes(app: FastifyInstance): Promise<void> {
   fastify.post('/', {
     schema: {
       tags: ['employees'],
+      headers: CreateEmployeeHeaders,
       body: CreateEmployeeBody,
       response: { 201: EmployeeSchema },
       security: [{ bearerAuth: [] }],
     },
+    preHandler: [checkEmployeeRegistrationKey],
     handler: controller.create,
   });
 

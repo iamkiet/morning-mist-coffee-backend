@@ -13,9 +13,14 @@ export class UpdateEmployeeUseCase {
     id: string,
     input: UpdateEmployeeInput,
     actingRole: AuthRole,
+    actingUserId: string,
   ): Promise<Employee> {
     if (actingRole === 'staff' && input.role === 'admin') {
       throw new ForbiddenError('Staff cannot grant the admin role');
+    }
+
+    if (actingRole === 'staff' && id !== actingUserId) {
+      throw new ForbiddenError('Staff can only edit their own account');
     }
 
     const updated = await this.repo.update(id, input);

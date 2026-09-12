@@ -18,6 +18,12 @@ export const CustomerSchema = z.object({
 
 export const CustomerIdParam = z.object({ id: z.uuid() });
 
+export const CreateCustomerHeaders = z
+  .object({
+    'x-customer-registration-key': z.string().min(1),
+  })
+  .loose();
+
 export const CreateCustomerBody = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
