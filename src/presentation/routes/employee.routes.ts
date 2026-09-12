@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { EmployeeController } from '../controllers/employee.controller.ts';
 import { checkEmployeeRegistrationKey } from '../middlewares/employee-registration-key.ts';
 import {
@@ -19,7 +20,7 @@ export async function employeeRoutes(app: FastifyInstance): Promise<void> {
   const controller = new EmployeeController(app.useCases.employee);
 
   fastify.addHook('onRequest', app.authenticate);
-  fastify.addHook('onRequest', app.requireRole(['admin', 'staff']));
+  fastify.addHook('onRequest', app.requireRole(ROLES_ADMIN_STAFF));
 
   fastify.get('/', {
     schema: {

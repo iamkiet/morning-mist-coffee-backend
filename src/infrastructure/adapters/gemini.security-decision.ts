@@ -1,5 +1,6 @@
 import { Type, type GenerateContentConfig } from '@google/genai';
 import { z } from 'zod';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { SecurityDecisionPort } from '../../domain/security/security-decision.port.ts';
 import {
@@ -66,7 +67,7 @@ export class GeminiSecurityDecisionAdapter implements SecurityDecisionPort {
           config: CONFIG,
         });
         const text = response.text;
-        if (text === undefined) throw new Error('Empty security decision response');
+        if (text === undefined) throw new ExternalServiceError('Gemini', 'Empty security decision response');
         return SecurityAgentActionSchema.parse(JSON.parse(text.trim()));
       } catch (error) {
         this.logger.warn(

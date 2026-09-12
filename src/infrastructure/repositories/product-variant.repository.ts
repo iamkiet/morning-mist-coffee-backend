@@ -1,4 +1,6 @@
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
+import { groupBy } from '../../lib/group-by.ts';
 import type {
   CreateProductVariantInput,
   ProductVariant,
@@ -46,19 +48,12 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
   async listByProductIds(
     productIds: string[],
   ): Promise<Map<string, ProductVariant[]>> {
-    const map = new Map<string, ProductVariant[]>();
-    if (productIds.length === 0) return map;
+    if (productIds.length === 0) return new Map();
     const rows = await this.db
       .select()
       .from(productVariants)
       .where(inArray(productVariants.productId, productIds));
-    for (const row of rows) {
-      const variant = rowToVariant(row);
-      const list = map.get(variant.productId);
-      if (list) list.push(variant);
-      else map.set(variant.productId, [variant]);
-    }
-    return map;
+    return groupBy(rows.map(rowToVariant), (variant) => variant.productId);
   }
 
   async findById(id: string): Promise<ProductVariant | null> {
@@ -68,6 +63,15 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
       .where(eq(productVariants.id, id))
       .limit(1);
     return row ? rowToVariant(row) : null;
+  }
+
+  async findByIds(ids: string[]): Promise<ProductVariant[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db
+      .select()
+      .from(productVariants)
+      .where(inArray(productVariants.id, ids));
+    return rows.map(rowToVariant);
   }
 
   async findBySku(sku: string): Promise<ProductVariant | null> {
@@ -94,7 +98,7 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
         expiresAt: input.expiresAt ?? null,
       })
       .returning();
-    if (!row) throw new Error('Failed to create product variant');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create product variant');
     return rowToVariant(row);
   }
 
@@ -139,7 +143,7 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
       .set({ stock: sql`${productVariants.stock} + ${qty}`, updatedAt: sql`now()` })
       .where(eq(productVariants.id, variantId))
       .returning();
-    if (!row) throw new Error('Failed to increase variant stock');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to increase variant stock');
     return rowToVariant(row);
   }
 
@@ -149,7 +153,7 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
       .set({ stock: qty, updatedAt: sql`now()` })
       .where(eq(productVariants.id, variantId))
       .returning();
-    if (!row) throw new Error('Failed to set variant stock');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to set variant stock');
     return rowToVariant(row);
   }
 
@@ -216,8 +220,7 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
   async getPropertyValuesByVariantIds(
     variantIds: string[],
   ): Promise<Map<string, VariantPropertyValue[]>> {
-    const map = new Map<string, VariantPropertyValue[]>();
-    if (variantIds.length === 0) return map;
+    if (variantIds.length === 0) return new Map();
     const rows = await this.db
       .select({
         productVariantId: productVariantPropertyValues.productVariantId,
@@ -231,12 +234,13 @@ export class PostgresProductVariantRepository implements ProductVariantRepo {
         eq(productVariantPropertyValues.productPropertyId, productProperties.id),
       )
       .where(inArray(productVariantPropertyValues.productVariantId, variantIds));
-    for (const { productVariantId, ...value } of rows) {
-      const list = map.get(productVariantId);
-      if (list) list.push(value);
-      else map.set(productVariantId, [value]);
-    }
-    return map;
+    const byVariant = groupBy(rows, (row) => row.productVariantId);
+    return new Map(
+      [...byVariant].map(([variantId, group]) => [
+        variantId,
+        group.map(({ productVariantId: _productVariantId, ...value }) => value),
+      ]),
+    );
   }
 
   async setPropertyValues(

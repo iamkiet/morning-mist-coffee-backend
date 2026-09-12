@@ -7,6 +7,7 @@ import type {
 export interface ProductCategoryRepo {
   list(): Promise<ProductCategory[]>;
   findById(id: string): Promise<ProductCategory | null>;
+  findByIds(ids: string[]): Promise<ProductCategory[]>;
   findByName(name: string): Promise<ProductCategory | null>;
   create(input: CreateProductCategoryInput): Promise<ProductCategory>;
   update(

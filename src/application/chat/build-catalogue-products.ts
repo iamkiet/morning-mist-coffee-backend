@@ -8,27 +8,23 @@ export async function buildCatalogueProducts(
   variants: ProductVariantRepo,
   products: Product[],
 ): Promise<ChatCatalogueProduct[]> {
-  return Promise.all(
-    products.map(async (product) => {
-      const [productVariants, embeddingSource] = await Promise.all([
-        variants.listByProductId(product.id),
-        productRepo.getEmbeddingSource(product.id),
-      ]);
+  const productIds = products.map((p) => p.id);
+  const [variantsByProduct, embeddingSources] = await Promise.all([
+    variants.listByProductIds(productIds),
+    Promise.all(products.map((p) => productRepo.getEmbeddingSource(p.id))),
+  ]);
 
-      const catalogueVariants = await Promise.all(
-        productVariants.map(async (v) => ({
-          priceCents: v.priceCents,
-          stock: v.stock,
-          propertyValues: await variants.getPropertyValues(v.id),
-        })),
-      );
+  const allVariantIds = [...variantsByProduct.values()].flat().map((v) => v.id);
+  const propertyValuesByVariant = await variants.getPropertyValuesByVariantIds(allVariantIds);
 
-      return {
-        name: product.name,
-        description: product.description,
-        categoryNames: embeddingSource?.categoryNames ?? [],
-        variants: catalogueVariants,
-      };
-    }),
-  );
+  return products.map((product, i) => ({
+    name: product.name,
+    description: product.description,
+    categoryNames: embeddingSources[i]?.categoryNames ?? [],
+    variants: (variantsByProduct.get(product.id) ?? []).map((v) => ({
+      priceCents: v.priceCents,
+      stock: v.stock,
+      propertyValues: propertyValuesByVariant.get(v.id) ?? [],
+    })),
+  }));
 }

@@ -1,5 +1,6 @@
 import { Type, type GenerateContentConfig } from '@google/genai';
 import { z } from 'zod';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type {
   ExtractedProductFilter,
@@ -48,7 +49,7 @@ export class GeminiProductFilterExtractionAdapter implements ProductFilterExtrac
         config: CONFIG,
       });
       const text = response.text;
-      if (text === undefined) throw new Error('Empty product filter extraction response');
+      if (text === undefined) throw new ExternalServiceError('Gemini', 'Empty product filter extraction response');
       const parsed = ExtractedProductFilterSchema.parse(JSON.parse(text.trim()));
       const isEmpty =
         parsed.priceMin === undefined &&

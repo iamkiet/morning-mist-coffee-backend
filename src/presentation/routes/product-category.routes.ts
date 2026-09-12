@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { ProductCategoryController } from '../controllers/product-category.controller.ts';
 import {
   CreateProductCategoryBody,
@@ -15,7 +16,7 @@ export async function productCategoryRoutes(app: FastifyInstance): Promise<void>
   const controller = new ProductCategoryController(app.useCases.productCategory);
 
   fastify.addHook('onRequest', app.authenticate);
-  fastify.addHook('onRequest', app.requireRole(['admin', 'staff']));
+  fastify.addHook('onRequest', app.requireRole(ROLES_ADMIN_STAFF));
 
   fastify.get('/', {
     schema: {

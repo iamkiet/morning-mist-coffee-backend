@@ -27,7 +27,8 @@ When in doubt about whether to add something, **lean toward deleting**. Adding c
 - Throw `AppError` subclasses, not plain `Error`, for any error that should surface to the client.
 - DB schema change → mention `db:generate` + `db:migrate` in the report (don't run silently).
 - Pagination/sort use the shared helpers — don't redefine `{ items, total, limit, offset }` shape.
-- New use case → registered in `services.plugin.ts` AND wired to a route. Otherwise it's dead.
+- New use case → registered in `build-use-cases.ts` AND wired to a route. Otherwise it's dead.
+- Behavior/business-rule change → matching `requirements/<domain>.md` updated in the same change (see root `CLAUDE.md` "Requirements folder"). Stale requirement docs are as bad as no docs.
 
 ## 3. Reporting
 

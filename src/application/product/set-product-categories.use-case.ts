@@ -16,9 +16,11 @@ export class SetProductCategoriesUseCase {
   async execute(productId: string, categoryIds: string[]): Promise<void> {
     const product = await this.products.findById(productId);
     if (!product) throw new NotFoundError('Product', productId);
-    for (const categoryId of categoryIds) {
-      const category = await this.categories.findById(categoryId);
-      if (!category) throw new NotFoundError('ProductCategory', categoryId);
+    if (categoryIds.length > 0) {
+      const found = await this.categories.findByIds(categoryIds);
+      const foundIds = new Set(found.map((c) => c.id));
+      const missingId = categoryIds.find((id) => !foundIds.has(id));
+      if (missingId) throw new NotFoundError('ProductCategory', missingId);
     }
 
     await this.categories.setCategoriesForProduct(productId, categoryIds);

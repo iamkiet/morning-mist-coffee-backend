@@ -32,11 +32,11 @@ export class CreateProductUseCase {
   ) {}
 
   async execute(input: CreateProductWithVariantInput): Promise<ProductWithVariants> {
-    if (input.categoryIds) {
-      for (const categoryId of input.categoryIds) {
-        const category = await this.categories.findById(categoryId);
-        if (!category) throw new NotFoundError('ProductCategory', categoryId);
-      }
+    if (input.categoryIds && input.categoryIds.length > 0) {
+      const found = await this.categories.findByIds(input.categoryIds);
+      const foundIds = new Set(found.map((c) => c.id));
+      const missingId = input.categoryIds.find((id) => !foundIds.has(id));
+      if (missingId) throw new NotFoundError('ProductCategory', missingId);
     }
 
     const slug = await this.resolveSlug(input.name);

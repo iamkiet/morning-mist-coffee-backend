@@ -56,7 +56,6 @@ export class EmployeeController {
       req.params.id,
       req.body,
       req.user.role,
-      req.user.id,
     );
     return reply.send(toEmployeeDTO(employee));
   };
@@ -69,12 +68,7 @@ export class EmployeeController {
     reply: FastifyReply,
   ) => {
     if (!req.user) throw new UnauthorizedError();
-    await this.uc.updatePassword.execute(
-      req.params.id,
-      req.body.password,
-      req.user.role,
-      req.user.id,
-    );
+    await this.uc.updatePassword.execute(req.params.id, req.body.password);
     return reply.code(204).send();
   };
 

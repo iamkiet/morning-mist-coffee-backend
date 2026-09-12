@@ -1,4 +1,5 @@
 import { and, eq, isNull, or, lt, isNotNull } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   CreateRefreshTokenInput,
   RefreshToken,
@@ -31,7 +32,7 @@ export class PostgresRefreshTokenRepository implements RefreshTokenRepo {
         expiresAt: input.expiresAt,
       })
       .returning();
-    if (!row) throw new Error('Failed to create refresh token');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create refresh token');
     return rowToRefreshToken(row);
   }
 

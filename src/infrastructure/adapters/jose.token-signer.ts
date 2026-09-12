@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { UnauthorizedError } from '../../lib/errors.ts';
+import { AppError, UnauthorizedError } from '../../lib/errors.ts';
 import type {
   AccessTokenClaims,
   IssuedRefreshToken,
@@ -57,7 +57,7 @@ export class JoseTokenSigner implements TokenSigner {
 
     const { payload } = await jwtVerify(token, this.key, { issuer: ISSUER });
     if (typeof payload.exp !== 'number') {
-      throw new Error('Failed to read refresh token expiry');
+      throw new AppError('Failed to read refresh token expiry', 500, 'INTERNAL_ERROR');
     }
     return { token, jti, expiresAt: new Date(payload.exp * 1000) };
   }

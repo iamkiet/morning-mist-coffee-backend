@@ -1,4 +1,4 @@
-import { ConflictError } from '../../lib/errors.ts';
+import { resolveUniqueName } from '../../lib/unique-name.ts';
 import type {
   CreateProductPropertyInput,
   ProductProperty,
@@ -9,9 +9,11 @@ export class CreateProductPropertyUseCase {
   constructor(private readonly repo: ProductPropertyRepo) {}
 
   async execute(input: CreateProductPropertyInput): Promise<ProductProperty> {
-    const name = input.name.trim();
-    const existing = await this.repo.findByName(name);
-    if (existing) throw new ConflictError(`Property '${name}' already exists`);
+    const name = await resolveUniqueName(
+      input.name,
+      (n) => this.repo.findByName(n),
+      'Property',
+    );
     return this.repo.create({ name, dataType: input.dataType });
   }
 }

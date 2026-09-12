@@ -14,6 +14,7 @@ export interface Lockable {
   passwordHash: string | null;
   lockedUntil: Date | null;
   failedLoginAttempts: number;
+  status: 'active' | 'inactive' | 'banned';
 }
 
 export interface LockableRepo {
@@ -27,7 +28,7 @@ export async function verifyPassword(
   password: string,
   hasher: PasswordHasher,
 ): Promise<void> {
-  if (!account.passwordHash) {
+  if (!account.passwordHash || account.status !== 'active') {
     throw new UnauthorizedError('Invalid email or password');
   }
 

@@ -1,4 +1,5 @@
 import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   ClassifyProductReviewInput,
   CreateProductReviewInput,
@@ -124,30 +125,51 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
         source: input.source,
       })
       .returning();
-    if (!row) throw new Error('Failed to create product review');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create product review');
     return rowToProductReview(row);
   }
 
-  async classify(
+  async classifyWithReply(
     id: string,
     input: ClassifyProductReviewInput,
+    reply?: CreateProductReviewReplyInput,
   ): Promise<ProductReview | null> {
-    const [row] = await this.db
-      .update(productReviews)
-      .set({
-        category: input.category,
-        severity: input.severity,
-        sentiment: input.sentiment,
-        topics: input.topics,
-        suggestedResponse: input.suggestedResponse,
-        classificationRaw: input.classificationRaw,
-        classifiedAt: input.classifiedAt,
-        status: input.status,
-      })
-      .where(eq(productReviews.id, id))
-      .returning();
-    if (!row) return null;
-    return rowToProductReview(row, await this.findRepliesByReviewId(id));
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(productReviews)
+        .set({
+          category: input.category,
+          severity: input.severity,
+          sentiment: input.sentiment,
+          topics: input.topics,
+          suggestedResponse: input.suggestedResponse,
+          classificationRaw: input.classificationRaw,
+          classifiedAt: input.classifiedAt,
+          status: input.status,
+        })
+        .where(eq(productReviews.id, id))
+        .returning();
+      if (!row) return null;
+
+      if (reply) {
+        await tx
+          .insert(productReviewReplies)
+          .values({
+            reviewId: id,
+            authorType: reply.authorType,
+            authorName: reply.authorName ?? null,
+            customerId: reply.customerId ?? null,
+            replyText: reply.replyText,
+          })
+          .returning();
+      }
+
+      const replyRows = await tx
+        .select()
+        .from(productReviewReplies)
+        .where(eq(productReviewReplies.reviewId, id));
+      return rowToProductReview(row, replyRows.map(rowToReply));
+    });
   }
 
   async updateStatus(
@@ -177,7 +199,7 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
         replyText: input.replyText,
       })
       .returning();
-    if (!row) throw new Error('Failed to create product review reply');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create product review reply');
     return rowToReply(row);
   }
 }

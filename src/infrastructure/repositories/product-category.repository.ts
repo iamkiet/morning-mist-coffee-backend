@@ -1,4 +1,5 @@
 import { asc, count, eq, inArray, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   CreateProductCategoryInput,
   ProductCategory,
@@ -36,6 +37,15 @@ export class PostgresProductCategoryRepository implements ProductCategoryRepo {
     return row ? rowToCategory(row) : null;
   }
 
+  async findByIds(ids: string[]): Promise<ProductCategory[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db
+      .select()
+      .from(productCategories)
+      .where(inArray(productCategories.id, ids));
+    return rows.map(rowToCategory);
+  }
+
   async findByName(name: string): Promise<ProductCategory | null> {
     const [row] = await this.db
       .select()
@@ -50,7 +60,7 @@ export class PostgresProductCategoryRepository implements ProductCategoryRepo {
       .insert(productCategories)
       .values({ name: input.name, parentId: input.parentId ?? null })
       .returning();
-    if (!row) throw new Error('Failed to create product category');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create product category');
     return rowToCategory(row);
   }
 

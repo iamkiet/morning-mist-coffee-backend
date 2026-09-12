@@ -1,4 +1,5 @@
 import { and, asc, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   Customer,
   CustomerFilterCriteria,
@@ -87,7 +88,7 @@ export class PostgresCustomerRepository implements CustomerRepo {
         passwordHash: input.passwordHash,
       })
       .returning();
-    if (!row) throw new Error('Failed to create customer');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create customer');
     return rowToCustomer(row);
   }
 

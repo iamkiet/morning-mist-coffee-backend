@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { ProductController } from '../controllers/product.controller.ts';
 import {
   CreateProductBody,
@@ -51,7 +52,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       body: CreateProductBody,
@@ -61,7 +62,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -72,7 +73,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.delete('/:id', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -82,7 +83,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.put('/:id/categories', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -93,7 +94,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/:id/variants', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductIdParam,
@@ -104,7 +105,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/variants/:variantId', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductVariantIdParam,
@@ -115,7 +116,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.delete('/variants/:variantId', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductVariantIdParam,
@@ -125,7 +126,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.put('/variants/:variantId/properties', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductVariantIdParam,
@@ -136,7 +137,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/variants/:variantId/stock', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductVariantIdParam,
@@ -146,7 +147,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/variants/:variantId/stock/increase', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductVariantIdParam,
@@ -157,7 +158,7 @@ export async function productRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/variants/:variantId/stock/decrease', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['products'],
       params: ProductVariantIdParam,

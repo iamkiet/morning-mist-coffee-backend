@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import type { FastifyReply } from 'fastify';
 import { env } from '../../config/env.ts';
+import { AppError } from '../../lib/errors.ts';
 
 export const ACCESS_COOKIE = 'access_token';
 export const REFRESH_COOKIE = 'refresh_token';
@@ -11,9 +12,10 @@ const REFRESH_PATH = '/api/v1/auth';
 function parseTtlSeconds(ttl: string): number {
   const units: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400, w: 604800 };
   const match = /^(\d+)([smhdw])$/.exec(ttl);
-  if (!match) throw new Error(`Invalid TTL format: ${ttl}`);
+  if (!match) throw new AppError(`Invalid TTL format: ${ttl}`, 500, 'INTERNAL_ERROR');
   const unitValue = units[match[2]!];
-  if (unitValue === undefined) throw new Error(`Unsupported TTL unit: ${match[2]}`);
+  if (unitValue === undefined)
+    throw new AppError(`Unsupported TTL unit: ${match[2]}`, 500, 'INTERNAL_ERROR');
   return parseInt(match[1]!, 10) * unitValue;
 }
 

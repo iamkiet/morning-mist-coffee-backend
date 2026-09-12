@@ -1,4 +1,5 @@
 import { ConflictError, NotFoundError } from '../../lib/errors.ts';
+import { resolveUniqueName } from '../../lib/unique-name.ts';
 import type {
   CreateProductCategoryInput,
   ProductCategory,
@@ -9,13 +10,18 @@ export class CreateProductCategoryUseCase {
   constructor(private readonly repo: ProductCategoryRepo) {}
 
   async execute(input: CreateProductCategoryInput): Promise<ProductCategory> {
-    const name = input.name.trim();
-    const existing = await this.repo.findByName(name);
-    if (existing) throw new ConflictError(`Category '${name}' already exists`);
+    const name = await resolveUniqueName(
+      input.name,
+      (n) => this.repo.findByName(n),
+      'Category',
+    );
 
     if (input.parentId) {
       const parent = await this.repo.findById(input.parentId);
       if (!parent) throw new NotFoundError('ProductCategory', input.parentId);
+      if (parent.parentId !== null) {
+        throw new ConflictError('Category only supports one level — cannot use a child category as parent');
+      }
     }
 
     return this.repo.create({ name, parentId: input.parentId ?? null });

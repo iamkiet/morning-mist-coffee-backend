@@ -1,4 +1,5 @@
-import { asc, eq, sql } from 'drizzle-orm';
+import { asc, eq, inArray, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   CreateProductPropertyInput,
   ProductProperty,
@@ -36,6 +37,15 @@ export class PostgresProductPropertyRepository implements ProductPropertyRepo {
     return row ? rowToProperty(row) : null;
   }
 
+  async findByIds(ids: string[]): Promise<ProductProperty[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db
+      .select()
+      .from(productProperties)
+      .where(inArray(productProperties.id, ids));
+    return rows.map(rowToProperty);
+  }
+
   async findByName(name: string): Promise<ProductProperty | null> {
     const [row] = await this.db
       .select()
@@ -50,7 +60,7 @@ export class PostgresProductPropertyRepository implements ProductPropertyRepo {
       .insert(productProperties)
       .values({ name: input.name, ...(input.dataType ? { dataType: input.dataType } : {}) })
       .returning();
-    if (!row) throw new Error('Failed to create product property');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create product property');
     return rowToProperty(row);
   }
 }

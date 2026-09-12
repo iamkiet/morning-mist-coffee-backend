@@ -13,6 +13,19 @@ export interface Logger {
   warn(obj: Record<string, unknown>, msg: string): void;
 }
 
+function computeCashChange(
+  cashReceivedCents: number | undefined,
+  totalCents: number,
+): { cashReceivedCents: number; changeCents: number } | undefined {
+  if (cashReceivedCents === undefined || cashReceivedCents === null) return undefined;
+  if (cashReceivedCents < totalCents) {
+    throw new ValidationError(
+      `Cash received (${cashReceivedCents}) must be greater than or equal to total amount (${totalCents})`,
+    );
+  }
+  return { cashReceivedCents, changeCents: cashReceivedCents - totalCents };
+}
+
 export class CreateOrderUseCase {
   constructor(
     private readonly repo: OrderRepo,
@@ -23,25 +36,34 @@ export class CreateOrderUseCase {
   ) {}
 
   async execute(input: CreateOrderInput): Promise<Order> {
-    const resolvedItems = [];
-    for (const item of input.items) {
+    const items = input.items.map((item) => {
       if (!item.productVariantId) {
         throw new ValidationError('Each order item must specify a product variant ID');
       }
-      const variant = await this.variants.findById(item.productVariantId);
-      if (!variant) {
-        throw new NotFoundError('ProductVariant', item.productVariantId);
-      }
-      const product = await this.products.findById(variant.productId);
-      if (!product) {
-        throw new NotFoundError('Product', variant.productId);
-      }
+      return { productVariantId: item.productVariantId, quantity: item.quantity };
+    });
+    const variantIds = items.map((item) => item.productVariantId);
+
+    const variants = await this.variants.findByIds(variantIds);
+    const variantById = new Map(variants.map((v) => [v.id, v]));
+
+    const productIds = [...new Set(variants.map((v) => v.productId))];
+    const products = await this.products.findByIds(productIds);
+    const productById = new Map(products.map((p) => [p.id, p]));
+
+    const propertyValuesByVariant = await this.variants.getPropertyValuesByVariantIds(variantIds);
+
+    const resolvedItems = items.map((item) => {
+      const variant = variantById.get(item.productVariantId);
+      if (!variant) throw new NotFoundError('ProductVariant', item.productVariantId);
+      const product = productById.get(variant.productId);
+      if (!product) throw new NotFoundError('Product', variant.productId);
       if (variant.currency !== input.currency) {
         throw new ValidationError(`Variant currency ${variant.currency} does not match order currency ${input.currency}`);
       }
-      const propertyValues = await this.variants.getPropertyValues(variant.id);
-      resolvedItems.push({
-        productVariantId: item.productVariantId,
+      const propertyValues = propertyValuesByVariant.get(variant.id) ?? [];
+      return {
+        productVariantId: variant.id,
         productName: product.name,
         variantSku: variant.sku,
         variantPropertyValues: propertyValues.map((p) => ({
@@ -50,8 +72,8 @@ export class CreateOrderUseCase {
         })),
         priceCents: variant.priceCents,
         quantity: item.quantity,
-      });
-    }
+      };
+    });
 
     const stockItems = resolvedItems.map((item) => ({
       variantId: item.productVariantId,
@@ -68,27 +90,26 @@ export class CreateOrderUseCase {
       0,
     );
 
-    let cashReceivedCents: number | undefined = undefined;
-    let changeCents: number | undefined = undefined;
+    const cashChange = computeCashChange(input.cashReceivedCents, totalCents);
 
-    if (input.cashReceivedCents !== undefined && input.cashReceivedCents !== null) {
-      if (input.cashReceivedCents < totalCents) {
-        throw new ValidationError(
-          `Cash received (${input.cashReceivedCents}) must be greater than or equal to total amount (${totalCents})`
+    let order;
+    try {
+      order = await this.repo.create({
+        ...input,
+        items: resolvedItems,
+        totalCents,
+        cashReceivedCents: cashChange?.cashReceivedCents,
+        changeCents: cashChange?.changeCents,
+        customerEmail: normalizeEmail(input.customerEmail),
+      });
+    } catch (err) {
+      if (stockItems.length > 0) {
+        await Promise.all(
+          stockItems.map((item) => this.variants.increaseStock(item.variantId, item.qty)),
         );
       }
-      cashReceivedCents = input.cashReceivedCents;
-      changeCents = input.cashReceivedCents - totalCents;
+      throw err;
     }
-
-    const order = await this.repo.create({
-      ...input,
-      items: resolvedItems,
-      totalCents,
-      cashReceivedCents,
-      changeCents,
-      customerEmail: normalizeEmail(input.customerEmail),
-    });
 
     try {
       await this.emailSender.sendOrderConfirmation({

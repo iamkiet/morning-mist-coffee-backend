@@ -1,4 +1,5 @@
-import { and, asc, cosineDistance, desc, eq, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, cosineDistance, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   CreateProductRecord,
   ListProductsFilter,
@@ -66,6 +67,12 @@ export class PostgresProductRepository implements ProductRepo {
     return row ? rowToProduct(row) : null;
   }
 
+  async findByIds(ids: string[]): Promise<Product[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db.select().from(products).where(inArray(products.id, ids));
+    return rows.map(rowToProduct);
+  }
+
   async findBySlug(slug: string): Promise<Product | null> {
     const [row] = await this.db
       .select()
@@ -85,7 +92,7 @@ export class PostgresProductRepository implements ProductRepo {
         imageUrl: input.imageUrl ?? null,
       })
       .returning();
-    if (!row) throw new Error('Failed to create product');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create product');
     return rowToProduct(row);
   }
 

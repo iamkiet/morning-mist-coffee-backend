@@ -157,7 +157,7 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
         deps.emailSender,
         deps.logger,
       ),
-      updateStatus: new UpdateOrderStatusUseCase(deps.orderRepo),
+      updateStatus: new UpdateOrderStatusUseCase(deps.orderRepo, deps.productVariantRepo),
     },
     productReview: {
       list: new ListProductReviewsUseCase(deps.productReviewRepo),

@@ -19,6 +19,7 @@ export interface ProductRepo {
   list(filter: ListProductsFilter): Promise<Product[]>;
   count(filter: ProductFilterCriteria): Promise<number>;
   findById(id: string): Promise<Product | null>;
+  findByIds(ids: string[]): Promise<Product[]>;
   findBySlug(slug: string): Promise<Product | null>;
   create(input: CreateProductRecord): Promise<Product>;
   update(id: string, input: UpdateProductInput): Promise<Product | null>;

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { ProductPropertyController } from '../controllers/product-property.controller.ts';
 import {
   CreateProductPropertyBody,
@@ -12,7 +13,7 @@ export async function productPropertyRoutes(app: FastifyInstance): Promise<void>
   const controller = new ProductPropertyController(app.useCases.productProperty);
 
   fastify.addHook('onRequest', app.authenticate);
-  fastify.addHook('onRequest', app.requireRole(['admin', 'staff']));
+  fastify.addHook('onRequest', app.requireRole(ROLES_ADMIN_STAFF));
 
   fastify.get('/', {
     schema: {

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { ProductReviewController } from '../controllers/product-review.controller.ts';
 import {
   CreateProductReviewBody,
@@ -21,7 +22,7 @@ export async function productReviewRoutes(app: FastifyInstance): Promise<void> {
   const controller = new ProductReviewController(app.useCases.productReview);
 
   fastify.get('/', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['product-reviews'],
       querystring: ListProductReviewsQuery,
@@ -41,7 +42,7 @@ export async function productReviewRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/:id', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['product-reviews'],
       params: ProductReviewIdParam,
@@ -74,7 +75,7 @@ export async function productReviewRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/:reviewId/admin-replies', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['product-reviews'],
       params: ProductReviewReplyParams,
@@ -85,7 +86,7 @@ export async function productReviewRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id/status', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['product-reviews'],
       params: ProductReviewIdParam,

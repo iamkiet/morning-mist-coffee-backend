@@ -5,9 +5,13 @@ import {
   type UpdateOrderStatusInput,
 } from '../../domain/order/order.entity.ts';
 import type { OrderRepo } from '../../domain/order/order.repo.ts';
+import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 
 export class UpdateOrderStatusUseCase {
-  constructor(private readonly repo: OrderRepo) {}
+  constructor(
+    private readonly repo: OrderRepo,
+    private readonly variants: ProductVariantRepo,
+  ) {}
 
   async execute(id: string, input: UpdateOrderStatusInput): Promise<Order> {
     const current = await this.repo.findById(id);
@@ -21,6 +25,17 @@ export class UpdateOrderStatusUseCase {
 
     const updated = await this.repo.updateStatus(id, input.status);
     if (!updated) throw new NotFoundError('Order', id);
+
+    if (input.status === 'cancelled') {
+      await Promise.all(
+        updated.items.map((item) =>
+          item.productVariantId
+            ? this.variants.increaseStock(item.productVariantId, item.quantity)
+            : Promise.resolve(),
+        ),
+      );
+    }
+
     return updated;
   }
 }

@@ -1,5 +1,6 @@
 import { Type, type GenerateContentConfig } from '@google/genai';
 import { z } from 'zod';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type {
   ReviewClassificationInput,
@@ -73,7 +74,7 @@ export class GeminiReviewClassificationAdapter implements ReviewClassificationPo
         config: CONFIG,
       });
       const text = response.text;
-      if (text === undefined) throw new Error('Empty review classification response');
+      if (text === undefined) throw new ExternalServiceError('Gemini', 'Empty review classification response');
       const raw = JSON.parse(text.trim());
       return ReviewClassificationResultSchema.parse({
         category: raw.category,

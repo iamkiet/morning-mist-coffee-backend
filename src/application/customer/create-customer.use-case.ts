@@ -1,5 +1,4 @@
-import { ConflictError } from '../../lib/errors.ts';
-import { normalizeEmail } from '../../domain/shared/email.ts';
+import { resolveNewAccountEmail } from '../auth/create-account-helpers.ts';
 import type { Customer } from '../../domain/customer/customer.entity.ts';
 import type { CustomerRepo } from '../../domain/customer/customer.repo.ts';
 import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts';
@@ -20,9 +19,9 @@ export class CreateCustomerUseCase {
   ) {}
 
   async execute(input: CreateCustomerByAdminInput): Promise<Customer> {
-    const email = normalizeEmail(input.email);
-    const existing = await this.repo.findByEmail(email);
-    if (existing) throw new ConflictError('Email already registered');
+    const email = await resolveNewAccountEmail(input.email, (e) =>
+      this.repo.findByEmail(e),
+    );
 
     const passwordHash = await this.hasher.hash(input.password);
     return this.repo.create({

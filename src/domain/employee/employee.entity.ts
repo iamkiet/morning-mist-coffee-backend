@@ -3,6 +3,8 @@ import type { SortDirection } from '../shared/pagination.ts';
 export const EMPLOYEE_ROLES = ['staff', 'admin'] as const;
 export type EmployeeRole = (typeof EMPLOYEE_ROLES)[number];
 
+export const EMPLOYEE_ROLE_ADMIN: EmployeeRole = 'admin';
+
 export const EMPLOYEE_STATUSES = ['active', 'inactive', 'banned'] as const;
 export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number];
 

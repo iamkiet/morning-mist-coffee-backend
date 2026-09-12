@@ -39,26 +39,25 @@ export async function applyReviewClassification(
       ? 'pending_review'
       : 'auto_responded';
 
-  const classified = await repo.classify(review.id, {
-    category: result.category,
-    severity: result.severity,
-    sentiment: result.sentiment,
-    topics: result.topics,
-    suggestedResponse: result.suggestedResponse,
-    classificationRaw: result,
-    classifiedAt: new Date(),
-    status,
-  });
-  if (!classified) return review;
+  const reply =
+    status === 'auto_responded' && result.suggestedResponse
+      ? { authorType: 'ai' as const, authorName: 'Morning Mist Coffee', replyText: result.suggestedResponse }
+      : undefined;
 
-  if (status === 'auto_responded' && result.suggestedResponse) {
-    const reply = await repo.createReply(review.id, {
-      authorType: 'ai',
-      authorName: 'Morning Mist Coffee',
-      replyText: result.suggestedResponse,
-    });
-    classified.replies = [...classified.replies, reply];
-  }
+  const classified = await repo.classifyWithReply(
+    review.id,
+    {
+      category: result.category,
+      severity: result.severity,
+      sentiment: result.sentiment,
+      topics: result.topics,
+      suggestedResponse: result.suggestedResponse,
+      classificationRaw: result,
+      classifiedAt: new Date(),
+      status,
+    },
+    reply,
+  );
 
-  return classified;
+  return classified ?? review;
 }

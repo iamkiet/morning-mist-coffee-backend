@@ -1,4 +1,5 @@
 import { and, eq, inArray, ne, type SQL } from 'drizzle-orm';
+import { groupBy } from '../../lib/group-by.ts';
 import type {
   ProductReview,
   ProductReviewReply,
@@ -54,13 +55,8 @@ export function rowToReply(row: ProductReviewReplyRow): ProductReviewReply {
 export function groupRepliesByReview(
   rows: ProductReviewReplyRow[],
 ): Map<string, ProductReviewReply[]> {
-  const repliesByReview = new Map<string, ProductReviewReply[]>();
-  for (const row of rows) {
-    const list = repliesByReview.get(row.reviewId) ?? [];
-    list.push(rowToReply(row));
-    repliesByReview.set(row.reviewId, list);
-  }
-  return repliesByReview;
+  const byReview = groupBy(rows, (row) => row.reviewId);
+  return new Map([...byReview].map(([reviewId, group]) => [reviewId, group.map(rowToReply)]));
 }
 
 export function rowToProductReview(

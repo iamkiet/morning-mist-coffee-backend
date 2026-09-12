@@ -44,6 +44,9 @@ export class RefreshTokenUseCase {
         ? await this.employees.findById(claims.sub).then((e) => e && employeeToAuthAccount(e))
         : await this.customers.findById(claims.sub).then((c) => c && customerToAuthAccount(c));
     if (!account) throw new UnauthorizedError('Account no longer exists');
+    if (account.status !== 'active') {
+      throw new UnauthorizedError('Account is no longer active');
+    }
 
     await this.refreshTokens.revoke(stored.id);
 

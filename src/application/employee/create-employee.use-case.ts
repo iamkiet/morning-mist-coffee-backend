@@ -1,11 +1,11 @@
-import { ConflictError, ForbiddenError } from '../../lib/errors.ts';
-import { normalizeEmail } from '../../domain/shared/email.ts';
+import { ForbiddenError } from '../../lib/errors.ts';
+import { resolveNewAccountEmail } from '../auth/create-account-helpers.ts';
 import type {
   Employee,
   EmployeeDepartment,
   EmployeeRole,
 } from '../../domain/employee/employee.entity.ts';
-import type { AuthRole } from '../../domain/auth/auth-role.ts';
+import { ROLE_ADMIN, ROLE_STAFF, type AuthRole } from '../../domain/auth/auth-role.ts';
 import type { EmployeeRepo } from '../../domain/employee/employee.repo.ts';
 import type { PasswordHasher } from '../../domain/ports/password-hasher.port.ts';
 
@@ -28,13 +28,13 @@ export class CreateEmployeeUseCase {
     input: CreateEmployeeByAdminInput,
     actingRole: AuthRole,
   ): Promise<Employee> {
-    if (actingRole === 'staff' && input.role === 'admin') {
+    if (actingRole === ROLE_STAFF && input.role === ROLE_ADMIN) {
       throw new ForbiddenError('Staff cannot create an admin account');
     }
 
-    const companyEmail = normalizeEmail(input.companyEmail);
-    const existing = await this.repo.findByEmail(companyEmail);
-    if (existing) throw new ConflictError('Email already registered');
+    const companyEmail = await resolveNewAccountEmail(input.companyEmail, (email) =>
+      this.repo.findByEmail(email),
+    );
 
     const passwordHash = await this.hasher.hash(input.password);
     return this.repo.create({

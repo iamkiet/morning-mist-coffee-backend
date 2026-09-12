@@ -1,4 +1,5 @@
 import { and, eq, gte, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
+import { groupBy } from '../../lib/group-by.ts';
 import type { Order, OrderItem } from '../../domain/order/order.entity.ts';
 import type { OrderFilterCriteria } from '../../domain/order/order.repo.ts';
 import { orders, type OrderItemRow, type OrderRow } from '../db/schema.ts';
@@ -62,11 +63,6 @@ export function rowToOrder(row: OrderRow, items: OrderItem[] = []): Order {
 }
 
 export function groupItemsByOrder(rows: OrderItemRow[]): Map<string, OrderItem[]> {
-  const itemsByOrder = new Map<string, OrderItem[]>();
-  for (const item of rows) {
-    const list = itemsByOrder.get(item.orderId) ?? [];
-    list.push(rowToItem(item));
-    itemsByOrder.set(item.orderId, list);
-  }
-  return itemsByOrder;
+  const byOrder = groupBy(rows, (row) => row.orderId);
+  return new Map([...byOrder].map(([orderId, group]) => [orderId, group.map(rowToItem)]));
 }

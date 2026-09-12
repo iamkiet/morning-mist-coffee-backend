@@ -1,4 +1,5 @@
 import { and, asc, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   CreateEmployeeInput,
   Employee,
@@ -87,7 +88,7 @@ export class PostgresEmployeeRepository implements EmployeeRepo {
         role: input.role,
       })
       .returning();
-    if (!row) throw new Error('Failed to create employee');
+    if (!row) throw new ExternalServiceError('Database', 'Failed to create employee');
     return rowToEmployee(row);
   }
 

@@ -1,3 +1,4 @@
+import { ROLE_CUSTOMER } from '../../domain/auth/auth-role.ts';
 import type { Employee } from '../../domain/employee/employee.entity.ts';
 import type { Customer } from '../../domain/customer/customer.entity.ts';
 import type { AuthAccount } from './types.ts';
@@ -21,7 +22,7 @@ export function customerToAuthAccount(customer: Customer): AuthAccount {
     firstName: customer.firstName,
     lastName: customer.lastName,
     email: customer.email,
-    role: 'customer',
+    role: ROLE_CUSTOMER,
     status: customer.status,
     createdAt: customer.createdAt,
     updatedAt: customer.updatedAt,

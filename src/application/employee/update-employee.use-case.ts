@@ -3,7 +3,7 @@ import type {
   Employee,
   UpdateEmployeeInput,
 } from '../../domain/employee/employee.entity.ts';
-import type { AuthRole } from '../../domain/auth/auth-role.ts';
+import { ROLE_ADMIN, ROLE_STAFF, type AuthRole } from '../../domain/auth/auth-role.ts';
 import type { EmployeeRepo } from '../../domain/employee/employee.repo.ts';
 
 export class UpdateEmployeeUseCase {
@@ -13,14 +13,9 @@ export class UpdateEmployeeUseCase {
     id: string,
     input: UpdateEmployeeInput,
     actingRole: AuthRole,
-    actingUserId: string,
   ): Promise<Employee> {
-    if (actingRole === 'staff' && input.role === 'admin') {
+    if (actingRole === ROLE_STAFF && input.role === ROLE_ADMIN) {
       throw new ForbiddenError('Staff cannot grant the admin role');
-    }
-
-    if (actingRole === 'staff' && id !== actingUserId) {
-      throw new ForbiddenError('Staff can only edit their own account');
     }
 
     const updated = await this.repo.update(id, input);

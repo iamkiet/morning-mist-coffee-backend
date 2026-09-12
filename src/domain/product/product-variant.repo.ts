@@ -16,6 +16,7 @@ export interface ProductVariantRepo {
   listByProductId(productId: string): Promise<ProductVariant[]>;
   listByProductIds(productIds: string[]): Promise<Map<string, ProductVariant[]>>;
   findById(id: string): Promise<ProductVariant | null>;
+  findByIds(ids: string[]): Promise<ProductVariant[]>;
   findBySku(sku: string): Promise<ProductVariant | null>;
   create(
     productId: string,

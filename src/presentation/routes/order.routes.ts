@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { env } from '../../config/env.ts';
+import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { OrderController } from '../controllers/order.controller.ts';
 import {
   CreateOrderBody,
@@ -27,7 +28,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   const controller = new OrderController(app.useCases.order);
 
   fastify.get('/', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['orders'],
       querystring: ListOrdersQuery,
@@ -58,7 +59,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/:id', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['orders'],
       params: OrderIdParam,
@@ -79,7 +80,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id/status', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['orders'],
       params: OrderIdParam,

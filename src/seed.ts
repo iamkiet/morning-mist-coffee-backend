@@ -1,5 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { env } from './config/env.ts';
+import { EMPLOYEE_ROLE_ADMIN } from './domain/employee/employee.entity.ts';
+import { ExternalServiceError } from './lib/errors.ts';
 import { buildDb } from './infrastructure/db/client.ts';
 import { BcryptPasswordHasher } from './infrastructure/adapters/bcrypt.password-hasher.ts';
 import {
@@ -32,7 +34,7 @@ async function seedAdminUser() {
     lastName: '',
     companyEmail: ADMIN_EMAIL,
     passwordHash,
-    role: 'admin',
+    role: EMPLOYEE_ROLE_ADMIN,
   });
   logger.info({ email: ADMIN_EMAIL, password }, 'Recreated admin employee with generated password');
 }
@@ -58,7 +60,7 @@ async function seed() {
           : null,
       })
       .returning();
-    if (!row) throw new Error(`Failed to seed category ${category.name}`);
+    if (!row) throw new ExternalServiceError('Database', `Failed to seed category ${category.name}`);
     categoryIdMap.set(category.id, row.id);
   }
 
@@ -69,7 +71,7 @@ async function seed() {
       .insert(productProperties)
       .values({ name: property.name, dataType: property.dataType as PropertyDataType })
       .returning();
-    if (!row) throw new Error(`Failed to seed property ${property.name}`);
+    if (!row) throw new ExternalServiceError('Database', `Failed to seed property ${property.name}`);
     propertyIdMap.set(property.id, row.id);
   }
 
@@ -85,7 +87,7 @@ async function seed() {
         imageUrl: product.image,
       })
       .returning();
-    if (!row) throw new Error(`Failed to seed product ${product.name}`);
+    if (!row) throw new ExternalServiceError('Database', `Failed to seed product ${product.name}`);
     productIdMap.set(product.id, row.id);
   }
 
@@ -108,7 +110,7 @@ async function seed() {
         expiresAt: variant.expiresAt,
       })
       .returning();
-    if (!row) throw new Error(`Failed to seed variant ${variant.sku}`);
+    if (!row) throw new ExternalServiceError('Database', `Failed to seed variant ${variant.sku}`);
     variantIdMap.set(variant.id, row.id);
   }
 

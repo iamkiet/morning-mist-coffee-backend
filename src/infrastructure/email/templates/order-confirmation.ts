@@ -1,9 +1,6 @@
 import { env } from '../../../config/env.ts';
+import { formatCents } from '../../../domain/shared/currency.ts';
 import type { OrderConfirmationEmail } from '../../../domain/ports/email-sender.port.ts';
-
-function formatCents(cents: number): string {
-  return `${cents.toLocaleString('vi-VN')} ₫`;
-}
 
 export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
   subject: string;

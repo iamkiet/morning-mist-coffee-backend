@@ -153,7 +153,7 @@ Phòng thủ prompt injection ở bề mặt LLM: mọi tin nhắn khách (role 
 | A03 | Software Supply Chain | `npm audit fix`, version pin cứng trong `package.json`, GitHub Action `audit.yml` + Dependabot | ✅ |
 | A04 | Cryptographic Failures | `jose` ký/verify JWT, `bcryptjs` băm mật khẩu, không lưu plaintext | ✅ |
 | A05 | Injection | Drizzle ORM tham số hoá (tagged template) cho mọi SQL, không nối chuỗi thủ công | ✅ |
-| A06 | Insecure Design (CSRF) | Cookie `csrf_token` + middleware `csrfProtection` (double-submit) | ✅ |
+| A06 | Insecure Design | CSRF protection: cookie `csrf_token` + middleware `csrfProtection` (double-submit) — 1 ví dụ cụ thể, không phải toàn bộ phạm vi A06 | ✅ |
 | A07 | Authentication Failures | Zod ép password phức tạp; `failed_login_attempts`/`locked_until` tự khoá 15 phút sau 5 lần sai — **chưa có MFA** | ✅ (chưa MFA) |
 | A08 | Software/Data Integrity | `package-lock.json` + `npm ci` trong Dockerfile, build luôn đúng version đã audit | ✅ |
 | A09 | Logging & Alerting | `pino` log có cấu trúc; Security Agent gửi email cảnh báo qua `resend` khi phát hiện bất thường | ✅ |
@@ -325,3 +325,20 @@ Global rate limit: **100 requests/minute** (mọi route). Login/register/refresh
 - Throw `AppError` subclasses from `src/lib/errors.ts` — never plain `Error` for client-facing errors
 - Import validated `env` from `src/config/env.ts` — never read `process.env` directly
 - `domain/` must be deterministic — no `Date.now()`, `Math.random()`, `crypto.randomUUID()`; pass time/ids from caller
+
+## Code quality — tự đánh giá đối chiếu CLAUDE.md
+
+Audit định kỳ (đọc code trực tiếp + grep, không dựa suy đoán) đối chiếu source thực tế với các rule tự đặt ra trong `CLAUDE.md`/`Code style`.
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|:---:|---|
+| `check:arch` / `lint` / `typecheck` | ✅ Đạt | Cả 3 chạy sạch, không lỗi/warning |
+| Không comment trong code | ✅ Đạt | Chỉ 1 ngoại lệ có chủ đích ở `customer.routes.ts` (giải thích lý do 1 route public dùng chung cho cả self-registration và admin tạo hộ) |
+| `process.env` chỉ đọc qua `env.ts` | ✅ Đạt | Chỉ `env.ts` (validator) và `timezone.ts` (set `TZ` side-effect trước mọi import khác) đụng tới `process.env` trực tiếp |
+| Role check (`requireRole`) đơn giản | ✅ Đạt | 6 dòng, `allowed.includes(req.user.role)`, không nested logic |
+| Không fallback ngầm | ✅ Đạt | CSRF/role sai → `throw` thẳng, không có nhánh "log rồi vẫn cho qua" |
+| Magic string cho role (`'admin'/'staff'/'customer'`) | ⚠️ Có, nhưng an toàn | Lặp lại ~46 chỗ ở route file thay vì 1 hằng số dùng chung, nhưng nhờ `AuthRole` là TypeScript union type nên gõ sai bị `tsc` chặn ngay — không phải magic string rủi ro runtime thật |
+| `throw new Error(...)` thay vì `AppError` | ❌ Vi phạm rule | 21 chỗ ở repository/adapter/seed script (insert fail, TTL sai định dạng...) — đều là case "không nên xảy ra", nhưng đúng rule phải là `AppError` subclass |
+| File ≤ ~150 dòng | ❌ Vi phạm rule (không enforce) | ~7 file vượt (150→364: `schema.ts`, `build-use-cases.ts`, `product-variant.repository.ts`, `product.repository.ts`, `product.controller.ts`, `product-review.repository.ts`, `customer.repository.ts`, `product.routes.ts`, `employee.repository.ts`, `security-agent.service.ts`, `app.ts`). Không có lint/CI nào chặn con số 150 — chỉ mang tính khuyến nghị. Các file vượt đều do phạm vi rộng (product có variant/category/property/stock), không phải code rối |
+
+Không phát hiện god-file, abstraction thừa, hay leak giữa các layer kiến trúc.

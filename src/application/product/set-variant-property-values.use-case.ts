@@ -21,9 +21,12 @@ export class SetVariantPropertyValuesUseCase {
   ): Promise<void> {
     const variant = await this.variants.findById(variantId);
     if (!variant) throw new NotFoundError('ProductVariant', variantId);
-    for (const { propertyId } of values) {
-      const property = await this.properties.findById(propertyId);
-      if (!property) throw new NotFoundError('ProductProperty', propertyId);
+    if (values.length > 0) {
+      const propertyIds = values.map((v) => v.propertyId);
+      const found = await this.properties.findByIds(propertyIds);
+      const foundIds = new Set(found.map((p) => p.id));
+      const missingId = propertyIds.find((id) => !foundIds.has(id));
+      if (missingId) throw new NotFoundError('ProductProperty', missingId);
     }
 
     await this.variants.setPropertyValues(variantId, values);

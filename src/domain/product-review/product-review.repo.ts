@@ -24,9 +24,10 @@ export interface ProductReviewRepo {
   countPublic(productId: string): Promise<number>;
   findById(id: string): Promise<ProductReview | null>;
   create(input: CreateProductReviewInput): Promise<ProductReview>;
-  classify(
+  classifyWithReply(
     id: string,
     input: ClassifyProductReviewInput,
+    reply?: CreateProductReviewReplyInput,
   ): Promise<ProductReview | null>;
   updateStatus(id: string, status: ReviewStatus): Promise<ProductReview | null>;
   createReply(

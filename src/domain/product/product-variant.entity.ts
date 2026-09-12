@@ -47,3 +47,7 @@ export interface ProductWithVariants extends Product {
 export interface StockChange {
   quantity: number;
 }
+
+export function isValidStockQuantity(quantity: number): boolean {
+  return quantity > 0;
+}

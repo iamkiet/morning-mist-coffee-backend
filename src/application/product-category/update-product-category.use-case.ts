@@ -1,4 +1,5 @@
 import { ConflictError, NotFoundError } from '../../lib/errors.ts';
+import { resolveUniqueName } from '../../lib/unique-name.ts';
 import type {
   ProductCategory,
   UpdateProductCategoryInput,
@@ -16,11 +17,12 @@ export class UpdateProductCategoryUseCase {
     if (!existing) throw new NotFoundError('ProductCategory', id);
 
     if (input.name !== undefined) {
-      const name = input.name.trim();
-      const nameTaken = await this.repo.findByName(name);
-      if (nameTaken && nameTaken.id !== id) {
-        throw new ConflictError(`Category '${name}' already exists`);
-      }
+      const name = await resolveUniqueName(
+        input.name,
+        (n) => this.repo.findByName(n),
+        'Category',
+        id,
+      );
       input = { ...input, name };
     }
 
@@ -30,6 +32,13 @@ export class UpdateProductCategoryUseCase {
       }
       const parent = await this.repo.findById(input.parentId);
       if (!parent) throw new NotFoundError('ProductCategory', input.parentId);
+      if (parent.parentId !== null) {
+        throw new ConflictError('Category only supports one level — cannot use a child category as parent');
+      }
+      const hasChildren = await this.repo.hasChildren(id);
+      if (hasChildren) {
+        throw new ConflictError('Category has children — cannot assign it a parent');
+      }
     }
 
     const updated = await this.repo.update(id, input);

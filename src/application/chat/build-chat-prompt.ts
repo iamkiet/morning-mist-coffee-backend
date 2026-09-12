@@ -1,4 +1,5 @@
 import { loadPromptTemplate } from '../../lib/load-template.ts';
+import { formatCents } from '../../domain/shared/currency.ts';
 import { toNaturalCategoryLabel } from '../../domain/product-category/format-category-label.ts';
 import chatSystemPrompt from '../../prompts/configs/chat-system.json' with { type: 'json' };
 
@@ -22,7 +23,7 @@ export function wrapUserMessage(text: string): string {
 }
 
 function formatVariant(v: ChatCatalogueVariant): string {
-  const price = `${v.priceCents.toLocaleString('vi-VN')} ₫`;
+  const price = formatCents(v.priceCents);
   const stock = v.stock > 0 ? `còn ${v.stock}` : 'hết hàng';
   const properties = v.propertyValues.map((p) => `${p.propertyName}: ${p.value}`).join(', ');
   return `    - ${price} — ${stock}${properties ? ` — ${properties}` : ''}`;

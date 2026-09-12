@@ -1,4 +1,5 @@
 import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   CreateOrderInput,
   ListOrdersFilter,
@@ -80,40 +81,42 @@ export class PostgresOrderRepository implements OrderRepo {
   }
 
   async create(input: CreateOrderInput): Promise<Order> {
-    const [row] = await this.db
-      .insert(orders)
-      .values({
-        customerEmail: input.customerEmail,
-        totalCents: input.totalCents,
-        currency: input.currency,
-        cashReceivedCents: input.cashReceivedCents ?? null,
-        changeCents: input.changeCents ?? null,
-        shippingFullName: input.shippingFullName,
-        shippingAddress: input.shippingAddress,
-        shippingPhone: input.shippingPhone,
-      })
-      .returning();
-    if (!row) throw new Error('Failed to create order');
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(orders)
+        .values({
+          customerEmail: input.customerEmail,
+          totalCents: input.totalCents,
+          currency: input.currency,
+          cashReceivedCents: input.cashReceivedCents ?? null,
+          changeCents: input.changeCents ?? null,
+          shippingFullName: input.shippingFullName,
+          shippingAddress: input.shippingAddress,
+          shippingPhone: input.shippingPhone,
+        })
+        .returning();
+      if (!row) throw new ExternalServiceError('Database', 'Failed to create order');
 
-    const items =
-      input.items.length > 0
-        ? await this.db
-            .insert(orderItems)
-            .values(
-              input.items.map((item) => ({
-                orderId: row.id,
-                productVariantId: item.productVariantId ?? null,
-                productName: item.productName,
-                variantSku: item.variantSku ?? null,
-                variantPropertyValues: item.variantPropertyValues ?? [],
-                priceCents: item.priceCents,
-                quantity: item.quantity,
-              })),
-            )
-            .returning()
-        : [];
+      const items =
+        input.items.length > 0
+          ? await tx
+              .insert(orderItems)
+              .values(
+                input.items.map((item) => ({
+                  orderId: row.id,
+                  productVariantId: item.productVariantId ?? null,
+                  productName: item.productName,
+                  variantSku: item.variantSku ?? null,
+                  variantPropertyValues: item.variantPropertyValues ?? [],
+                  priceCents: item.priceCents,
+                  quantity: item.quantity,
+                })),
+              )
+              .returning()
+          : [];
 
-    return rowToOrder(row, items.map(rowToItem));
+      return rowToOrder(row, items.map(rowToItem));
+    });
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<Order | null> {

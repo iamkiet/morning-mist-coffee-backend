@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { env } from '../../config/env.ts';
+import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { CustomerController } from '../controllers/customer.controller.ts';
 import { checkCustomerRegistrationKey } from '../middlewares/customer-registration-key.ts';
 import {
@@ -67,7 +68,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
 
   // Admin/staff management of customer accounts.
   fastify.get('/', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['customers'],
       querystring: ListCustomersQuery,
@@ -78,7 +79,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['customers'],
       params: CustomerIdParam,
@@ -90,7 +91,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/:id/password', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['customers'],
       params: CustomerIdParam,
@@ -102,7 +103,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.delete('/:id', {
-    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
+    onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['customers'],
       params: CustomerIdParam,
