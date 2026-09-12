@@ -1,12 +1,12 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { ForbiddenError, UnauthorizedError } from '../../lib/errors.ts';
-import type { UserRole } from '../../domain/user/user.entity.ts';
+import type { AuthRole } from '../../domain/auth/auth-role.ts';
 import { ACCESS_COOKIE } from './auth-cookies.ts';
 
 export interface AuthUser {
   id: string;
   email: string;
-  role: UserRole;
+  role: AuthRole;
 }
 
 declare module 'fastify' {
@@ -30,11 +30,12 @@ export async function authenticate(
   req.user = { id: claims.sub, email: claims.email, role: claims.role };
 }
 
-export function requireRole(role: UserRole) {
+export function requireRole(role: AuthRole | AuthRole[]) {
+  const allowed = Array.isArray(role) ? role : [role];
   return async function check(req: FastifyRequest): Promise<void> {
     if (!req.user) throw new UnauthorizedError();
-    if (req.user.role !== role) {
-      throw new ForbiddenError(`Role '${role}' required`);
+    if (!allowed.includes(req.user.role)) {
+      throw new ForbiddenError(`Role '${allowed.join("' or '")}' required`);
     }
   };
 }

@@ -24,12 +24,13 @@ import { authRoutes } from './presentation/routes/auth.routes.ts';
 import { chatRoutes } from './presentation/routes/chat.routes.ts';
 import { healthRoutes } from './presentation/routes/health.routes.ts';
 import { orderRoutes } from './presentation/routes/order.routes.ts';
-import { orderReviewRoutes } from './presentation/routes/order-review.routes.ts';
+import { productReviewRoutes } from './presentation/routes/product-review.routes.ts';
 import { productRoutes } from './presentation/routes/product.routes.ts';
 import { productCategoryRoutes } from './presentation/routes/product-category.routes.ts';
 import { productPropertyRoutes } from './presentation/routes/product-property.routes.ts';
 import { searchRoutes } from './presentation/routes/search.routes.ts';
-import { userRoutes } from './presentation/routes/user.routes.ts';
+import { customerRoutes } from './presentation/routes/customer.routes.ts';
+import { employeeRoutes } from './presentation/routes/employee.routes.ts';
 
 export async function buildApp() {
   const app = Fastify({
@@ -112,12 +113,13 @@ export async function buildApp() {
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(chatRoutes, { prefix: '/api/v1/chat' });
   await app.register(orderRoutes, { prefix: '/api/v1/orders' });
-  await app.register(orderReviewRoutes, { prefix: '/api/v1/order-reviews' });
+  await app.register(productReviewRoutes, { prefix: '/api/v1/product-reviews' });
   await app.register(productCategoryRoutes, { prefix: '/api/v1/product-categories' });
   await app.register(productPropertyRoutes, { prefix: '/api/v1/product-properties' });
   await app.register(productRoutes, { prefix: '/api/v1/products' });
   await app.register(searchRoutes, { prefix: '/api/v1/search' });
-  await app.register(userRoutes, { prefix: '/api/v1/users' });
+  await app.register(employeeRoutes, { prefix: '/api/v1/employees' });
+  await app.register(customerRoutes, { prefix: '/api/v1/customers' });
 
   app.setErrorHandler((error: FastifyError, req, reply) => {
     if (hasZodFastifySchemaValidationErrors(error)) {

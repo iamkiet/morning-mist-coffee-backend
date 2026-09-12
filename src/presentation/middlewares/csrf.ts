@@ -7,8 +7,8 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 export const CSRF_HEADER = 'x-csrf-token';
 
 const CSRF_EXEMPT_ROUTES = new Set([
-  'POST /api/v1/auth/register',
-  'POST /api/v1/auth/login',
+  'POST /api/v1/auth/employee-login',
+  'POST /api/v1/auth/customer-login',
   'POST /api/v1/auth/refresh',
   'POST /api/v1/auth/logout',
 ]);

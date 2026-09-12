@@ -53,13 +53,18 @@ routes → controllers → use cases → repos/adapters → DB / external servic
 - **Logout** — revoke refresh token; xóa cookies
 - **Me** — lấy profile user hiện tại (Bearer header hoặc access cookie)
 
-Access token chấp nhận qua `Authorization: Bearer <token>` hoặc HttpOnly cookie. Role: `user` | `admin`.
+Access token là HttpOnly cookie (không dùng `Authorization: Bearer`). Role: `admin` | `staff` | `customer`, lấy từ 1 trong 2 bảng riêng biệt `employees` (`admin`/`staff`) và `customers`.
 
-### Users (admin only)
+### Customers
 
-- List / filter / paginate users
-- Update profile (role, status)
-- Reset password (`PATCH /api/v1/users/:id/password`)
+- `POST /api/v1/customers` — public, tạo tài khoản customer (khách tự đăng ký hoặc admin/staff tạo hộ từ mist-ops, cùng 1 endpoint)
+- `GET/PATCH /api/v1/customers/me` — customer tự xem/sửa hồ sơ của chính mình (không có `status`/`loyaltyPoints`)
+- `GET/PATCH/PATCH .../password/DELETE /api/v1/customers/*` (admin/staff) — list, sửa `status`/`loyaltyPoints`, đổi mật khẩu, xoá
+
+### Employees (admin/staff only)
+
+- List / create / update / xoá nhân viên (`PATCH /api/v1/employees/:id/password` để đổi mật khẩu)
+- Staff không được set role `admin`, xoá tài khoản `admin`, hay tạo tài khoản `admin` mới
 
 ### Product Types
 
@@ -174,7 +179,6 @@ App không boot nếu thiếu hoặc sai env. Xem `.env.example` đầy đủ.
 | `AUTH_JWT_SECRET` | HMAC key cho JWT (min 32 chars) |
 | `AUTH_ACCESS_TOKEN_TTL` | e.g. `15m` |
 | `AUTH_REFRESH_TOKEN_TTL` | e.g. `30d` |
-| `USER_REGISTRATION_KEY` | Gate cho register (header `X-User-Registration-Key`, min 32 chars) |
 | `CORS_ORIGINS` | Comma-separated origins (phải có frontend origin) |
 | `COOKIE_SECURE` / `COOKIE_SAME_SITE` | Cookie settings (`none` + secure=true cho cross-domain prod) |
 | `RESEND_API_KEY` / `RESEND_FROM` | Email order confirmation |
@@ -194,7 +198,6 @@ App không boot nếu thiếu hoặc sai env. Xem `.env.example` đầy đủ.
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  # AUTH_JWT_SECRET
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"  # USER_REGISTRATION_KEY
 ```
 
 ## Scripts
@@ -222,11 +225,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"  
 | Method | Path | Auth |
 |--------|------|------|
 | GET | `/health` | — |
-| POST | `/api/v1/auth/register` | registration key |
-| POST | `/api/v1/auth/login` | — |
+| POST | `/api/v1/customers` | — (public: self-registration or admin/staff-created) |
+| POST | `/api/v1/auth/employee-login`, `/customer-login` | — |
 | POST | `/api/v1/auth/refresh`, `/logout` | refresh token |
 | GET | `/api/v1/auth/me` | user |
-| GET/PATCH | `/api/v1/users/*` | admin |
+| GET/PATCH | `/api/v1/customers/me` | customer |
+| GET/PATCH/DELETE | `/api/v1/customers/*` | admin/staff |
+| GET/POST/PATCH/DELETE | `/api/v1/employees/*` | admin/staff |
 | GET/POST | `/api/v1/product-types/*` | user |
 | GET | `/api/v1/products`, `/api/v1/products/:id`, `/api/v1/products/slug/:slug` | — |
 | POST/PATCH/DELETE | `/api/v1/products/*` | admin |

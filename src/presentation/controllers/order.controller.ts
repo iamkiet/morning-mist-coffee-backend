@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
+import { UnauthorizedError } from '../../lib/errors.ts';
 import type { CreateOrderUseCase } from '../../application/order/create-order.use-case.ts';
 import type { GetOrderByIdUseCase } from '../../application/order/get-order-by-id.use-case.ts';
 import type { ListOrdersUseCase } from '../../application/order/list-orders.use-case.ts';
@@ -56,8 +57,9 @@ export class OrderController {
     req: FastifyRequest<{ Body: z.infer<typeof CreateOrderBody> }>,
     reply: FastifyReply,
   ) => {
+    if (!req.user) throw new UnauthorizedError();
     const order = await this.uc.create.execute({
-      customerEmail: req.body.customerEmail,
+      customerEmail: req.user.email,
       totalCents: req.body.totalCents,
       currency: req.body.currency,
       cashReceivedCents: req.body.cashReceivedCents,

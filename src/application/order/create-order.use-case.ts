@@ -7,7 +7,7 @@ import type { OrderRepo } from '../../domain/order/order.repo.ts';
 import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
 import type { EmailSender } from '../../domain/ports/email-sender.port.ts';
-import { normalizeEmail } from '../../domain/user/user.entity.ts';
+import { normalizeEmail } from '../../domain/shared/email.ts';
 
 export interface Logger {
   warn(obj: Record<string, unknown>, msg: string): void;

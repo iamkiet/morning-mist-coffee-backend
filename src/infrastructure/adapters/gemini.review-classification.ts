@@ -10,7 +10,7 @@ import {
   REVIEW_CATEGORIES,
   REVIEW_SENTIMENTS,
   REVIEW_SEVERITIES,
-} from '../../domain/order-review/order-review.entity.ts';
+} from '../../domain/product-review/product-review.entity.ts';
 import { loadPromptTemplate } from '../../lib/load-template.ts';
 import reviewClassificationPrompt from '../../prompts/configs/review-classification.json' with { type: 'json' };
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';

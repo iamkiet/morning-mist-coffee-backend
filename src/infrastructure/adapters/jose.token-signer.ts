@@ -6,16 +6,16 @@ import type {
   RefreshTokenClaims,
   TokenSigner,
 } from '../../domain/ports/token-signer.port.ts';
-import type { UserRole } from '../../domain/user/user.entity.ts';
+import { AUTH_ROLES, type AuthRole } from '../../domain/auth/auth-role.ts';
 
 const ISSUER = 'backend';
 const ACCESS_TYPE = 'access';
 const REFRESH_TYPE = 'refresh';
-const ROLES: readonly UserRole[] = ['user', 'admin'];
 
-function isUserRole(value: unknown): value is UserRole {
+function isAuthRole(value: unknown): value is AuthRole {
   return (
-    typeof value === 'string' && (ROLES as readonly string[]).includes(value)
+    typeof value === 'string' &&
+    (AUTH_ROLES as readonly string[]).includes(value)
   );
 }
 
@@ -69,7 +69,7 @@ export class JoseTokenSigner implements TokenSigner {
         payload.type !== ACCESS_TYPE ||
         typeof payload.sub !== 'string' ||
         typeof payload.email !== 'string' ||
-        !isUserRole(payload.role)
+        !isAuthRole(payload.role)
       ) {
         throw new UnauthorizedError('Invalid token payload');
       }

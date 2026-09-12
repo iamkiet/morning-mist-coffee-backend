@@ -1,9 +1,9 @@
-import type { UserRole } from '../user/user.entity.ts';
+import type { AuthRole } from '../auth/auth-role.ts';
 
 export interface AccessTokenClaims {
   sub: string;
   email: string;
-  role: UserRole;
+  role: AuthRole;
 }
 
 export interface RefreshTokenClaims {

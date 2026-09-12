@@ -3,7 +3,7 @@ import type {
   ReviewSentiment,
   ReviewSeverity,
   ReviewSource,
-} from '../order-review/order-review.entity.ts';
+} from '../product-review/product-review.entity.ts';
 
 export interface ReviewClassificationInput {
   rating: number | null;

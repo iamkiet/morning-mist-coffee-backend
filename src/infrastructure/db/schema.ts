@@ -22,23 +22,31 @@ import {
   REVIEW_SEVERITIES,
   REVIEW_SOURCES,
   REVIEW_STATUSES,
-} from '../../domain/order-review/order-review.entity.ts';
+} from '../../domain/product-review/product-review.entity.ts';
 import { CURRENCIES } from '../../domain/shared/currency.ts';
-import { USER_ROLES, USER_STATUSES } from '../../domain/user/user.entity.ts';
+import {
+  EMPLOYEE_ROLES,
+  EMPLOYEE_STATUSES,
+} from '../../domain/employee/employee.entity.ts';
+import { CUSTOMER_STATUSES } from '../../domain/customer/customer.entity.ts';
+import { ACCOUNT_TYPES } from '../../domain/auth/auth-role.ts';
 
-export const userRole = pgEnum('user_role', USER_ROLES);
-export const userStatus = pgEnum('user_status', USER_STATUSES);
+export const employeeRole = pgEnum('employee_role', EMPLOYEE_ROLES);
+export const employeeStatus = pgEnum('employee_status', EMPLOYEE_STATUSES);
+export const customerStatus = pgEnum('customer_status', CUSTOMER_STATUSES);
+export const authAccountType = pgEnum('auth_account_type', ACCOUNT_TYPES);
 
-export const users = pgTable(
-  'users',
+export const employees = pgTable(
+  'employees',
   {
     id: uuid().primaryKey().defaultRandom(),
     firstName: text().notNull(),
     lastName: text().notNull(),
-    email: text().notNull(),
+    companyEmail: text().notNull(),
+    department: text(),
     passwordHash: text(),
-    role: userRole().notNull().default('user'),
-    status: userStatus().notNull().default('active'),
+    role: employeeRole().notNull().default('staff'),
+    status: employeeStatus().notNull().default('active'),
     failedLoginAttempts: integer().notNull().default(0),
     lockedUntil: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -47,16 +55,38 @@ export const users = pgTable(
       .defaultNow()
       .$onUpdate(() => sql`now()`),
   },
-  (t) => [uniqueIndex('users_email_lower_idx').on(sql`lower(${t.email})`)],
+  (t) => [uniqueIndex('employees_company_email_lower_idx').on(sql`lower(${t.companyEmail})`)],
+);
+
+export const customers = pgTable(
+  'customers',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firstName: text().notNull(),
+    lastName: text().notNull(),
+    email: text().notNull(),
+    phone: text(),
+    address: text(),
+    loyaltyPoints: integer().notNull().default(0),
+    passwordHash: text(),
+    status: customerStatus().notNull().default('active'),
+    failedLoginAttempts: integer().notNull().default(0),
+    lockedUntil: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => sql`now()`),
+  },
+  (t) => [uniqueIndex('customers_email_lower_idx').on(sql`lower(${t.email})`)],
 );
 
 export const authTokens = pgTable(
   'auth_tokens',
   {
     id: uuid().primaryKey(),
-    userId: uuid()
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    accountType: authAccountType().notNull(),
+    userId: uuid().notNull(),
     expiresAt: timestamp({ withTimezone: true }).notNull(),
     revokedAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -242,30 +272,32 @@ export const orderItems = pgTable(
   (t) => [index('order_items_order_id_idx').on(t.orderId)],
 );
 
-export const orderReviewSource = pgEnum('order_review_source', REVIEW_SOURCES);
-export const orderReviewCategory = pgEnum('order_review_category', REVIEW_CATEGORIES);
-export const orderReviewSeverity = pgEnum('order_review_severity', REVIEW_SEVERITIES);
-export const orderReviewSentiment = pgEnum('order_review_sentiment', REVIEW_SENTIMENTS);
-export const orderReviewStatus = pgEnum('order_review_status', REVIEW_STATUSES);
+export const productReviewSource = pgEnum('product_review_source', REVIEW_SOURCES);
+export const productReviewCategory = pgEnum('product_review_category', REVIEW_CATEGORIES);
+export const productReviewSeverity = pgEnum('product_review_severity', REVIEW_SEVERITIES);
+export const productReviewSentiment = pgEnum('product_review_sentiment', REVIEW_SENTIMENTS);
+export const productReviewStatus = pgEnum('product_review_status', REVIEW_STATUSES);
 
-export const orderReviews = pgTable(
-  'order_reviews',
+export const productReviews = pgTable(
+  'product_reviews',
   {
     id: uuid().primaryKey().defaultRandom(),
-    productId: uuid().references(() => products.id, { onDelete: 'set null' }),
-    orderId: uuid().references(() => orders.id, { onDelete: 'set null' }),
-    customerEmail: text(),
+    productId: uuid()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    customerId: uuid().references(() => customers.id, { onDelete: 'set null' }),
+    customerEmail: text().notNull(),
     rating: integer(),
     commentText: text().notNull(),
-    source: orderReviewSource().notNull().default('app'),
-    category: orderReviewCategory(),
-    severity: orderReviewSeverity(),
-    sentiment: orderReviewSentiment(),
+    source: productReviewSource().notNull().default('app'),
+    category: productReviewCategory(),
+    severity: productReviewSeverity(),
+    sentiment: productReviewSentiment(),
     topics: jsonb().$type<string[]>(),
     suggestedResponse: text(),
     classificationRaw: jsonb(),
     classifiedAt: timestamp({ withTimezone: true }),
-    status: orderReviewStatus().notNull().default('pending_classification'),
+    status: productReviewStatus().notNull().default('pending_classification'),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -273,43 +305,46 @@ export const orderReviews = pgTable(
       .$onUpdate(() => sql`now()`),
   },
   (t) => [
-    index('order_reviews_product_id_idx').on(t.productId),
-    index('order_reviews_status_created_at_idx').on(t.status, t.createdAt.desc()),
-    index('order_reviews_severity_idx').on(t.severity),
-    check('order_reviews_rating_range', sql`${t.rating} BETWEEN 1 AND 5`),
+    index('product_reviews_product_id_idx').on(t.productId),
+    index('product_reviews_status_created_at_idx').on(t.status, t.createdAt.desc()),
+    index('product_reviews_severity_idx').on(t.severity),
+    check('product_reviews_rating_range', sql`${t.rating} BETWEEN 1 AND 5`),
   ],
 );
 
-export const orderReviewReplyAuthorType = pgEnum(
-  'order_review_reply_author_type',
+export const productReviewReplyAuthorType = pgEnum(
+  'product_review_reply_author_type',
   REVIEW_REPLY_AUTHOR_TYPES,
 );
 
-export const orderReviewReplies = pgTable(
-  'order_review_replies',
+export const productReviewReplies = pgTable(
+  'product_review_replies',
   {
     id: uuid().primaryKey().defaultRandom(),
     reviewId: uuid()
       .notNull()
-      .references(() => orderReviews.id, { onDelete: 'cascade' }),
-    authorType: orderReviewReplyAuthorType().notNull(),
+      .references(() => productReviews.id, { onDelete: 'cascade' }),
+    authorType: productReviewReplyAuthorType().notNull(),
     authorName: text(),
+    customerId: uuid().references(() => customers.id, { onDelete: 'set null' }),
     replyText: text().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('order_review_replies_review_id_idx').on(t.reviewId)],
+  (t) => [index('product_review_replies_review_id_idx').on(t.reviewId)],
 );
 
 export type OrderRow = typeof orders.$inferSelect;
 export type NewOrderRow = typeof orders.$inferInsert;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type NewOrderItemRow = typeof orderItems.$inferInsert;
-export type OrderReviewRow = typeof orderReviews.$inferSelect;
-export type NewOrderReviewRow = typeof orderReviews.$inferInsert;
-export type OrderReviewReplyRow = typeof orderReviewReplies.$inferSelect;
-export type NewOrderReviewReplyRow = typeof orderReviewReplies.$inferInsert;
-export type UserRow = typeof users.$inferSelect;
-export type NewUserRow = typeof users.$inferInsert;
+export type ProductReviewRow = typeof productReviews.$inferSelect;
+export type NewProductReviewRow = typeof productReviews.$inferInsert;
+export type ProductReviewReplyRow = typeof productReviewReplies.$inferSelect;
+export type NewProductReviewReplyRow = typeof productReviewReplies.$inferInsert;
+export type EmployeeRow = typeof employees.$inferSelect;
+export type NewEmployeeRow = typeof employees.$inferInsert;
+export type CustomerRow = typeof customers.$inferSelect;
+export type NewCustomerRow = typeof customers.$inferInsert;
 export type AuthTokenRow = typeof authTokens.$inferSelect;
 export type NewAuthTokenRow = typeof authTokens.$inferInsert;
 export type ProductRow = typeof products.$inferSelect;

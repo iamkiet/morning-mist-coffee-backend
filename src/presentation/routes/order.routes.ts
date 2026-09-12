@@ -26,7 +26,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   const controller = new OrderController(app.useCases.order);
 
   fastify.get('/', {
-    onRequest: [app.authenticate, app.requireRole('admin')],
+    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
     schema: {
       tags: ['orders'],
       querystring: ListOrdersQuery,
@@ -46,7 +46,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/:id', {
-    onRequest: [app.authenticate, app.requireRole('admin')],
+    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
     schema: {
       tags: ['orders'],
       params: OrderIdParam,
@@ -56,16 +56,18 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/', {
+    onRequest: [app.authenticate, app.requireRole('customer')],
     schema: {
       tags: ['orders'],
       body: CreateOrderBody,
       response: { 201: OrderSchema },
+      security: [{ bearerAuth: [] }],
     },
     handler: controller.create,
   });
 
   fastify.patch('/:id/status', {
-    onRequest: [app.authenticate, app.requireRole('admin')],
+    onRequest: [app.authenticate, app.requireRole(['admin', 'staff'])],
     schema: {
       tags: ['orders'],
       params: OrderIdParam,

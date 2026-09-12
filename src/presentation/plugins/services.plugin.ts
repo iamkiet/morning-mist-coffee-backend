@@ -16,13 +16,14 @@ import { GeminiTranscriptionAdapter } from '../../infrastructure/adapters/gemini
 import { JoseTokenSigner } from '../../infrastructure/adapters/jose.token-signer.ts';
 import { ResendEmailSender } from '../../infrastructure/adapters/resend.email-sender.ts';
 import { PostgresOrderRepository } from '../../infrastructure/repositories/order.repository.ts';
-import { PostgresOrderReviewRepository } from '../../infrastructure/repositories/order-review.repository.ts';
+import { PostgresProductReviewRepository } from '../../infrastructure/repositories/product-review.repository.ts';
 import { PostgresProductVariantRepository } from '../../infrastructure/repositories/product-variant.repository.ts';
 import { PostgresProductCategoryRepository } from '../../infrastructure/repositories/product-category.repository.ts';
 import { PostgresProductPropertyRepository } from '../../infrastructure/repositories/product-property.repository.ts';
 import { PostgresProductRepository } from '../../infrastructure/repositories/product.repository.ts';
 import { PostgresRefreshTokenRepository } from '../../infrastructure/repositories/refresh-token.repository.ts';
-import { PostgresUserRepository } from '../../infrastructure/repositories/user.repository.ts';
+import { PostgresEmployeeRepository } from '../../infrastructure/repositories/employee.repository.ts';
+import { PostgresCustomerRepository } from '../../infrastructure/repositories/customer.repository.ts';
 import { InMemoryIpBlockList } from '../../infrastructure/security/in-memory-ip-block-list.ts';
 import { InMemorySecurityEventStore } from '../../infrastructure/security/in-memory-security-event-store.ts';
 import { buildUseCases, type AppUseCases } from './build-use-cases.ts';
@@ -67,8 +68,9 @@ export const servicesPlugin = fp(
 
     const useCases = buildUseCases({
       orderRepo: new PostgresOrderRepository(app.db),
-      orderReviewRepo: new PostgresOrderReviewRepository(app.db),
-      userRepo: new PostgresUserRepository(app.db),
+      productReviewRepo: new PostgresProductReviewRepository(app.db),
+      employeeRepo: new PostgresEmployeeRepository(app.db),
+      customerRepo: new PostgresCustomerRepository(app.db),
       refreshTokenRepo: new PostgresRefreshTokenRepository(app.db),
       productRepo: new PostgresProductRepository(app.db),
       productVariantRepo: new PostgresProductVariantRepository(app.db),

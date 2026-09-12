@@ -1,12 +1,14 @@
 import fp from 'fastify-plugin';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import type { UserRole } from '../../domain/user/user.entity.ts';
+import type { AuthRole } from '../../domain/auth/auth-role.ts';
 import { authenticate, requireRole } from '../middlewares/auth.ts';
 
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    requireRole: (role: UserRole) => (req: FastifyRequest) => Promise<void>;
+    requireRole: (
+      role: AuthRole | AuthRole[],
+    ) => (req: FastifyRequest) => Promise<void>;
   }
 }
 

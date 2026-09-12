@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { USER_ROLES, USER_STATUSES } from '../../domain/user/user.entity.ts';
+import { AUTH_ROLES } from '../../domain/auth/auth-role.ts';
 
-export const UserRoleSchema = z.enum(USER_ROLES);
-export const UserStatusSchema = z.enum(USER_STATUSES);
+export const UserRoleSchema = z.enum(AUTH_ROLES);
+export const UserStatusSchema = z.enum(['active', 'inactive', 'banned']);
 
 export const UserSchema = z.object({
   id: z.uuid(),
@@ -23,20 +23,6 @@ export const PasswordSchema = z
   .regex(/[A-Z]/, 'Password must contain an uppercase letter')
   .regex(/[0-9]/, 'Password must contain a digit')
   .regex(/[^a-zA-Z0-9]/, 'Password must contain a special character');
-
-export const RegisterBody = z.object({
-  firstName: z.string().min(1).max(100),
-  lastName: z.string().min(1).max(100),
-  email: z.email(),
-  password: PasswordSchema,
-  role: UserRoleSchema.optional(),
-});
-
-export const RegisterHeaders = z
-  .object({
-    'x-user-registration-key': z.string().min(1),
-  })
-  .loose();
 
 export const LoginBody = z.object({
   email: z.email(),

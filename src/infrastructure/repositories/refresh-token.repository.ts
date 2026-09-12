@@ -11,6 +11,7 @@ function rowToRefreshToken(row: AuthTokenRow): RefreshToken {
   return {
     id: row.id,
     userId: row.userId,
+    accountType: row.accountType,
     expiresAt: row.expiresAt,
     revokedAt: row.revokedAt,
     createdAt: row.createdAt,
@@ -26,6 +27,7 @@ export class PostgresRefreshTokenRepository implements RefreshTokenRepo {
       .values({
         id: input.id,
         userId: input.userId,
+        accountType: input.accountType,
         expiresAt: input.expiresAt,
       })
       .returning();

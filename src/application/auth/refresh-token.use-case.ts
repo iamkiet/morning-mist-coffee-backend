@@ -1,7 +1,12 @@
 import { UnauthorizedError } from '../../lib/errors.ts';
 import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
 import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
-import type { UserRepo } from '../../domain/user/user.repo.ts';
+import type { EmployeeRepo } from '../../domain/employee/employee.repo.ts';
+import type { CustomerRepo } from '../../domain/customer/customer.repo.ts';
+import {
+  customerToAuthAccount,
+  employeeToAuthAccount,
+} from './to-auth-account.ts';
 
 export interface RefreshTokenInput {
   refreshToken: string;
@@ -15,7 +20,8 @@ export interface RefreshTokenResult {
 
 export class RefreshTokenUseCase {
   constructor(
-    private readonly users: UserRepo,
+    private readonly employees: EmployeeRepo,
+    private readonly customers: CustomerRepo,
     private readonly refreshTokens: RefreshTokenRepo,
     private readonly tokens: TokenSigner,
   ) {}
@@ -33,20 +39,24 @@ export class RefreshTokenUseCase {
       throw new UnauthorizedError('Refresh token user mismatch');
     }
 
-    const user = await this.users.findById(claims.sub);
-    if (!user) throw new UnauthorizedError('User no longer exists');
+    const account =
+      stored.accountType === 'employee'
+        ? await this.employees.findById(claims.sub).then((e) => e && employeeToAuthAccount(e))
+        : await this.customers.findById(claims.sub).then((c) => c && customerToAuthAccount(c));
+    if (!account) throw new UnauthorizedError('Account no longer exists');
 
     await this.refreshTokens.revoke(stored.id);
 
     const accessToken = await this.tokens.signAccess({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
+      sub: account.id,
+      email: account.email,
+      role: account.role,
     });
-    const next = await this.tokens.signRefresh(user.id);
+    const next = await this.tokens.signRefresh(account.id);
     await this.refreshTokens.create({
       id: next.jti,
-      userId: user.id,
+      userId: account.id,
+      accountType: stored.accountType,
       expiresAt: next.expiresAt,
     });
 

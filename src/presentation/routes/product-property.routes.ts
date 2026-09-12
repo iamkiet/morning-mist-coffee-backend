@@ -12,7 +12,7 @@ export async function productPropertyRoutes(app: FastifyInstance): Promise<void>
   const controller = new ProductPropertyController(app.useCases.productProperty);
 
   fastify.addHook('onRequest', app.authenticate);
-  fastify.addHook('onRequest', app.requireRole('admin'));
+  fastify.addHook('onRequest', app.requireRole(['admin', 'staff']));
 
   fastify.get('/', {
     schema: {

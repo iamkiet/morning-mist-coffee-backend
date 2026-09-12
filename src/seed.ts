@@ -3,13 +3,13 @@ import { env } from './config/env.ts';
 import { buildDb } from './infrastructure/db/client.ts';
 import { BcryptPasswordHasher } from './infrastructure/adapters/bcrypt.password-hasher.ts';
 import {
+  employees,
   productCategories,
   productProperties,
   productVariantPropertyValues,
   productVariants,
   products,
   productsCategories,
-  users,
 } from './infrastructure/db/schema.ts';
 import { logger } from './lib/logger.ts';
 import type { Currency } from './domain/shared/currency.ts';
@@ -22,19 +22,19 @@ const { client, db } = buildDb(env.DATABASE_URL);
 const passwordHasher = new BcryptPasswordHasher();
 
 async function seedAdminUser() {
-  await db.delete(users);
+  await db.delete(employees);
 
   const password = randomBytes(12).toString('base64url');
   const passwordHash = await passwordHasher.hash(password);
 
-  await db.insert(users).values({
+  await db.insert(employees).values({
     firstName: 'Admin',
     lastName: '',
-    email: ADMIN_EMAIL,
+    companyEmail: ADMIN_EMAIL,
     passwordHash,
     role: 'admin',
   });
-  logger.info({ email: ADMIN_EMAIL, password }, 'Recreated admin user with generated password');
+  logger.info({ email: ADMIN_EMAIL, password }, 'Recreated admin employee with generated password');
 }
 
 async function seed() {

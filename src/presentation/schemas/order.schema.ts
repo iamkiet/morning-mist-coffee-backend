@@ -47,7 +47,6 @@ export const CreateOrderItemBody = z.object({
 });
 
 export const CreateOrderBody = z.object({
-  customerEmail: z.email(),
   totalCents: z.number().int().min(0),
   currency: CurrencySchema,
   cashReceivedCents: z.number().int().min(0).optional(),

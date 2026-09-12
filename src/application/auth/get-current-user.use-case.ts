@@ -1,13 +1,28 @@
 import { UnauthorizedError } from '../../lib/errors.ts';
-import type { User } from '../../domain/user/user.entity.ts';
-import type { UserRepo } from '../../domain/user/user.repo.ts';
+import type { AuthRole } from '../../domain/auth/auth-role.ts';
+import type { EmployeeRepo } from '../../domain/employee/employee.repo.ts';
+import type { CustomerRepo } from '../../domain/customer/customer.repo.ts';
+import {
+  customerToAuthAccount,
+  employeeToAuthAccount,
+} from './to-auth-account.ts';
+import type { AuthAccount } from './types.ts';
 
 export class GetCurrentUserUseCase {
-  constructor(private readonly users: UserRepo) {}
+  constructor(
+    private readonly employees: EmployeeRepo,
+    private readonly customers: CustomerRepo,
+  ) {}
 
-  async execute(userId: string): Promise<User> {
-    const user = await this.users.findById(userId);
-    if (!user) throw new UnauthorizedError('User no longer exists');
-    return user;
+  async execute(id: string, role: AuthRole): Promise<AuthAccount> {
+    if (role === 'customer') {
+      const customer = await this.customers.findById(id);
+      if (!customer) throw new UnauthorizedError('Account no longer exists');
+      return customerToAuthAccount(customer);
+    }
+
+    const employee = await this.employees.findById(id);
+    if (!employee) throw new UnauthorizedError('Account no longer exists');
+    return employeeToAuthAccount(employee);
   }
 }

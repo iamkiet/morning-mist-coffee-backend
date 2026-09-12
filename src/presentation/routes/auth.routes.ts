@@ -3,16 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { env } from '../../config/env.ts';
 import { AuthController } from '../controllers/auth.controller.ts';
-import { checkRegistrationKey } from '../middlewares/registration-key.ts';
-import {
-  AuthResponse,
-  LoginBody,
-  MeResponse,
-  RefreshResponse,
-  RegisterBody,
-  RegisterHeaders,
-  UserSchema,
-} from '../schemas/auth.schema.ts';
+import { AuthResponse, LoginBody, MeResponse, RefreshResponse } from '../schemas/auth.schema.ts';
 
 const authRateLimit = {
   rateLimit: {
@@ -25,26 +16,24 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
   const controller = new AuthController(app.useCases.auth);
 
-  fastify.post('/register', {
-    config: authRateLimit,
-    schema: {
-      tags: ['auth'],
-      headers: RegisterHeaders,
-      body: RegisterBody,
-      response: { 201: UserSchema },
-    },
-    preHandler: [checkRegistrationKey],
-    handler: controller.register,
-  });
-
-  fastify.post('/login', {
+  fastify.post('/employee-login', {
     config: authRateLimit,
     schema: {
       tags: ['auth'],
       body: LoginBody,
       response: { 200: AuthResponse },
     },
-    handler: controller.login,
+    handler: controller.employeeLogin,
+  });
+
+  fastify.post('/customer-login', {
+    config: authRateLimit,
+    schema: {
+      tags: ['auth'],
+      body: LoginBody,
+      response: { 200: AuthResponse },
+    },
+    handler: controller.customerLogin,
   });
 
   fastify.post('/refresh', {

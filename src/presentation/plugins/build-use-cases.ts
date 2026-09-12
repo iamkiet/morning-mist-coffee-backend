@@ -1,20 +1,20 @@
 import { GetCurrentUserUseCase } from '../../application/auth/get-current-user.use-case.ts';
-import { LoginUserUseCase } from '../../application/auth/login-user.use-case.ts';
+import { EmployeeLoginUseCase } from '../../application/auth/employee-login.use-case.ts';
+import { CustomerLoginUseCase } from '../../application/auth/customer-login.use-case.ts';
 import { LogoutUseCase } from '../../application/auth/logout.use-case.ts';
 import { RefreshTokenUseCase } from '../../application/auth/refresh-token.use-case.ts';
-import { RegisterUserUseCase } from '../../application/auth/register-user.use-case.ts';
 import { SendChatMessageUseCase } from '../../application/chat/send-chat-message.use-case.ts';
 import { CreateOrderUseCase } from '../../application/order/create-order.use-case.ts';
 import { GetOrderByIdUseCase } from '../../application/order/get-order-by-id.use-case.ts';
 import { ListOrdersUseCase } from '../../application/order/list-orders.use-case.ts';
 import { LookupOrderUseCase } from '../../application/order/lookup-order.use-case.ts';
 import { UpdateOrderStatusUseCase } from '../../application/order/update-order-status.use-case.ts';
-import { CreateOrderReviewUseCase } from '../../application/order-review/create-order-review.use-case.ts';
-import { CreateOrderReviewReplyUseCase } from '../../application/order-review/create-order-review-reply.use-case.ts';
-import { GetOrderReviewByIdUseCase } from '../../application/order-review/get-order-review-by-id.use-case.ts';
-import { ListOrderReviewsUseCase } from '../../application/order-review/list-order-reviews.use-case.ts';
-import { ListPublicOrderReviewsUseCase } from '../../application/order-review/list-public-order-reviews.use-case.ts';
-import { UpdateOrderReviewStatusUseCase } from '../../application/order-review/update-order-review-status.use-case.ts';
+import { CreateProductReviewUseCase } from '../../application/product-review/create-product-review.use-case.ts';
+import { CreateProductReviewReplyUseCase } from '../../application/product-review/create-product-review-reply.use-case.ts';
+import { GetProductReviewByIdUseCase } from '../../application/product-review/get-product-review-by-id.use-case.ts';
+import { ListProductReviewsUseCase } from '../../application/product-review/list-product-reviews.use-case.ts';
+import { ListPublicProductReviewsUseCase } from '../../application/product-review/list-public-product-reviews.use-case.ts';
+import { UpdateProductReviewStatusUseCase } from '../../application/product-review/update-product-review-status.use-case.ts';
 import { CreateProductCategoryUseCase } from '../../application/product-category/create-product-category.use-case.ts';
 import { ListProductCategoriesUseCase } from '../../application/product-category/list-product-categories.use-case.ts';
 import { CreateProductPropertyUseCase } from '../../application/product-property/create-product-property.use-case.ts';
@@ -34,10 +34,17 @@ import { SetProductCategoriesUseCase } from '../../application/product/set-produ
 import { SetVariantPropertyValuesUseCase } from '../../application/product/set-variant-property-values.use-case.ts';
 import { UpdateProductUseCase } from '../../application/product/update-product.use-case.ts';
 import { UpdateProductVariantUseCase } from '../../application/product/update-product-variant.use-case.ts';
-import { DeleteUserUseCase } from '../../application/user/delete-user.use-case.ts';
-import { ListUsersUseCase } from '../../application/user/list-users.use-case.ts';
-import { UpdateUserPasswordUseCase } from '../../application/user/update-user-password.use-case.ts';
-import { UpdateUserUseCase } from '../../application/user/update-user.use-case.ts';
+import { CreateEmployeeUseCase } from '../../application/employee/create-employee.use-case.ts';
+import { DeleteEmployeeUseCase } from '../../application/employee/delete-employee.use-case.ts';
+import { ListEmployeesUseCase } from '../../application/employee/list-employees.use-case.ts';
+import { UpdateEmployeePasswordUseCase } from '../../application/employee/update-employee-password.use-case.ts';
+import { UpdateEmployeeUseCase } from '../../application/employee/update-employee.use-case.ts';
+import { CreateCustomerUseCase } from '../../application/customer/create-customer.use-case.ts';
+import { DeleteCustomerUseCase } from '../../application/customer/delete-customer.use-case.ts';
+import { GetCustomerByIdUseCase } from '../../application/customer/get-customer-by-id.use-case.ts';
+import { ListCustomersUseCase } from '../../application/customer/list-customers.use-case.ts';
+import { UpdateCustomerPasswordUseCase } from '../../application/customer/update-customer-password.use-case.ts';
+import { UpdateCustomerUseCase } from '../../application/customer/update-customer.use-case.ts';
 import { env } from '../../config/env.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { AudioConverterPort } from '../../domain/ports/audio-converter.port.ts';
@@ -50,39 +57,43 @@ import type { ReviewClassificationPort } from '../../domain/ports/review-classif
 import type { TokenSigner } from '../../domain/ports/token-signer.port.ts';
 import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
 import type { OrderRepo } from '../../domain/order/order.repo.ts';
-import type { OrderReviewRepo } from '../../domain/order-review/order-review.repo.ts';
+import type { ProductReviewRepo } from '../../domain/product-review/product-review.repo.ts';
 import type { ProductCategoryRepo } from '../../domain/product-category/product-category.repo.ts';
 import type { ProductPropertyRepo } from '../../domain/product-property/product-property.repo.ts';
 import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
 import type { RefreshTokenRepo } from '../../domain/auth/refresh-token.repo.ts';
-import type { UserRepo } from '../../domain/user/user.repo.ts';
+import type { EmployeeRepo } from '../../domain/employee/employee.repo.ts';
+import type { CustomerRepo } from '../../domain/customer/customer.repo.ts';
 import type { AuthUseCases } from '../controllers/auth.controller.ts';
 import type { ChatUseCases } from '../controllers/chat.controller.ts';
 import type { OrderUseCases } from '../controllers/order.controller.ts';
-import type { OrderReviewUseCases } from '../controllers/order-review.controller.ts';
+import type { ProductReviewUseCases } from '../controllers/product-review.controller.ts';
 import type { ProductCategoryUseCases } from '../controllers/product-category.controller.ts';
 import type { ProductPropertyUseCases } from '../controllers/product-property.controller.ts';
 import type { ProductUseCases } from '../controllers/product.controller.ts';
 import type { SearchUseCases } from '../controllers/search.controller.ts';
-import type { UserUseCases } from '../controllers/user.controller.ts';
+import type { EmployeeUseCases } from '../controllers/employee.controller.ts';
+import type { CustomerUseCases } from '../controllers/customer.controller.ts';
 
 export interface AppUseCases {
   auth: AuthUseCases;
   chat: ChatUseCases;
   order: OrderUseCases;
-  orderReview: OrderReviewUseCases;
+  productReview: ProductReviewUseCases;
   product: ProductUseCases;
   productCategory: ProductCategoryUseCases;
   productProperty: ProductPropertyUseCases;
-  user: UserUseCases;
+  employee: EmployeeUseCases;
+  customer: CustomerUseCases;
   search: SearchUseCases;
 }
 
 export interface UseCaseDeps {
   orderRepo: OrderRepo;
-  orderReviewRepo: OrderReviewRepo;
-  userRepo: UserRepo;
+  productReviewRepo: ProductReviewRepo;
+  employeeRepo: EmployeeRepo;
+  customerRepo: CustomerRepo;
   refreshTokenRepo: RefreshTokenRepo;
   productRepo: ProductRepo;
   productVariantRepo: ProductVariantRepo;
@@ -112,20 +123,26 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
 
   return {
     auth: {
-      register: new RegisterUserUseCase(deps.userRepo, deps.passwordHasher),
-      login: new LoginUserUseCase(
-        deps.userRepo,
+      employeeLogin: new EmployeeLoginUseCase(
+        deps.employeeRepo,
+        deps.refreshTokenRepo,
+        deps.passwordHasher,
+        deps.tokenSigner,
+      ),
+      customerLogin: new CustomerLoginUseCase(
+        deps.customerRepo,
         deps.refreshTokenRepo,
         deps.passwordHasher,
         deps.tokenSigner,
       ),
       refresh: new RefreshTokenUseCase(
-        deps.userRepo,
+        deps.employeeRepo,
+        deps.customerRepo,
         deps.refreshTokenRepo,
         deps.tokenSigner,
       ),
       logout: new LogoutUseCase(deps.refreshTokenRepo, deps.tokenSigner),
-      me: new GetCurrentUserUseCase(deps.userRepo),
+      me: new GetCurrentUserUseCase(deps.employeeRepo, deps.customerRepo),
     },
     order: {
       list: new ListOrdersUseCase(deps.orderRepo),
@@ -140,24 +157,23 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
       ),
       updateStatus: new UpdateOrderStatusUseCase(deps.orderRepo),
     },
-    orderReview: {
-      list: new ListOrderReviewsUseCase(deps.orderReviewRepo),
-      listPublic: new ListPublicOrderReviewsUseCase(deps.orderReviewRepo),
-      getById: new GetOrderReviewByIdUseCase(deps.orderReviewRepo),
-      create: new CreateOrderReviewUseCase(
-        deps.orderReviewRepo,
-        deps.orderRepo,
+    productReview: {
+      list: new ListProductReviewsUseCase(deps.productReviewRepo),
+      listPublic: new ListPublicProductReviewsUseCase(deps.productReviewRepo),
+      getById: new GetProductReviewByIdUseCase(deps.productReviewRepo),
+      create: new CreateProductReviewUseCase(
+        deps.productReviewRepo,
         deps.productRepo,
         deps.reviewClassification,
         deps.logger,
       ),
-      createReply: new CreateOrderReviewReplyUseCase(
-        deps.orderReviewRepo,
+      createReply: new CreateProductReviewReplyUseCase(
+        deps.productReviewRepo,
         deps.productRepo,
         deps.reviewClassification,
         deps.logger,
       ),
-      updateStatus: new UpdateOrderReviewStatusUseCase(deps.orderReviewRepo),
+      updateStatus: new UpdateProductReviewStatusUseCase(deps.productReviewRepo),
     },
     chat: {
       send: chatSend,
@@ -223,11 +239,26 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
       list: new ListProductPropertiesUseCase(deps.productPropertyRepo),
       create: new CreateProductPropertyUseCase(deps.productPropertyRepo),
     },
-    user: {
-      list: new ListUsersUseCase(deps.userRepo),
-      update: new UpdateUserUseCase(deps.userRepo),
-      updatePassword: new UpdateUserPasswordUseCase(deps.userRepo, deps.passwordHasher),
-      delete: new DeleteUserUseCase(deps.userRepo),
+    employee: {
+      list: new ListEmployeesUseCase(deps.employeeRepo),
+      create: new CreateEmployeeUseCase(deps.employeeRepo, deps.passwordHasher),
+      update: new UpdateEmployeeUseCase(deps.employeeRepo),
+      updatePassword: new UpdateEmployeePasswordUseCase(
+        deps.employeeRepo,
+        deps.passwordHasher,
+      ),
+      delete: new DeleteEmployeeUseCase(deps.employeeRepo),
+    },
+    customer: {
+      list: new ListCustomersUseCase(deps.customerRepo),
+      getById: new GetCustomerByIdUseCase(deps.customerRepo),
+      create: new CreateCustomerUseCase(deps.customerRepo, deps.passwordHasher),
+      update: new UpdateCustomerUseCase(deps.customerRepo),
+      updatePassword: new UpdateCustomerPasswordUseCase(
+        deps.customerRepo,
+        deps.passwordHasher,
+      ),
+      delete: new DeleteCustomerUseCase(deps.customerRepo),
     },
     search: {
       voiceSearch: new SearchProductsByVoiceUseCase(
