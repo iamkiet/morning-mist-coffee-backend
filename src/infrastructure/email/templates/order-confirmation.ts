@@ -36,8 +36,8 @@ export function buildOrderConfirmationEmail(data: OrderConfirmationEmail): {
               </tr>
               <tr>
                 <td style="font-size:14px;">
-                  ${data.shippingFirstName ?? ''} ${data.shippingLastName ?? ''}<br/>
-                  ${data.shippingAddress}, ${data.shippingCity ?? ''} ${data.shippingPostalCode ?? ''}
+                  ${data.shippingFullName}<br/>
+                  ${data.shippingAddress}
                 </td>
               </tr>
             </table>`

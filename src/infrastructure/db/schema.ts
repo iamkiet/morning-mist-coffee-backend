@@ -203,11 +203,8 @@ export const orders = pgTable(
     currency: currency().notNull().default('VND'),
     cashReceivedCents: integer(),
     changeCents: integer(),
-    shippingFirstName: text(),
-    shippingLastName: text(),
+    shippingFullName: text(),
     shippingAddress: text(),
-    shippingCity: text(),
-    shippingPostalCode: text(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()

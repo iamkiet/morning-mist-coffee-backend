@@ -61,11 +61,8 @@ export class OrderController {
       totalCents: req.body.totalCents,
       currency: req.body.currency,
       cashReceivedCents: req.body.cashReceivedCents,
-      shippingFirstName: req.body.shippingFirstName,
-      shippingLastName: req.body.shippingLastName,
+      shippingFullName: req.body.shippingFullName,
       shippingAddress: req.body.shippingAddress,
-      shippingCity: req.body.shippingCity,
-      shippingPostalCode: req.body.shippingPostalCode,
       items: req.body.items,
     });
     return reply.code(201).send(toOrderDTO(order));

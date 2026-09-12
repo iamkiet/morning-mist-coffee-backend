@@ -42,11 +42,8 @@ export interface Order {
   currency: Currency;
   cashReceivedCents: number | null;
   changeCents: number | null;
-  shippingFirstName: string | null;
-  shippingLastName: string | null;
+  shippingFullName: string | null;
   shippingAddress: string | null;
-  shippingCity: string | null;
-  shippingPostalCode: string | null;
   items: OrderItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -58,11 +55,8 @@ export interface CreateOrderInput {
   currency: Currency;
   cashReceivedCents?: number;
   changeCents?: number;
-  shippingFirstName: string;
-  shippingLastName: string;
+  shippingFullName: string;
   shippingAddress: string;
-  shippingCity: string;
-  shippingPostalCode: string;
   items: CreateOrderItemInput[];
 }
 

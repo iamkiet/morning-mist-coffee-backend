@@ -98,11 +98,8 @@ export class CreateOrderUseCase {
         currency: order.currency,
         cashReceivedCents: order.cashReceivedCents,
         changeCents: order.changeCents,
-        shippingFirstName: order.shippingFirstName,
-        shippingLastName: order.shippingLastName,
+        shippingFullName: order.shippingFullName,
         shippingAddress: order.shippingAddress,
-        shippingCity: order.shippingCity,
-        shippingPostalCode: order.shippingPostalCode,
         items: order.items.map((item) => ({
           productName: item.productName,
           variantSku: item.variantSku,

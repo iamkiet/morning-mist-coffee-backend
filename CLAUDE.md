@@ -73,7 +73,7 @@ Skipping steps (e.g. `pending → shipped`) throws `ConflictError`.
 
 **Password update** — `PATCH /api/v1/users/:id/password` (admin-only). Use case hashes the new password via `PasswordHasher` before storing.
 
-**Order shipping fields** — `shippingFirstName`/`shippingLastName`/`shippingAddress`/`shippingCity`/`shippingPostalCode` are **required** in `CreateOrderBody` (every order placed through checkout has them) but **nullable** in `Order`/`orders` — orders created before these columns existed have `null`. Never tighten these to NOT NULL in a migration without backfilling first.
+**Order shipping fields** — `orders` only carries `shippingFullName` and `shippingAddress` (both nullable, both **required** in `CreateOrderBody`). There is no city/postal code — checkout collects a single free-text address, and name is one field, not split first/last. The migration that dropped `shippingFirstName`/`shippingLastName`/`shippingCity`/`shippingPostalCode` backfilled `shippingFullName` from the old first+last columns before dropping them.
 
 **Product slug** — `products.slug` is unique and NOT NULL. `slugify()` in [src/domain/product/slugify.ts](src/domain/product/slugify.ts) is pure (NFD fold, `đ`→`d`, non-alphanumeric→`-`); uniqueness is resolved in `CreateProductUseCase`, which probes `findBySlug` and appends `-2`, `-3`, …. Renaming a product does **not** regenerate its slug — existing URLs must keep working. Changing one is an explicit `PATCH { slug }`, validated with `isSlug()` (400) and checked for collisions (409). `GET /api/v1/products/slug/:slug` is public and attaches variants.
 

@@ -5,11 +5,8 @@ export interface OrderConfirmationEmail {
   currency: string;
   cashReceivedCents?: number | null;
   changeCents?: number | null;
-  shippingFirstName: string | null;
-  shippingLastName: string | null;
+  shippingFullName: string | null;
   shippingAddress: string | null;
-  shippingCity: string | null;
-  shippingPostalCode: string | null;
   items: Array<{
     productName: string;
     variantSku: string | null;
