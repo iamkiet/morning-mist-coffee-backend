@@ -1,6 +1,7 @@
-import chatSystemPrompt from '../../prompts/chat-system.prompt.json' with { type: 'json' };
+import { loadPromptTemplate } from '../../lib/load-template.ts';
+import chatSystemPrompt from '../../prompts/configs/chat-system.json' with { type: 'json' };
 
-const BASE_INSTRUCTION = chatSystemPrompt.template;
+const BASE_INSTRUCTION = loadPromptTemplate(chatSystemPrompt.templateFile);
 
 export interface ChatCatalogueVariant {
   priceCents: number;

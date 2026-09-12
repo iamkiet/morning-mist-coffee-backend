@@ -8,9 +8,10 @@ import {
   type SecurityAgentAction,
   type SecurityEvent,
 } from '../../domain/security/security-event.entity.ts';
+import { loadPromptTemplate } from '../../lib/load-template.ts';
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 import { sanitizeSecurityEvent } from './security-event-sanitizer.ts';
-import securityDecisionPrompt from '../../prompts/security-decision.prompt.json' with { type: 'json' };
+import securityDecisionPrompt from '../../prompts/configs/security-decision.json' with { type: 'json' };
 
 const SecurityAgentActionSchema = z.object({
   action: z.enum(SECURITY_AGENT_ACTIONS),
@@ -23,7 +24,7 @@ const TIMEOUT_MS = 10_000;
 const MAX_ATTEMPTS = 2;
 
 const CONFIG: GenerateContentConfig = {
-  systemInstruction: securityDecisionPrompt.template,
+  systemInstruction: loadPromptTemplate(securityDecisionPrompt.templateFile),
   responseMimeType: 'application/json',
   responseSchema: {
     type: Type.OBJECT,

@@ -1,7 +1,25 @@
-import { and, eq, type SQL } from 'drizzle-orm';
-import type { OrderReview } from '../../domain/order-review/order-review.entity.ts';
+import { and, eq, inArray, ne, type SQL } from 'drizzle-orm';
+import type {
+  OrderReview,
+  OrderReviewReply,
+  ReviewStatus,
+} from '../../domain/order-review/order-review.entity.ts';
 import type { OrderReviewFilterCriteria } from '../../domain/order-review/order-review.repo.ts';
-import { orderReviews, type OrderReviewRow } from '../db/schema.ts';
+import {
+  orderReviews,
+  type OrderReviewReplyRow,
+  type OrderReviewRow,
+} from '../db/schema.ts';
+
+const PUBLIC_REVIEW_STATUSES: ReviewStatus[] = ['auto_responded', 'resolved'];
+
+export function publicOrderReviewWhere(productId: string): SQL {
+  return and(
+    eq(orderReviews.productId, productId),
+    ne(orderReviews.category, 'spam'),
+    inArray(orderReviews.status, PUBLIC_REVIEW_STATUSES),
+  ) as SQL;
+}
 
 export function buildOrderReviewFilters(
   filter: OrderReviewFilterCriteria,
@@ -21,7 +39,33 @@ export function orderReviewWhere(
   return filters.length ? and(...filters) : undefined;
 }
 
-export function rowToOrderReview(row: OrderReviewRow): OrderReview {
+export function rowToReply(row: OrderReviewReplyRow): OrderReviewReply {
+  return {
+    id: row.id,
+    reviewId: row.reviewId,
+    authorType: row.authorType,
+    authorName: row.authorName,
+    replyText: row.replyText,
+    createdAt: row.createdAt,
+  };
+}
+
+export function groupRepliesByReview(
+  rows: OrderReviewReplyRow[],
+): Map<string, OrderReviewReply[]> {
+  const repliesByReview = new Map<string, OrderReviewReply[]>();
+  for (const row of rows) {
+    const list = repliesByReview.get(row.reviewId) ?? [];
+    list.push(rowToReply(row));
+    repliesByReview.set(row.reviewId, list);
+  }
+  return repliesByReview;
+}
+
+export function rowToOrderReview(
+  row: OrderReviewRow,
+  replies: OrderReviewReply[] = [],
+): OrderReview {
   return {
     id: row.id,
     productId: row.productId,
@@ -38,6 +82,7 @@ export function rowToOrderReview(row: OrderReviewRow): OrderReview {
     classificationRaw: row.classificationRaw,
     classifiedAt: row.classifiedAt,
     status: row.status,
+    replies,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

@@ -1,9 +1,11 @@
-import { asc, desc, eq, sql } from 'drizzle-orm';
+import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import type {
   ClassifyOrderReviewInput,
   CreateOrderReviewInput,
+  CreateOrderReviewReplyInput,
   ListOrderReviewsFilter,
   OrderReview,
+  OrderReviewReply,
   OrderReviewSortField,
   ReviewStatus,
 } from '../../domain/order-review/order-review.entity.ts';
@@ -12,8 +14,14 @@ import type {
   OrderReviewRepo,
 } from '../../domain/order-review/order-review.repo.ts';
 import type { DB } from '../db/client.ts';
-import { orderReviews } from '../db/schema.ts';
-import { orderReviewWhere, rowToOrderReview } from './order-review.mappers.ts';
+import { orderReviewReplies, orderReviews } from '../db/schema.ts';
+import {
+  groupRepliesByReview,
+  orderReviewWhere,
+  publicOrderReviewWhere,
+  rowToOrderReview,
+  rowToReply,
+} from './order-review.mappers.ts';
 
 const SORT_COLUMNS = {
   createdAt: orderReviews.createdAt,
@@ -21,6 +29,14 @@ const SORT_COLUMNS = {
 
 export class PostgresOrderReviewRepository implements OrderReviewRepo {
   constructor(private readonly db: DB) {}
+
+  private async findRepliesByReviewId(id: string): Promise<OrderReviewReply[]> {
+    const rows = await this.db
+      .select()
+      .from(orderReviewReplies)
+      .where(eq(orderReviewReplies.reviewId, id));
+    return rows.map(rowToReply);
+  }
 
   async list(filter: ListOrderReviewsFilter): Promise<OrderReview[]> {
     const orderFn = filter.sortDir === 'asc' ? asc : desc;
@@ -34,7 +50,20 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
       .limit(filter.limit)
       .offset(filter.offset);
 
-    return rows.map(rowToOrderReview);
+    if (rows.length === 0) return [];
+
+    const replyRows = await this.db
+      .select()
+      .from(orderReviewReplies)
+      .where(
+        inArray(
+          orderReviewReplies.reviewId,
+          rows.map((r) => r.id),
+        ),
+      );
+
+    const repliesByReview = groupRepliesByReview(replyRows);
+    return rows.map((r) => rowToOrderReview(r, repliesByReview.get(r.id) ?? []));
   }
 
   async count(filter: OrderReviewFilterCriteria): Promise<number> {
@@ -45,13 +74,51 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
     return row?.count ?? 0;
   }
 
+  async listPublic(
+    productId: string,
+    limit: number,
+    offset: number,
+  ): Promise<OrderReview[]> {
+    const rows = await this.db
+      .select()
+      .from(orderReviews)
+      .where(publicOrderReviewWhere(productId))
+      .orderBy(desc(orderReviews.createdAt), desc(orderReviews.id))
+      .limit(limit)
+      .offset(offset);
+
+    if (rows.length === 0) return [];
+
+    const replyRows = await this.db
+      .select()
+      .from(orderReviewReplies)
+      .where(
+        inArray(
+          orderReviewReplies.reviewId,
+          rows.map((r) => r.id),
+        ),
+      );
+
+    const repliesByReview = groupRepliesByReview(replyRows);
+    return rows.map((r) => rowToOrderReview(r, repliesByReview.get(r.id) ?? []));
+  }
+
+  async countPublic(productId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(orderReviews)
+      .where(publicOrderReviewWhere(productId));
+    return row?.count ?? 0;
+  }
+
   async findById(id: string): Promise<OrderReview | null> {
     const [row] = await this.db
       .select()
       .from(orderReviews)
       .where(eq(orderReviews.id, id))
       .limit(1);
-    return row ? rowToOrderReview(row) : null;
+    if (!row) return null;
+    return rowToOrderReview(row, await this.findRepliesByReviewId(id));
   }
 
   async create(input: CreateOrderReviewInput): Promise<OrderReview> {
@@ -88,7 +155,8 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
       })
       .where(eq(orderReviews.id, id))
       .returning();
-    return row ? rowToOrderReview(row) : null;
+    if (!row) return null;
+    return rowToOrderReview(row, await this.findRepliesByReviewId(id));
   }
 
   async updateStatus(
@@ -100,6 +168,24 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
       .set({ status })
       .where(eq(orderReviews.id, id))
       .returning();
-    return row ? rowToOrderReview(row) : null;
+    if (!row) return null;
+    return rowToOrderReview(row, await this.findRepliesByReviewId(id));
+  }
+
+  async createReply(
+    reviewId: string,
+    input: CreateOrderReviewReplyInput,
+  ): Promise<OrderReviewReply> {
+    const [row] = await this.db
+      .insert(orderReviewReplies)
+      .values({
+        reviewId,
+        authorType: input.authorType,
+        authorName: input.authorName ?? null,
+        replyText: input.replyText,
+      })
+      .returning();
+    if (!row) throw new Error('Failed to create order review reply');
+    return rowToReply(row);
   }
 }

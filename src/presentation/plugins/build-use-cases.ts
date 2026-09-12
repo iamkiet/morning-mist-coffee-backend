@@ -10,6 +10,7 @@ import { ListOrdersUseCase } from '../../application/order/list-orders.use-case.
 import { LookupOrderUseCase } from '../../application/order/lookup-order.use-case.ts';
 import { UpdateOrderStatusUseCase } from '../../application/order/update-order-status.use-case.ts';
 import { CreateOrderReviewUseCase } from '../../application/order-review/create-order-review.use-case.ts';
+import { CreateOrderReviewReplyUseCase } from '../../application/order-review/create-order-review-reply.use-case.ts';
 import { GetOrderReviewByIdUseCase } from '../../application/order-review/get-order-review-by-id.use-case.ts';
 import { ListOrderReviewsUseCase } from '../../application/order-review/list-order-reviews.use-case.ts';
 import { ListPublicOrderReviewsUseCase } from '../../application/order-review/list-public-order-reviews.use-case.ts';
@@ -145,10 +146,12 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
       getById: new GetOrderReviewByIdUseCase(deps.orderReviewRepo),
       create: new CreateOrderReviewUseCase(
         deps.orderReviewRepo,
+        deps.orderRepo,
         deps.productRepo,
         deps.reviewClassification,
         deps.logger,
       ),
+      createReply: new CreateOrderReviewReplyUseCase(deps.orderReviewRepo),
       updateStatus: new UpdateOrderReviewStatusUseCase(deps.orderReviewRepo),
     },
     chat: {

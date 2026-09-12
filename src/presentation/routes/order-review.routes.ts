@@ -3,10 +3,13 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { OrderReviewController } from '../controllers/order-review.controller.ts';
 import {
   CreateOrderReviewBody,
+  CreateOrderReviewReplyBody,
   ListOrderReviewsQuery,
   ListPublicOrderReviewsQuery,
   OrderReviewIdParam,
   OrderReviewListResponse,
+  OrderReviewReplyParams,
+  OrderReviewReplySchema,
   OrderReviewSchema,
   ProductIdParam,
   PublicOrderReviewListResponse,
@@ -54,6 +57,27 @@ export async function orderReviewRoutes(app: FastifyInstance): Promise<void> {
       response: { 201: OrderReviewSchema },
     },
     handler: controller.create,
+  });
+
+  fastify.post('/:reviewId/replies', {
+    schema: {
+      tags: ['order-reviews'],
+      params: OrderReviewReplyParams,
+      body: CreateOrderReviewReplyBody,
+      response: { 201: OrderReviewReplySchema },
+    },
+    handler: controller.createReply,
+  });
+
+  fastify.post('/:reviewId/admin-replies', {
+    onRequest: [app.authenticate, app.requireRole('admin')],
+    schema: {
+      tags: ['order-reviews'],
+      params: OrderReviewReplyParams,
+      body: CreateOrderReviewReplyBody,
+      response: { 201: OrderReviewReplySchema },
+    },
+    handler: controller.createAdminReply,
   });
 
   fastify.patch('/:id/status', {

@@ -5,7 +5,8 @@ import type {
   ExtractedProductFilter,
   ProductFilterExtractionPort,
 } from '../../domain/ports/product-filter-extraction.port.ts';
-import productFilterExtractionPrompt from '../../prompts/product-filter-extraction.prompt.json' with { type: 'json' };
+import { loadPromptTemplate } from '../../lib/load-template.ts';
+import productFilterExtractionPrompt from '../../prompts/configs/product-filter-extraction.json' with { type: 'json' };
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 
 const ExtractedProductFilterSchema = z.object({
@@ -20,7 +21,7 @@ const ExtractedProductFilterSchema = z.object({
 const TIMEOUT_MS = 10_000;
 
 const CONFIG: GenerateContentConfig = {
-  systemInstruction: productFilterExtractionPrompt.template,
+  systemInstruction: loadPromptTemplate(productFilterExtractionPrompt.templateFile),
   responseMimeType: 'application/json',
   responseSchema: {
     type: Type.OBJECT,

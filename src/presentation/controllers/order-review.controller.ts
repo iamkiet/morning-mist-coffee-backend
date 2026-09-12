@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { z } from 'zod';
 import type { CreateOrderReviewUseCase } from '../../application/order-review/create-order-review.use-case.ts';
+import type { CreateOrderReviewReplyUseCase } from '../../application/order-review/create-order-review-reply.use-case.ts';
 import type { GetOrderReviewByIdUseCase } from '../../application/order-review/get-order-review-by-id.use-case.ts';
 import type { ListOrderReviewsUseCase } from '../../application/order-review/list-order-reviews.use-case.ts';
 import type { ListPublicOrderReviewsUseCase } from '../../application/order-review/list-public-order-reviews.use-case.ts';
@@ -8,13 +9,16 @@ import type { UpdateOrderReviewStatusUseCase } from '../../application/order-rev
 import {
   toOrderReviewDTO,
   toOrderReviewListPayload,
+  toOrderReviewReplyDTO,
   toPublicOrderReviewListPayload,
 } from '../serializers/order-review.serializer.ts';
 import type {
   CreateOrderReviewBody,
+  CreateOrderReviewReplyBody,
   ListOrderReviewsQuery,
   ListPublicOrderReviewsQuery,
   OrderReviewIdParam,
+  OrderReviewReplyParams,
   ProductIdParam,
   UpdateOrderReviewStatusBody,
 } from '../schemas/order-review.schema.ts';
@@ -24,6 +28,7 @@ export interface OrderReviewUseCases {
   listPublic: ListPublicOrderReviewsUseCase;
   getById: GetOrderReviewByIdUseCase;
   create: CreateOrderReviewUseCase;
+  createReply: CreateOrderReviewReplyUseCase;
   updateStatus: UpdateOrderReviewStatusUseCase;
 }
 
@@ -67,6 +72,36 @@ export class OrderReviewController {
   ) => {
     const review = await this.uc.create.execute(req.body);
     return reply.code(201).send(toOrderReviewDTO(review));
+  };
+
+  createReply = async (
+    req: FastifyRequest<{
+      Params: z.infer<typeof OrderReviewReplyParams>;
+      Body: z.infer<typeof CreateOrderReviewReplyBody>;
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const created = await this.uc.createReply.execute(req.params.reviewId, {
+      authorType: 'customer',
+      authorName: req.body.authorName,
+      replyText: req.body.replyText,
+    });
+    return reply.code(201).send(toOrderReviewReplyDTO(created));
+  };
+
+  createAdminReply = async (
+    req: FastifyRequest<{
+      Params: z.infer<typeof OrderReviewReplyParams>;
+      Body: z.infer<typeof CreateOrderReviewReplyBody>;
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const created = await this.uc.createReply.execute(req.params.reviewId, {
+      authorType: 'admin',
+      authorName: req.body.authorName ?? 'Morning Mist Coffee',
+      replyText: req.body.replyText,
+    });
+    return reply.code(201).send(toOrderReviewReplyDTO(created));
   };
 
   updateStatus = async (

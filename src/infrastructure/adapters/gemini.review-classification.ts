@@ -11,7 +11,8 @@ import {
   REVIEW_SENTIMENTS,
   REVIEW_SEVERITIES,
 } from '../../domain/order-review/order-review.entity.ts';
-import reviewClassificationPrompt from '../../prompts/review-classification.prompt.json' with { type: 'json' };
+import { loadPromptTemplate } from '../../lib/load-template.ts';
+import reviewClassificationPrompt from '../../prompts/configs/review-classification.json' with { type: 'json' };
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 
 const ReviewClassificationResultSchema = z.object({
@@ -26,7 +27,7 @@ const ReviewClassificationResultSchema = z.object({
 const TIMEOUT_MS = 10_000;
 
 const CONFIG: GenerateContentConfig = {
-  systemInstruction: reviewClassificationPrompt.template,
+  systemInstruction: loadPromptTemplate(reviewClassificationPrompt.templateFile),
   responseMimeType: 'application/json',
   responseSchema: {
     type: Type.OBJECT,

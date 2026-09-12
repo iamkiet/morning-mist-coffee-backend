@@ -1,11 +1,12 @@
 import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts';
 import { ExternalServiceError } from '../../lib/errors.ts';
-import transcriptionPrompt from '../../prompts/transcription.prompt.json' with { type: 'json' };
+import { loadPromptTemplate } from '../../lib/load-template.ts';
+import transcriptionPrompt from '../../prompts/configs/voice-search-transcription.json' with { type: 'json' };
 import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
 
 const TIMEOUT_MS = 15_000;
 
-const SYSTEM_INSTRUCTION = transcriptionPrompt.template;
+const SYSTEM_INSTRUCTION = loadPromptTemplate(transcriptionPrompt.templateFile);
 
 export class GeminiTranscriptionAdapter implements TranscriptionPort {
   constructor(private readonly gemini: GeminiClient) {}

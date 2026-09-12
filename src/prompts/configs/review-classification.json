@@ -1,0 +1,6 @@
+{
+  "promptName": "review-classification",
+  "version": 1,
+  "templateFile": "review-classification.md",
+  "variables": []
+}

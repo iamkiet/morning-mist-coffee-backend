@@ -14,16 +14,9 @@ export class ListPublicOrderReviewsUseCase {
   async execute(
     filter: ListPublicOrderReviewsFilter,
   ): Promise<Paginated<OrderReview>> {
-    const criteria = { productId: filter.productId, category: 'compliment' as const };
     const [items, total] = await Promise.all([
-      this.repo.list({
-        ...criteria,
-        sortBy: 'createdAt',
-        sortDir: 'desc',
-        limit: filter.limit,
-        offset: filter.offset,
-      }),
-      this.repo.count(criteria),
+      this.repo.listPublic(filter.productId, filter.limit, filter.offset),
+      this.repo.countPublic(filter.productId),
     ]);
     return { items, total, limit: filter.limit, offset: filter.offset };
   }

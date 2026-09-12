@@ -17,6 +17,7 @@ import { env } from '../../config/env.ts';
 import { ORDER_STATUSES } from '../../domain/order/order.entity.ts';
 import {
   REVIEW_CATEGORIES,
+  REVIEW_REPLY_AUTHOR_TYPES,
   REVIEW_SENTIMENTS,
   REVIEW_SEVERITIES,
   REVIEW_SOURCES,
@@ -282,12 +283,34 @@ export const orderReviews = pgTable(
   ],
 );
 
+export const orderReviewReplyAuthorType = pgEnum(
+  'order_review_reply_author_type',
+  REVIEW_REPLY_AUTHOR_TYPES,
+);
+
+export const orderReviewReplies = pgTable(
+  'order_review_replies',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    reviewId: uuid()
+      .notNull()
+      .references(() => orderReviews.id, { onDelete: 'cascade' }),
+    authorType: orderReviewReplyAuthorType().notNull(),
+    authorName: text(),
+    replyText: text().notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('order_review_replies_review_id_idx').on(t.reviewId)],
+);
+
 export type OrderRow = typeof orders.$inferSelect;
 export type NewOrderRow = typeof orders.$inferInsert;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type NewOrderItemRow = typeof orderItems.$inferInsert;
 export type OrderReviewRow = typeof orderReviews.$inferSelect;
 export type NewOrderReviewRow = typeof orderReviews.$inferInsert;
+export type OrderReviewReplyRow = typeof orderReviewReplies.$inferSelect;
+export type NewOrderReviewReplyRow = typeof orderReviewReplies.$inferInsert;
 export type UserRow = typeof users.$inferSelect;
 export type NewUserRow = typeof users.$inferInsert;
 export type AuthTokenRow = typeof authTokens.$inferSelect;

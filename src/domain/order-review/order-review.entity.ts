@@ -26,6 +26,24 @@ export const REVIEW_STATUSES = [
 ] as const;
 export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
+export const REVIEW_REPLY_AUTHOR_TYPES = ['admin', 'customer', 'ai'] as const;
+export type ReviewReplyAuthorType = (typeof REVIEW_REPLY_AUTHOR_TYPES)[number];
+
+export interface OrderReviewReply {
+  id: string;
+  reviewId: string;
+  authorType: ReviewReplyAuthorType;
+  authorName: string | null;
+  replyText: string;
+  createdAt: Date;
+}
+
+export interface CreateOrderReviewReplyInput {
+  authorType: ReviewReplyAuthorType;
+  authorName?: string;
+  replyText: string;
+}
+
 export interface OrderReview {
   id: string;
   productId: string | null;
@@ -42,13 +60,14 @@ export interface OrderReview {
   classificationRaw: unknown;
   classifiedAt: Date | null;
   status: ReviewStatus;
+  replies: OrderReviewReply[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateOrderReviewInput {
   productId?: string;
-  orderId?: string;
+  orderId: string;
   customerEmail?: string;
   rating?: number;
   commentText: string;
