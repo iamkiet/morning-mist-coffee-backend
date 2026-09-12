@@ -142,26 +142,41 @@ otherwise                                  → auto_responded (AI tự đăng re
 
 Phòng thủ prompt injection ở bề mặt LLM: mọi tin nhắn khách (role `user`, kể cả lịch sử) bọc trong tag `<user_message>`, system instruction cấm thực thi chỉ thị nằm trong tag đó. A05/Injection thật sự (SQL) được chặn bằng Drizzle tham số hoá + Zod validate, không phụ thuộc AI.
 
+### Bảo mật toàn ứng dụng — OWASP Top 10:2025 (web app): **10/10 hoàn thành**
+
+> Danh sách A01-A10 này (nguồn: https://owasp.org/Top10/2025/) áp dụng cho **toàn bộ backend**, khác với danh sách ASI ở mục Security Agent bên dưới (chỉ đánh giá riêng 1 tính năng). Xem thêm `report.md` (root repo, ngoài thư mục này).
+
+| Mã | Hạng mục | Nội dung | Trạng thái |
+|----|----------|----------|:---:|
+| A01 | Broken Access Control | Middleware `requireRole()` chặn route quản trị; ID không đoán được cho link tra cứu đơn hàng | ✅ |
+| A02 | Security Misconfiguration | `@fastify/helmet` (CSP, HSTS...), `@fastify/cors` giới hạn origin, Cloudflare tự redirect HTTP→HTTPS | ✅ |
+| A03 | Software Supply Chain | `npm audit fix`, version pin cứng trong `package.json`, GitHub Action `audit.yml` + Dependabot | ✅ |
+| A04 | Cryptographic Failures | `jose` ký/verify JWT, `bcryptjs` băm mật khẩu, không lưu plaintext | ✅ |
+| A05 | Injection | Drizzle ORM tham số hoá (tagged template) cho mọi SQL, không nối chuỗi thủ công | ✅ |
+| A06 | Insecure Design (CSRF) | Cookie `csrf_token` + middleware `csrfProtection` (double-submit) | ✅ |
+| A07 | Authentication Failures | Zod ép password phức tạp; `failed_login_attempts`/`locked_until` tự khoá 15 phút sau 5 lần sai — **chưa có MFA** | ✅ (chưa MFA) |
+| A08 | Software/Data Integrity | `package-lock.json` + `npm ci` trong Dockerfile, build luôn đúng version đã audit | ✅ |
+| A09 | Logging & Alerting | `pino` log có cấu trúc; Security Agent gửi email cảnh báo qua `resend` khi phát hiện bất thường | ✅ |
+| A10 | Exceptional Conditions | `process.on('uncaughtException'/'unhandledRejection')` bắt lỗi/promise reject ngoài tầm kiểm soát | ✅ |
+
 ### Security Agent — OWASP Top 10 for Agentic Applications 2026: **6/10 covered**
 
-> Danh sách này (ASI01-10) chỉ đánh giá riêng tính năng **Security Agent** (agent tự ra quyết định block IP / gửi email). Không nhầm với bảng OWASP Top 10:2025 (web app thường, A01-A10) áp dụng cho **toàn bộ backend** — bảng đó đã 10/10 hoàn thành, chi tiết ở `report.md` (root repo, ngoài thư mục này).
+> Danh sách ASI01-10 này (nguồn: OWASP GenAI Security Project, genai.owasp.org) chỉ đánh giá riêng tính năng **Security Agent** (agent tự ra quyết định block IP / gửi email) — không phải toàn app.
 
 Agentic job (`SecurityAgentService`, chạy mỗi 60s) đọc log sự kiện bảo mật gần đây (login fail, register fail, rate-limit hit — `SecurityEventStore`, giữ 5 phút gần nhất) và giao cho Gemini quyết định action: `IGNORE` | `LOG_ONLY` | `ALERT_EMAIL` | `TEMP_BLOCK_IP` (structured output).
 
-| ASI | Hạng mục | Trạng thái | Cơ chế / lý do |
+| ASI | Hạng mục (tên chính thức) | Trạng thái | Cơ chế / lý do |
 |-----|----------|:---:|--------|
-| ASI01 | Prompt Injection | ✅ Đã cover | `sanitizeSecurityEvent()` strip ký tự không in được + `` {}<>` ``, truncate 300 ký tự, bọc `<events>` tag + chỉ thị không theo lệnh giả bên trong |
-| ASI02 | Tool/Action Misuse | ✅ Đã cover | `isSecurityAgentAction()` allow-list cố định (reject action lạ); rate-limit riêng cho action thật (`ALERT_EMAIL`/`TEMP_BLOCK_IP`, tối đa 5 lần/10 phút) |
-| ASI03 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
-| ASI04 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
-| ASI05 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
-| ASI06 | Unbounded Consumption / State | ✅ Đã cover | Event store + IP block list đều có TTL/expiry và cap kích thước, không tồn tại vĩnh viễn |
-| ASI07 | — | ❌ Chưa cover | Không có cơ chế riêng trong `src/{application,infrastructure,domain}/security` |
-| ASI08 | Cascading/Runaway Actions | ✅ Đã cover | Circuit breaker: quá 3 lần `TEMP_BLOCK_IP` trong 10 phút → tự hạ xuống `LOG_ONLY` |
-| ASI09 | Unsafe Output Rendering | ✅ Đã cover | Email cảnh báo gửi `reason` do Gemini sinh ra dưới dạng **plain text only**, không HTML/link |
-| ASI10 | No Kill Switch / Human Override | ✅ Đã cover | `SECURITY_AGENT_ENABLED=false` tắt hoàn toàn hành động tự động, agent chỉ còn log |
-
-ASI03/04/05/07: chưa xác nhận được tên chính xác từng hạng mục trong bản OWASP ASI Top 10 2026 chính thức (không có bản gốc lưu trong repo để đối chiếu tiêu đề) — cần đối chiếu lại nguồn OWASP trước khi đưa vào báo cáo chính thức. Hiện tại coi là ngoài phạm vi đồ án.
+| ASI01 | Agent Goal Hijack | ✅ Đã cover | `sanitizeSecurityEvent()` strip ký tự không in được + `` {}<>` ``, truncate 300 ký tự, bọc `<events>` tag + chỉ thị không theo lệnh giả bên trong (chặn prompt injection đổi mục tiêu agent) |
+| ASI02 | Tool Misuse | ✅ Đã cover | `isSecurityAgentAction()` allow-list cố định (reject action lạ); rate-limit riêng cho action thật (`ALERT_EMAIL`/`TEMP_BLOCK_IP`, tối đa 5 lần/10 phút) |
+| ASI03 | Identity & Privilege Abuse | ❌ Chưa cover | Agent chạy background job với quyền cố định, không có cơ chế identity/privilege riêng để kiểm soát leo thang quyền |
+| ASI04 | Agentic Supply Chain Vulnerabilities | ❌ Chưa cover | Chỉ có `npm audit`/Dependabot ở mức app chung (A03 ở trên), chưa có kiểm soát riêng cho chuỗi cung ứng của agent (tool/plugin) |
+| ASI05 | Unexpected Code Execution | ❌ Chưa cover | Agent không tự thực thi code nên rủi ro thấp, nhưng cũng chưa có sandbox/guard rail tường minh |
+| ASI06 | Memory & Context Poisoning | ✅ Đã cover (một phần) | Event store + IP block list đều có TTL/expiry và cap kích thước — dữ liệu cũ/độc tự hết hạn, không tồn tại vĩnh viễn trong context của agent |
+| ASI07 | Insecure Inter-Agent Communication | N/A | Hệ thống chỉ có 1 agent duy nhất, không có giao tiếp liên-agent nên hạng mục này chưa áp dụng |
+| ASI08 | Cascading Failures | ✅ Đã cover | Circuit breaker: quá 3 lần `TEMP_BLOCK_IP` trong 10 phút → tự hạ xuống `LOG_ONLY` |
+| ASI09 | Human-Agent Trust Exploitation | ✅ Đã cover | Email cảnh báo gửi `reason` do Gemini sinh ra dưới dạng **plain text only**, không HTML/link — tránh nội dung AI đánh lừa người vận hành |
+| ASI10 | Rogue Agents | ✅ Đã cover | `SECURITY_AGENT_ENABLED=false` tắt hoàn toàn hành động tự động (kill switch/human override), agent chỉ còn log |
 
 `TEMP_BLOCK_IP` chặn IP 5 phút qua `IpBlockList` (in-memory), kiểm tra ở `onRequest` hook toàn app (trừ `/health`) → `403 FORBIDDEN`.
 
