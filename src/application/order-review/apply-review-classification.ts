@@ -13,6 +13,7 @@ export async function applyReviewClassification(
   classification: ReviewClassificationPort,
   logger: AppLogger,
   review: OrderReview,
+  followUpMessage?: string,
 ): Promise<OrderReview> {
   const product = review.productId
     ? await products.findById(review.productId)
@@ -23,6 +24,7 @@ export async function applyReviewClassification(
     commentText: review.commentText,
     productName: product?.name ?? null,
     source: review.source,
+    followUpMessage,
   });
 
   if (!result) {

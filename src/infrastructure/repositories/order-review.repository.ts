@@ -14,7 +14,7 @@ import type {
   OrderReviewRepo,
 } from '../../domain/order-review/order-review.repo.ts';
 import type { DB } from '../db/client.ts';
-import { orderReviewReplies, orderReviews } from '../db/schema.ts';
+import { orderReviewReplies, orderReviews, type OrderReviewRow } from '../db/schema.ts';
 import {
   groupRepliesByReview,
   orderReviewWhere,
@@ -38,18 +38,7 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
     return rows.map(rowToReply);
   }
 
-  async list(filter: ListOrderReviewsFilter): Promise<OrderReview[]> {
-    const orderFn = filter.sortDir === 'asc' ? asc : desc;
-    const sortColumn = SORT_COLUMNS[filter.sortBy];
-
-    const rows = await this.db
-      .select()
-      .from(orderReviews)
-      .where(orderReviewWhere(filter))
-      .orderBy(orderFn(sortColumn), desc(orderReviews.id))
-      .limit(filter.limit)
-      .offset(filter.offset);
-
+  private async attachReplies(rows: OrderReviewRow[]): Promise<OrderReview[]> {
     if (rows.length === 0) return [];
 
     const replyRows = await this.db
@@ -64,6 +53,21 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
 
     const repliesByReview = groupRepliesByReview(replyRows);
     return rows.map((r) => rowToOrderReview(r, repliesByReview.get(r.id) ?? []));
+  }
+
+  async list(filter: ListOrderReviewsFilter): Promise<OrderReview[]> {
+    const orderFn = filter.sortDir === 'asc' ? asc : desc;
+    const sortColumn = SORT_COLUMNS[filter.sortBy];
+
+    const rows = await this.db
+      .select()
+      .from(orderReviews)
+      .where(orderReviewWhere(filter))
+      .orderBy(orderFn(sortColumn), desc(orderReviews.id))
+      .limit(filter.limit)
+      .offset(filter.offset);
+
+    return this.attachReplies(rows);
   }
 
   async count(filter: OrderReviewFilterCriteria): Promise<number> {
@@ -87,20 +91,7 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
       .limit(limit)
       .offset(offset);
 
-    if (rows.length === 0) return [];
-
-    const replyRows = await this.db
-      .select()
-      .from(orderReviewReplies)
-      .where(
-        inArray(
-          orderReviewReplies.reviewId,
-          rows.map((r) => r.id),
-        ),
-      );
-
-    const repliesByReview = groupRepliesByReview(replyRows);
-    return rows.map((r) => rowToOrderReview(r, repliesByReview.get(r.id) ?? []));
+    return this.attachReplies(rows);
   }
 
   async countPublic(productId: string): Promise<number> {
@@ -126,7 +117,7 @@ export class PostgresOrderReviewRepository implements OrderReviewRepo {
       .insert(orderReviews)
       .values({
         productId: input.productId ?? null,
-        orderId: input.orderId ?? null,
+        orderId: input.orderId,
         customerEmail: input.customerEmail ?? null,
         rating: input.rating ?? null,
         commentText: input.commentText,
