@@ -1,6 +1,6 @@
 {
   "promptName": "voice-search-transcription",
-  "version": 1,
+  "version": 2,
   "templateFile": "voice-search-transcription.md",
   "variables": []
 }

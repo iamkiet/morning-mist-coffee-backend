@@ -2,7 +2,7 @@ import { ValidationError } from '../../lib/errors.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.ts';
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
-import type { ProductFilterExtractionPort } from '../../domain/ports/product-filter-extraction.port.ts';
+import type { ChatFilterExtractionPort } from '../../domain/ports/chat-filter-extraction.port.ts';
 import type { PriceRange, Product } from '../../domain/product/product.entity.ts';
 import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
@@ -19,7 +19,7 @@ export class SendChatMessageUseCase {
     private readonly variants: ProductVariantRepo,
     private readonly embedding: MultimodalEmbeddingPort,
     private readonly chat: ChatPort,
-    private readonly filterExtraction: ProductFilterExtractionPort,
+    private readonly filterExtraction: ChatFilterExtractionPort,
     private readonly logger: AppLogger,
   ) {}
 

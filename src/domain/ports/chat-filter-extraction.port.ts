@@ -4,6 +4,6 @@ export interface ExtractedProductFilter extends PriceRange {
   weight?: string;
 }
 
-export interface ProductFilterExtractionPort {
+export interface ChatFilterExtractionPort {
   extract(question: string): Promise<ExtractedProductFilter | null>;
 }

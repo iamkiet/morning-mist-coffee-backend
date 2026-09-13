@@ -133,7 +133,7 @@ otherwise                                  → auto_responded (AI tự đăng re
 
 - Model Gemini, persona trợ lý Morning Mist Coffee, trả lời tiếng Việt
 - **RAG bằng vector:** embed tin nhắn mới nhất (`embedQuery`), lấy top 8 sản phẩm gần nhất (`findSimilarByVector`, cùng index với voice search), enrich với giá/property values (`buildCatalogueProducts`) rồi mới tiêm vào system prompt
-- `ProductFilterExtractionPort` (Gemini structured output) trích ràng buộc giá từ câu hỏi, áp `EXISTS` subquery lên `product_variants` (match "có variant trong khoảng giá", không phải giá min của sản phẩm)
+- `ChatFilterExtractionPort` (Gemini structured output) trích ràng buộc giá từ câu hỏi, áp `EXISTS` subquery lên `product_variants` (match "có variant trong khoảng giá", không phải giá min của sản phẩm)
 - Fallback chain: vector lỗi/rỗng → `ilike` keyword → danh sách mới nhất, luôn giữ filter giá
 - **Fail-soft ở bước soạn câu trả lời:** nếu `ChatPort.reply` lỗi (quota, timeout...) sau khi retrieval đã xong → trả `200` với apology string cố định thay vì lỗi cho client
 - Request: `{ messages: [{ role: 'user'|'assistant', content }] }`, response: `{ message }`

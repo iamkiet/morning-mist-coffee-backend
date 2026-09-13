@@ -1,0 +1,6 @@
+{
+  "promptName": "chat-filter-extraction",
+  "version": 2,
+  "templateFile": "chat-filter-extraction.md",
+  "variables": []
+}
