@@ -69,7 +69,6 @@ export class GeminiReviewClassificationAdapter implements ReviewClassificationPo
           comment_text: input.commentText,
           product_name: input.productName,
           source: input.source,
-          follow_up_message: input.followUpMessage ?? null,
         }),
         config: CONFIG,
       });

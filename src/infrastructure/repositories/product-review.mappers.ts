@@ -46,7 +46,6 @@ export function rowToReply(row: ProductReviewReplyRow): ProductReviewReply {
     reviewId: row.reviewId,
     authorType: row.authorType,
     authorName: row.authorName,
-    customerId: row.customerId,
     replyText: row.replyText,
     createdAt: row.createdAt,
   };

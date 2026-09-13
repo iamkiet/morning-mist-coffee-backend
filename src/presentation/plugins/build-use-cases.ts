@@ -169,12 +169,7 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
         deps.reviewClassification,
         deps.logger,
       ),
-      createReply: new CreateProductReviewReplyUseCase(
-        deps.productReviewRepo,
-        deps.productRepo,
-        deps.reviewClassification,
-        deps.logger,
-      ),
+      createReply: new CreateProductReviewReplyUseCase(deps.productReviewRepo),
       updateStatus: new UpdateProductReviewStatusUseCase(deps.productReviewRepo),
     },
     chat: {

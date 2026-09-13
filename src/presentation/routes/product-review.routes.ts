@@ -63,18 +63,6 @@ export async function productReviewRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/:reviewId/replies', {
-    onRequest: [app.authenticate, app.requireRole('customer')],
-    schema: {
-      tags: ['product-reviews'],
-      params: ProductReviewReplyParams,
-      body: CreateProductReviewReplyBody,
-      response: { 201: ProductReviewReplySchema },
-      security: [{ bearerAuth: [] }],
-    },
-    handler: controller.createReply,
-  });
-
-  fastify.post('/:reviewId/admin-replies', {
     onRequest: [app.authenticate, app.requireRole(ROLES_ADMIN_STAFF)],
     schema: {
       tags: ['product-reviews'],
@@ -82,7 +70,7 @@ export async function productReviewRoutes(app: FastifyInstance): Promise<void> {
       body: CreateProductReviewReplyBody,
       response: { 201: ProductReviewReplySchema },
     },
-    handler: controller.createAdminReply,
+    handler: controller.createReply,
   });
 
   fastify.patch('/:id/status', {

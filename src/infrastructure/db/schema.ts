@@ -327,7 +327,6 @@ export const productReviewReplies = pgTable(
       .references(() => productReviews.id, { onDelete: 'cascade' }),
     authorType: productReviewReplyAuthorType().notNull(),
     authorName: text(),
-    customerId: uuid().references(() => customers.id, { onDelete: 'set null' }),
     replyText: text().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },

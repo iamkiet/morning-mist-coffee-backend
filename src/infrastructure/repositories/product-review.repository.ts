@@ -35,7 +35,8 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
     const rows = await this.db
       .select()
       .from(productReviewReplies)
-      .where(eq(productReviewReplies.reviewId, id));
+      .where(eq(productReviewReplies.reviewId, id))
+      .orderBy(asc(productReviewReplies.createdAt));
     return rows.map(rowToReply);
   }
 
@@ -50,7 +51,8 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
           productReviewReplies.reviewId,
           rows.map((r) => r.id),
         ),
-      );
+      )
+      .orderBy(asc(productReviewReplies.createdAt));
 
     const repliesByReview = groupRepliesByReview(replyRows);
     return rows.map((r) => rowToProductReview(r, repliesByReview.get(r.id) ?? []));
@@ -158,7 +160,6 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
             reviewId: id,
             authorType: reply.authorType,
             authorName: reply.authorName ?? null,
-            customerId: reply.customerId ?? null,
             replyText: reply.replyText,
           })
           .returning();
@@ -167,7 +168,8 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
       const replyRows = await tx
         .select()
         .from(productReviewReplies)
-        .where(eq(productReviewReplies.reviewId, id));
+        .where(eq(productReviewReplies.reviewId, id))
+        .orderBy(asc(productReviewReplies.createdAt));
       return rowToProductReview(row, replyRows.map(rowToReply));
     });
   }
@@ -195,7 +197,6 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
         reviewId,
         authorType: input.authorType,
         authorName: input.authorName ?? null,
-        customerId: input.customerId ?? null,
         replyText: input.replyText,
       })
       .returning();

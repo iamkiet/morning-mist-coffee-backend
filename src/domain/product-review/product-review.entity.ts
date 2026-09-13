@@ -19,14 +19,13 @@ export type ReviewSentiment = (typeof REVIEW_SENTIMENTS)[number];
 
 export const REVIEW_STATUSES = [
   'pending_classification',
-  'pending_review',
+  'pending_reply',
   'auto_responded',
-  'escalated',
   'resolved',
 ] as const;
 export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
-export const REVIEW_REPLY_AUTHOR_TYPES = ['admin', 'customer', 'ai'] as const;
+export const REVIEW_REPLY_AUTHOR_TYPES = ['admin', 'ai'] as const;
 export type ReviewReplyAuthorType = (typeof REVIEW_REPLY_AUTHOR_TYPES)[number];
 
 export interface ProductReviewReply {
@@ -34,7 +33,6 @@ export interface ProductReviewReply {
   reviewId: string;
   authorType: ReviewReplyAuthorType;
   authorName: string | null;
-  customerId: string | null;
   replyText: string;
   createdAt: Date;
 }
@@ -42,7 +40,6 @@ export interface ProductReviewReply {
 export interface CreateProductReviewReplyInput {
   authorType: ReviewReplyAuthorType;
   authorName?: string;
-  customerId?: string;
   replyText: string;
 }
 

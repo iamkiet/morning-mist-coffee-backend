@@ -10,7 +10,6 @@ export interface ReviewClassificationInput {
   commentText: string;
   productName: string | null;
   source: ReviewSource;
-  followUpMessage?: string;
 }
 
 export interface ReviewClassificationResult {

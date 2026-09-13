@@ -87,23 +87,6 @@ export class ProductReviewController {
     }>,
     reply: FastifyReply,
   ) => {
-    if (!req.user) throw new UnauthorizedError();
-    const created = await this.uc.createReply.execute(req.params.reviewId, {
-      authorType: 'customer',
-      authorName: req.body.authorName,
-      customerId: req.user.id,
-      replyText: req.body.replyText,
-    });
-    return reply.code(201).send(toProductReviewReplyDTO(created));
-  };
-
-  createAdminReply = async (
-    req: FastifyRequest<{
-      Params: z.infer<typeof ProductReviewReplyParams>;
-      Body: z.infer<typeof CreateProductReviewReplyBody>;
-    }>,
-    reply: FastifyReply,
-  ) => {
     const created = await this.uc.createReply.execute(req.params.reviewId, {
       authorType: 'admin',
       authorName: req.body.authorName ?? 'Morning Mist Coffee',

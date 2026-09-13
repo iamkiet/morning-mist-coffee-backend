@@ -13,7 +13,6 @@ export async function applyReviewClassification(
   classification: ReviewClassificationPort,
   logger: AppLogger,
   review: ProductReview,
-  followUpMessage?: string,
 ): Promise<ProductReview> {
   const product = await products.findById(review.productId);
 
@@ -22,21 +21,20 @@ export async function applyReviewClassification(
     commentText: review.commentText,
     productName: product?.name ?? null,
     source: review.source,
-    followUpMessage,
   });
 
   if (!result) {
     logger.warn(
       { event: 'product_review.classification_failed', reviewId: review.id },
-      'Review classification failed, routing to pending_review for manual handling',
+      'Review classification failed, routing to pending_reply for manual handling',
     );
-    const updated = await repo.updateStatus(review.id, 'pending_review');
+    const updated = await repo.updateStatus(review.id, 'pending_reply');
     return updated ?? review;
   }
 
   const status: ReviewStatus =
     result.confidence === 'low' || result.severity === 'high'
-      ? 'pending_review'
+      ? 'pending_reply'
       : 'auto_responded';
 
   const reply =
