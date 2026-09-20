@@ -2,7 +2,8 @@ import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts
 import { ExternalServiceError } from '../../lib/errors.ts';
 import { loadPromptTemplate } from '../../lib/load-template.ts';
 import transcriptionPrompt from '../../prompts/configs/voice-search-transcription.json' with { type: 'json' };
-import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
+import type { GeminiClient } from './gemini.client.ts';
+import { env } from '../../config/env.ts';
 
 const TIMEOUT_MS = 15_000;
 
@@ -14,7 +15,7 @@ export class GeminiTranscriptionAdapter implements TranscriptionPort {
   async transcribe(audioBytes: Buffer, mimeType: string): Promise<string> {
     try {
       const response = await this.gemini.models.generateContent({
-        model: GEMINI_FLASH_MODEL,
+        model: env.AI_GEN_GEMINI_MODEL,
         contents: [
           {
             role: 'user',

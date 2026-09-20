@@ -8,7 +8,8 @@ import type {
 } from '../../domain/ports/chat-filter-extraction.port.ts';
 import { loadPromptTemplate } from '../../lib/load-template.ts';
 import chatFilterExtractionPrompt from '../../prompts/configs/chat-filter-extraction.json' with { type: 'json' };
-import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
+import type { GeminiClient } from './gemini.client.ts';
+import { env } from '../../config/env.ts';
 
 const ExtractedProductFilterSchema = z.object({
   priceMin: z.number().int().min(0).optional(),
@@ -54,7 +55,7 @@ export class GeminiChatFilterExtractionAdapter implements ChatFilterExtractionPo
   async extract(question: string): Promise<ExtractedProductFilter | null> {
     try {
       const response = await this.gemini.models.generateContent({
-        model: GEMINI_FLASH_MODEL,
+        model: env.AI_GEN_GEMINI_MODEL,
         contents: buildPrompt(question),
         config: CONFIG,
       });

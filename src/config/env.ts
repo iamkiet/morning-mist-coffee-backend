@@ -29,6 +29,8 @@ const EnvSchema = z.object({
   RESEND_FROM: z.string().min(1),
   STOREFRONT_URL: z.string().url(),
   GEMINI_API_KEY: z.string().min(1).optional(),
+  AI_GEN_GEMINI_MODEL: z.string().min(1),
+  AI_EMBEDDING_GEMINI_MODEL: z.string().min(1),
 
   SECURITY_AGENT_ENABLED: booleanString,
   SECURITY_AGENT_ALERT_EMAIL: z.string().email(),

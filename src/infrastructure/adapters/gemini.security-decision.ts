@@ -10,7 +10,8 @@ import {
   type SecurityEvent,
 } from '../../domain/security/security-event.entity.ts';
 import { loadPromptTemplate } from '../../lib/load-template.ts';
-import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
+import type { GeminiClient } from './gemini.client.ts';
+import { env } from '../../config/env.ts';
 import securityDecisionPrompt from '../../prompts/configs/security-decision.json' with { type: 'json' };
 
 const SecurityAgentActionSchema = z.object({
@@ -61,7 +62,7 @@ export class GeminiSecurityDecisionAdapter implements SecurityDecisionPort {
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
         const response = await this.gemini.models.generateContent({
-          model: GEMINI_FLASH_MODEL,
+          model: env.AI_GEN_GEMINI_MODEL,
           contents,
           config: CONFIG,
         });

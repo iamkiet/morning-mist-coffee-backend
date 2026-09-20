@@ -14,7 +14,8 @@ import {
 } from '../../domain/product-review/product-review.entity.ts';
 import { loadPromptTemplate } from '../../lib/load-template.ts';
 import reviewClassificationPrompt from '../../prompts/configs/review-classification.json' with { type: 'json' };
-import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
+import type { GeminiClient } from './gemini.client.ts';
+import { env } from '../../config/env.ts';
 
 const ReviewClassificationResultSchema = z.object({
   category: z.enum(REVIEW_CATEGORIES),
@@ -79,7 +80,7 @@ export class GeminiReviewClassificationAdapter implements ReviewClassificationPo
   ): Promise<ReviewClassificationResult | null> {
     try {
       const response = await this.gemini.models.generateContent({
-        model: GEMINI_FLASH_MODEL,
+        model: env.AI_GEN_GEMINI_MODEL,
         contents: buildPrompt(input),
         config: CONFIG,
       });

@@ -1,6 +1,7 @@
 import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.ts';
 import { ExternalServiceError } from '../../lib/errors.ts';
-import { GEMINI_FLASH_MODEL, type GeminiClient } from './gemini.client.ts';
+import type { GeminiClient } from './gemini.client.ts';
+import { env } from '../../config/env.ts';
 
 interface GeminiTurn {
   role: 'user' | 'model';
@@ -38,7 +39,7 @@ export class GeminiChatAdapter implements ChatPort {
   ): Promise<string> {
     try {
       const chat = this.gemini.chats.create({
-        model: GEMINI_FLASH_MODEL,
+        model: env.AI_GEN_GEMINI_MODEL,
         config: { systemInstruction },
         history: toAlternatingHistory(history),
       });

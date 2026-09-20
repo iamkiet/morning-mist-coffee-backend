@@ -1,6 +1,7 @@
 import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
 import { ExternalServiceError } from '../../lib/errors.ts';
-import { GEMINI_EMBEDDING_MODEL, type GeminiClient } from './gemini.client.ts';
+import type { GeminiClient } from './gemini.client.ts';
+import { env } from '../../config/env.ts';
 
 const TIMEOUT_MS = 15_000;
 const RETRIEVAL_DOCUMENT = 'RETRIEVAL_DOCUMENT';
@@ -32,7 +33,7 @@ export class GeminiMultimodalEmbeddingAdapter implements MultimodalEmbeddingPort
   ): Promise<number[]> {
     try {
       const response = await this.gemini.models.embedContent({
-        model: GEMINI_EMBEDDING_MODEL,
+        model: env.AI_EMBEDDING_GEMINI_MODEL,
         contents: [{ role: 'user', parts: [part] }],
         config: {
           taskType,
