@@ -3,3 +3,5 @@ export const PROPERTY_FILTER_NAMES = {
   roast: 'Mức rang',
   process: 'Phương pháp chế biến',
 } as const;
+
+export const WEIGHT_PROPERTY_NAME = 'Trọng lượng';

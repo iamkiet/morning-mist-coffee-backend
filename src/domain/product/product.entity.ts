@@ -34,6 +34,7 @@ export interface ProductFilterCriteria {
   origin?: string;
   roast?: string;
   process?: string;
+  weight?: string;
   q?: string;
 }
 
@@ -48,6 +49,7 @@ export type PriceRange = Pick<ListProductsFilter, 'priceMin' | 'priceMax'>;
 
 export interface ProductSearchFilter extends PriceRange {
   categoryId?: string;
+  weight?: string;
 }
 
 export interface ProductEmbeddingSource {

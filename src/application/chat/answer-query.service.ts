@@ -1,7 +1,10 @@
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { ChatPort, ChatTurn } from '../../domain/ports/chat.port.ts';
-import type { ChatFilterExtractionPort } from '../../domain/ports/chat-filter-extraction.port.ts';
-import type { PriceRange, Product } from '../../domain/product/product.entity.ts';
+import type {
+  ChatFilterExtractionPort,
+  ExtractedProductFilter,
+} from '../../domain/ports/chat-filter-extraction.port.ts';
+import type { Product } from '../../domain/product/product.entity.ts';
 import type { ProductWithVariants } from '../../domain/product/product-variant.entity.ts';
 import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
@@ -74,14 +77,14 @@ export class AnswerQueryService {
   private async retrieveByVector(
     vector: number[] | null,
     question: string,
-    priceFilter: PriceRange | null,
+    filter: ExtractedProductFilter | null,
   ): Promise<Product[]> {
     if (vector) {
       try {
         const matches = await this.products.findSimilarByVector(
           vector,
           RETRIEVAL_LIMIT,
-          priceFilter ?? undefined,
+          filter ?? undefined,
         );
         if (matches.length > 0) return matches.map((m) => m.product);
       } catch (err) {
@@ -89,15 +92,16 @@ export class AnswerQueryService {
       }
     }
 
-    const byKeyword = await this.listProducts(question, priceFilter);
-    return byKeyword.length > 0 ? byKeyword : this.listProducts('', priceFilter);
+    const byKeyword = await this.listProducts(question, filter);
+    return byKeyword.length > 0 ? byKeyword : this.listProducts('', filter);
   }
 
-  private listProducts(q: string, priceFilter: PriceRange | null): Promise<Product[]> {
+  private listProducts(q: string, filter: ExtractedProductFilter | null): Promise<Product[]> {
     return this.products.list({
       ...(q ? { q } : {}),
-      ...(priceFilter?.priceMin !== undefined ? { priceMin: priceFilter.priceMin } : {}),
-      ...(priceFilter?.priceMax !== undefined ? { priceMax: priceFilter.priceMax } : {}),
+      ...(filter?.priceMin !== undefined ? { priceMin: filter.priceMin } : {}),
+      ...(filter?.priceMax !== undefined ? { priceMax: filter.priceMax } : {}),
+      ...(filter?.weight !== undefined ? { weight: filter.weight } : {}),
       sortBy: 'createdAt',
       sortDir: 'desc',
       limit: RETRIEVAL_LIMIT,

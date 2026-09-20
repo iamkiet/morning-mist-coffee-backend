@@ -1,6 +1,5 @@
 import type { ProductWithVariants } from '../../domain/product/product-variant.entity.ts';
-
-const WEIGHT_PROPERTY_NAME = 'Trọng lượng';
+import { WEIGHT_PROPERTY_NAME } from '../../domain/product/property-filter.ts';
 
 export function preferVariantByWeight<T extends ProductWithVariants>(
   product: T,

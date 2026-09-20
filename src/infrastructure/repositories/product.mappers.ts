@@ -1,6 +1,6 @@
 import { and, eq, gte, ilike, lte, or, sql, type SQL } from 'drizzle-orm';
 import type { Product } from '../../domain/product/product.entity.ts';
-import { PROPERTY_FILTER_NAMES } from '../../domain/product/property-filter.ts';
+import { PROPERTY_FILTER_NAMES, WEIGHT_PROPERTY_NAME } from '../../domain/product/property-filter.ts';
 import type { ProductFilterCriteria } from '../../domain/product/product.repo.ts';
 import {
   productProperties,
@@ -11,6 +11,27 @@ import {
   type ProductRow,
 } from '../db/schema.ts';
 import { containsPattern } from './ilike-pattern.ts';
+
+function variantMatchExists(filter: Pick<ProductFilterCriteria, 'priceMin' | 'priceMax' | 'weight'>): SQL {
+  const priceConds = [eq(productVariants.productId, products.id)];
+  if (filter.priceMin !== undefined) priceConds.push(gte(productVariants.priceCents, filter.priceMin));
+  if (filter.priceMax !== undefined) priceConds.push(lte(productVariants.priceCents, filter.priceMax));
+
+  if (!filter.weight) {
+    return sql`exists (select 1 from ${productVariants} where ${and(...priceConds)})`;
+  }
+
+  return sql`exists (select 1 from ${productVariants}
+    inner join ${productVariantPropertyValues}
+      on ${eq(productVariantPropertyValues.productVariantId, productVariants.id)}
+    inner join ${productProperties}
+      on ${eq(productVariantPropertyValues.productPropertyId, productProperties.id)}
+    where ${and(
+      ...priceConds,
+      eq(productProperties.name, WEIGHT_PROPERTY_NAME),
+      eq(productVariantPropertyValues.value, filter.weight),
+    )})`;
+}
 
 function propertyValueExists(propertyName: string, value: string): SQL {
   return sql`exists (select 1 from ${productVariants}
@@ -36,15 +57,8 @@ export function buildProductFilters(filter: ProductFilterCriteria): SQL[] {
       )})`);
   }
 
-  if (filter.priceMin !== undefined || filter.priceMax !== undefined) {
-    const priceConds = [eq(productVariants.productId, products.id)];
-    if (filter.priceMin !== undefined)
-      priceConds.push(gte(productVariants.priceCents, filter.priceMin));
-    if (filter.priceMax !== undefined)
-      priceConds.push(lte(productVariants.priceCents, filter.priceMax));
-    filters.push(
-      sql`exists (select 1 from ${productVariants} where ${and(...priceConds)})`,
-    );
+  if (filter.priceMin !== undefined || filter.priceMax !== undefined || filter.weight) {
+    filters.push(variantMatchExists(filter));
   }
 
   for (const [key, propertyName] of Object.entries(PROPERTY_FILTER_NAMES)) {
