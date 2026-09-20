@@ -52,7 +52,7 @@ export async function productReviewRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/', {
-    onRequest: [app.authenticate, app.requireRole('customer')],
+    onRequest: [app.authenticate, app.requireRole(['customer'])],
     schema: {
       tags: ['product-reviews'],
       body: CreateProductReviewBody,

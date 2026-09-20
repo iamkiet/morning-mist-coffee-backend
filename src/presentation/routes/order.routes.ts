@@ -38,7 +38,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/me', {
-    onRequest: [app.authenticate, app.requireRole('customer')],
+    onRequest: [app.authenticate, app.requireRole(['customer'])],
     schema: {
       tags: ['orders'],
       querystring: ListMyOrdersQuery,
@@ -69,7 +69,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/', {
-    onRequest: [app.authenticate, app.requireRole('customer')],
+    onRequest: [app.authenticate, app.requireRole(['customer'])],
     schema: {
       tags: ['orders'],
       body: CreateOrderBody,

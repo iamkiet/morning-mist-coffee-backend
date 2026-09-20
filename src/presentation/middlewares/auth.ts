@@ -30,8 +30,7 @@ export async function authenticate(
   req.user = { id: claims.sub, email: claims.email, role: claims.role };
 }
 
-export function requireRole(role: AuthRole | AuthRole[]) {
-  const allowed = Array.isArray(role) ? role : [role];
+export function requireRole(allowed: AuthRole[]) {
   return async function check(req: FastifyRequest): Promise<void> {
     if (!req.user) throw new UnauthorizedError();
     if (!allowed.includes(req.user.role)) {

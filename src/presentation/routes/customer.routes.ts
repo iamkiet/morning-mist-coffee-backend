@@ -46,7 +46,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
 
   // Self-service: a customer viewing/editing their own profile.
   fastify.get('/me', {
-    onRequest: [app.authenticate, app.requireRole('customer')],
+    onRequest: [app.authenticate, app.requireRole(['customer'])],
     schema: {
       tags: ['customers'],
       response: { 200: CustomerSchema },
@@ -56,7 +56,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.patch('/me', {
-    onRequest: [app.authenticate, app.requireRole('customer')],
+    onRequest: [app.authenticate, app.requireRole(['customer'])],
     schema: {
       tags: ['customers'],
       body: UpdateOwnCustomerBody,

@@ -6,9 +6,7 @@ import { authenticate, requireRole } from '../middlewares/auth.ts';
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    requireRole: (
-      role: AuthRole | AuthRole[],
-    ) => (req: FastifyRequest) => Promise<void>;
+    requireRole: (allowed: AuthRole[]) => (req: FastifyRequest) => Promise<void>;
   }
 }
 
