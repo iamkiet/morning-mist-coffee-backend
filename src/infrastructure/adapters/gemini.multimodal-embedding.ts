@@ -13,7 +13,7 @@ export class GeminiMultimodalEmbeddingAdapter implements MultimodalEmbeddingPort
     return this.embed({ text }, RETRIEVAL_DOCUMENT, 'text');
   }
 
-  async embedQuery(text: string): Promise<number[]> {
+  async embedChatQuery(text: string): Promise<number[]> {
     return this.embed({ text }, RETRIEVAL_QUERY, 'text');
   }
 

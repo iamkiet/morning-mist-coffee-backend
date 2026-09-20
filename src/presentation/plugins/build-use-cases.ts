@@ -3,6 +3,7 @@ import { EmployeeLoginUseCase } from '../../application/auth/employee-login.use-
 import { CustomerLoginUseCase } from '../../application/auth/customer-login.use-case.ts';
 import { LogoutUseCase } from '../../application/auth/logout.use-case.ts';
 import { RefreshTokenUseCase } from '../../application/auth/refresh-token.use-case.ts';
+import { AnswerQueryService } from '../../application/chat/answer-query.service.ts';
 import { SendChatMessageUseCase } from '../../application/chat/send-chat-message.use-case.ts';
 import { CreateOrderUseCase } from '../../application/order/create-order.use-case.ts';
 import { GetOrderByIdUseCase } from '../../application/order/get-order-by-id.use-case.ts';
@@ -31,7 +32,6 @@ import { GetProductBySlugUseCase } from '../../application/product/get-product-b
 import { GetVariantStockUseCase } from '../../application/product/get-variant-stock.use-case.ts';
 import { IncreaseVariantStockUseCase } from '../../application/product/increase-variant-stock.use-case.ts';
 import { ListProductsUseCase } from '../../application/product/list-products.use-case.ts';
-import { SearchProductsByVoiceUseCase } from '../../application/product/search-products-by-voice.use-case.ts';
 import { SetProductCategoriesUseCase } from '../../application/product/set-product-categories.use-case.ts';
 import { SetVariantPropertyValuesUseCase } from '../../application/product/set-variant-property-values.use-case.ts';
 import { UpdateProductUseCase } from '../../application/product/update-product.use-case.ts';
@@ -74,7 +74,6 @@ import type { ProductReviewUseCases } from '../controllers/product-review.contro
 import type { ProductCategoryUseCases } from '../controllers/product-category.controller.ts';
 import type { ProductPropertyUseCases } from '../controllers/product-property.controller.ts';
 import type { ProductUseCases } from '../controllers/product.controller.ts';
-import type { SearchUseCases } from '../controllers/search.controller.ts';
 import type { EmployeeUseCases } from '../controllers/employee.controller.ts';
 import type { CustomerUseCases } from '../controllers/customer.controller.ts';
 
@@ -88,7 +87,6 @@ export interface AppUseCases {
   productProperty: ProductPropertyUseCases;
   employee: EmployeeUseCases;
   customer: CustomerUseCases;
-  search: SearchUseCases;
 }
 
 export interface UseCaseDeps {
@@ -114,13 +112,21 @@ export interface UseCaseDeps {
 }
 
 export function buildUseCases(deps: UseCaseDeps): AppUseCases {
-  const chatSend = new SendChatMessageUseCase(
+  const answerQuery = new AnswerQueryService(
     deps.productRepo,
     deps.productVariantRepo,
-    deps.embedding,
     deps.chat,
     deps.filterExtraction,
     deps.logger,
+  );
+
+  const chatSend = new SendChatMessageUseCase(
+    deps.embedding,
+    deps.transcription,
+    deps.audioConverter,
+    answerQuery,
+    deps.logger,
+    env.SEARCH_VOICE_MAX_DURATION_SECONDS,
   );
 
   return {
@@ -258,16 +264,6 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
         deps.passwordHasher,
       ),
       delete: new DeleteCustomerUseCase(deps.customerRepo),
-    },
-    search: {
-      voiceSearch: new SearchProductsByVoiceUseCase(
-        deps.productVariantRepo,
-        deps.embedding,
-        deps.transcription,
-        deps.audioConverter,
-        chatSend,
-        env.SEARCH_VOICE_MAX_DURATION_SECONDS,
-      ),
     },
   };
 }

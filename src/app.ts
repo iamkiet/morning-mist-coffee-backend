@@ -28,7 +28,6 @@ import { productReviewRoutes } from './presentation/routes/product-review.routes
 import { productRoutes } from './presentation/routes/product.routes.ts';
 import { productCategoryRoutes } from './presentation/routes/product-category.routes.ts';
 import { productPropertyRoutes } from './presentation/routes/product-property.routes.ts';
-import { searchRoutes } from './presentation/routes/search.routes.ts';
 import { customerRoutes } from './presentation/routes/customer.routes.ts';
 import { employeeRoutes } from './presentation/routes/employee.routes.ts';
 
@@ -117,7 +116,6 @@ export async function buildApp() {
   await app.register(productCategoryRoutes, { prefix: '/api/v1/product-categories' });
   await app.register(productPropertyRoutes, { prefix: '/api/v1/product-properties' });
   await app.register(productRoutes, { prefix: '/api/v1/products' });
-  await app.register(searchRoutes, { prefix: '/api/v1/search' });
   await app.register(employeeRoutes, { prefix: '/api/v1/employees' });
   await app.register(customerRoutes, { prefix: '/api/v1/customers' });
 
