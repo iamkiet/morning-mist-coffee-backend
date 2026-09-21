@@ -123,11 +123,17 @@ await app.register(cors, {
   origin: corsOrigin,           // from CORS_ORIGINS env var, comma-separated
   credentials: true,
   methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-CSRF-Token',
+    'X-Customer-Registration-Key',
+    'X-Employee-Registration-Key',
+  ],
 });
 ```
 
-`CORS_ORIGINS` must include the frontend origin (`https://todaywegrind.com` in production). Without explicit `allowedHeaders`, preflight fails for any request carrying `Authorization` or `X-CSRF-Token`.
+`CORS_ORIGINS` must include the frontend origin (`https://todaywegrind.com` in production). Without explicit `allowedHeaders`, preflight fails for any cross-origin request carrying a header not in this list — any new custom request header (a new registration-key-style header, etc.) must be added here too, or the browser blocks the preflight before the request ever reaches the route (this is what happened with the registration-key headers before they were added: `POST /customers`/`POST /employees` from the frontend failed with a CORS error even though the same request worked fine via curl/Postman, since only a real browser enforces preflight).
 
 **Domain topology** — frontend and backend are both subdomains of `todaywegrind.com` (backend at `api.todaywegrind.com`) — same-site, though still cross-origin. `COOKIE_SAME_SITE=lax` works for this (Lax only blocks cross-*site* requests, not cross-origin-same-site ones), so production no longer needs `SameSite=None`. Cookies deliberately have **no explicit `Domain` attribute** — they stay host-only to `api.todaywegrind.com`, not shared with `todaywegrind.com` itself. That's intentional, not an oversight: nothing on the frontend needs to read these cookies via `document.cookie` (see the CSRF note above — `csrfToken` is delivered through response bodies instead), so widening the cookie's scope to the whole site would only grow the attack surface for no benefit.
 

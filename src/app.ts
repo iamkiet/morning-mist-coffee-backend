@@ -51,7 +51,13 @@ export async function buildApp() {
     origin: corsOrigin,
     credentials: true,
     methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-CSRF-Token',
+      'X-Customer-Registration-Key',
+      'X-Employee-Registration-Key',
+    ],
   });
   await app.register(cookie);
   await app.register(multipart, {
