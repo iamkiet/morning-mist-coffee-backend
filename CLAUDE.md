@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Requirements folder
 
-Before implementing anything in a domain, read `requirements/<domain>.md` first (matches `src/domain/<domain>` folders — e.g. `order.md`, `product-category.md`) instead of re-deriving rules from scattered code or this whole file. Each file is short bullets only, no long explanations — keep it that way when editing. `requirements/_conventions.md` has cross-cutting rules.
+Before implementing, discussing, or answering ANY question about a domain's behavior, read `requirements/<domain>.md` first (matches `src/domain/<domain>` folders — e.g. `order.md`, `product-category.md`) instead of re-deriving rules from scattered code, memory of an earlier read, or this whole file. This applies even mid-conversation, even if you already read the file earlier in the session — re-check it rather than answer from recollection, since it's the source of truth and may have changed. Each file is short bullets only, no long explanations — keep it that way when editing. `requirements/_conventions.md` has cross-cutting rules.
 
 After any change that alters documented behavior (new business rule, removed restriction, changed validation), update the matching `requirements/*.md` file in the same change — don't let it go stale.
 

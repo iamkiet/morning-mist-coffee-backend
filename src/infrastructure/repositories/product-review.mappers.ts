@@ -1,9 +1,8 @@
-import { and, eq, inArray, ne, type SQL } from 'drizzle-orm';
+import { and, eq, isNull, ne, or, type SQL } from 'drizzle-orm';
 import { groupBy } from '../../lib/group-by.ts';
 import type {
   ProductReview,
   ProductReviewReply,
-  ReviewStatus,
 } from '../../domain/product-review/product-review.entity.ts';
 import type { ProductReviewFilterCriteria } from '../../domain/product-review/product-review.repo.ts';
 import {
@@ -12,13 +11,15 @@ import {
   type ProductReviewRow,
 } from '../db/schema.ts';
 
-const PUBLIC_REVIEW_STATUSES: ReviewStatus[] = ['auto_responded', 'resolved'];
-
+// Every non-spam review is public immediately on submit, regardless of
+// classification status — a reply (AI or admin) is added later, it doesn't
+// gate visibility. `category` is null until classification runs (or if it
+// never completes), so this must allow null explicitly — `category != 'spam'`
+// alone evaluates to NULL (excluded) for a null category in SQL.
 export function publicProductReviewWhere(productId: string): SQL {
   return and(
     eq(productReviews.productId, productId),
-    ne(productReviews.category, 'spam'),
-    inArray(productReviews.status, PUBLIC_REVIEW_STATUSES),
+    or(isNull(productReviews.category), ne(productReviews.category, 'spam')),
   ) as SQL;
 }
 
