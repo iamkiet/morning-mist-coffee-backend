@@ -28,7 +28,7 @@ export async function applyReviewClassification(
       { event: 'product_review.classification_failed', reviewId: review.id },
       'Review classification failed, routing to pending_reply for manual handling',
     );
-    const updated = await repo.updateStatus(review.id, 'pending_reply');
+    const updated = await repo.markClassificationFailed(review.id);
     return updated ?? review;
   }
 

@@ -22,12 +22,24 @@ export class CreateProductReviewUseCase {
     if (!product) throw new NotFoundError('Product', input.productId);
 
     const review = await this.repo.create(input);
-    return applyReviewClassification(
+
+    // Fire-and-forget: the customer gets their review back (and it's already
+    // publicly visible) the instant it's saved — classification runs after
+    // the response is sent, not before it, so a slow/failed Gemini call never
+    // delays "submitted successfully" feedback.
+    applyReviewClassification(
       this.repo,
       this.products,
       this.classification,
       this.logger,
       review,
-    );
+    ).catch((err: unknown) => {
+      this.logger.error(
+        { err, reviewId: review.id },
+        'Review classification crashed outside the normal fail path',
+      );
+    });
+
+    return review;
   }
 }

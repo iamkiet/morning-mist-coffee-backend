@@ -30,6 +30,10 @@ export interface ProductReviewRepo {
     reply?: CreateProductReviewReplyInput,
   ): Promise<ProductReview | null>;
   updateStatus(id: string, status: ReviewStatus): Promise<ProductReview | null>;
+  // Gemini call failed/errored — no classification result to store, but the
+  // review still needs triage: category `unclassified`, severity `high` (assume
+  // the worst since we don't actually know), status `pending_reply`.
+  markClassificationFailed(id: string): Promise<ProductReview | null>;
   createReply(
     reviewId: string,
     input: CreateProductReviewReplyInput,

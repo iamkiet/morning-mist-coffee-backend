@@ -20,7 +20,9 @@ export class CreateProductReviewReplyUseCase {
 
     const reply = await this.repo.createReply(reviewId, input);
 
-    if (review.status === 'pending_reply') {
+    // `pending_classification` is included because classification now runs
+    // fire-and-forget — an admin can reply before it finishes.
+    if (review.status === 'pending_reply' || review.status === 'pending_classification') {
       await this.repo.updateStatus(reviewId, 'resolved');
     }
 

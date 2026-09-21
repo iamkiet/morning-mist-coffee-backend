@@ -8,6 +8,7 @@ export const REVIEW_CATEGORIES = [
   'compliment',
   'suggestion',
   'spam',
+  'unclassified',
 ] as const;
 export type ReviewCategory = (typeof REVIEW_CATEGORIES)[number];
 

@@ -1,0 +1,1 @@
+ALTER TYPE "product_review_category" ADD VALUE 'unclassified';

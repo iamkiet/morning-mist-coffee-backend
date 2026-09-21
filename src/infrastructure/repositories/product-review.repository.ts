@@ -137,6 +137,18 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
     reply?: CreateProductReviewReplyInput,
   ): Promise<ProductReview | null> {
     return this.db.transaction(async (tx) => {
+      // Classification runs fire-and-forget, so an admin can race it and
+      // manually reply while a review is still `pending_classification`.
+      // If that already happened, don't insert a second (AI) reply — the
+      // "at most 1 reply" invariant is enforced here, not just at the
+      // application layer — and don't reopen a review a human already handled.
+      const existingReply = await tx
+        .select({ id: productReviewReplies.id })
+        .from(productReviewReplies)
+        .where(eq(productReviewReplies.reviewId, id))
+        .limit(1);
+      const alreadyReplied = existingReply.length > 0;
+
       const [row] = await tx
         .update(productReviews)
         .set({
@@ -147,13 +159,13 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
           suggestedResponse: input.suggestedResponse,
           classificationRaw: input.classificationRaw,
           classifiedAt: input.classifiedAt,
-          status: input.status,
+          status: alreadyReplied ? 'resolved' : input.status,
         })
         .where(eq(productReviews.id, id))
         .returning();
       if (!row) return null;
 
-      if (reply) {
+      if (reply && !alreadyReplied) {
         await tx
           .insert(productReviewReplies)
           .values({
@@ -181,6 +193,16 @@ export class PostgresProductReviewRepository implements ProductReviewRepo {
     const [row] = await this.db
       .update(productReviews)
       .set({ status })
+      .where(eq(productReviews.id, id))
+      .returning();
+    if (!row) return null;
+    return rowToProductReview(row, await this.findRepliesByReviewId(id));
+  }
+
+  async markClassificationFailed(id: string): Promise<ProductReview | null> {
+    const [row] = await this.db
+      .update(productReviews)
+      .set({ category: 'unclassified', severity: 'high', status: 'pending_reply' })
       .where(eq(productReviews.id, id))
       .returning();
     if (!row) return null;

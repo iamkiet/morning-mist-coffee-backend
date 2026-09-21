@@ -103,19 +103,20 @@ Shipping info: `shippingFullName` + `shippingAddress` (cả hai nullable ở DB 
 
 ### Product Reviews
 
-- `POST /api/v1/product-reviews` — customer, bắt buộc `productId` hợp lệ; classify đồng bộ qua Gemini ngay khi tạo
-- `POST /:reviewId/replies` — customer reply, kích hoạt reclassify lại review
-- `POST /:reviewId/admin-replies` — admin/staff reply, không reclassify
+- `POST /api/v1/product-reviews` — customer, bắt buộc `productId` hợp lệ; trả response NGAY sau khi insert (`status: pending_classification`) — classify chạy fire-and-forget phía sau, không block response
+- `POST /:reviewId/replies` — CHỈ admin/staff (không có endpoint reply cho customer — customer muốn nói thêm thì viết review mới hoặc hỏi Chat). Mỗi review tối đa 1 reply
 - `PATCH /:id/status` — admin/staff force set status
-- `GET /product/:productId` — public, chỉ trả review `category != 'spam' AND status IN ('auto_responded', 'resolved')`
+- `GET /product/:productId` — public, mọi review hiển thị ngay từ lúc submit (không gate theo status) — chỉ loại trừ `category = 'spam'`
 
-**Classification routing:**
+**Classification routing (chạy đúng 1 lần/review, không retry):**
 
 ```
-Gemini call fails                          → pending_review (người xử lý)
-confidence = 'low' OR severity = 'high'    → pending_review
-otherwise                                  → auto_responded (AI tự đăng reply)
+Gemini call fails                          → status = pending_reply, category = 'unclassified', severity = 'high'
+confidence = 'low' OR severity = 'high'    → status = pending_reply
+otherwise                                  → status = auto_responded (AI tự đăng reply)
 ```
+
+Admin/staff trả lời lúc đang `pending_reply` → tự động chuyển `resolved`, không cần `PATCH /:id/status` riêng.
 
 ### Voice Semantic Search
 
@@ -266,7 +267,8 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 | GET/PATCH | `/api/v1/customers/me` | customer |
 | GET/PATCH/DELETE | `/api/v1/customers/*` | admin/staff |
 | GET/POST/PATCH/DELETE | `/api/v1/employees/*` | admin/staff |
-| GET/POST/PATCH/DELETE | `/api/v1/product-categories/*` | admin/staff |
+| GET | `/api/v1/product-categories` | — |
+| POST/PATCH/DELETE | `/api/v1/product-categories/*` | admin/staff |
 | GET/POST | `/api/v1/product-properties/*` | admin/staff |
 | GET | `/api/v1/products`, `/products/:id`, `/products/slug/:slug` | — |
 | POST/PATCH/DELETE | `/api/v1/products` (+ `/categories`, `/variants/*`, `/variants/:id/properties`, `/variants/:id/stock/*`) | admin/staff |
@@ -276,11 +278,11 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 | GET | `/api/v1/orders`, `/orders/:id` | admin/staff |
 | PATCH | `/api/v1/orders/:id/status` | admin/staff |
 | GET | `/api/v1/product-reviews/product/:productId` | — |
-| POST | `/api/v1/product-reviews`, `/:id/replies` | customer |
+| POST | `/api/v1/product-reviews` | customer |
 | GET/PATCH | `/api/v1/product-reviews`, `/:id`, `/:id/status` | admin/staff |
-| POST | `/api/v1/product-reviews/:id/admin-replies` | admin/staff |
+| POST | `/api/v1/product-reviews/:id/replies` | admin/staff |
 | POST | `/api/v1/chat` | — (cần `GEMINI_API_KEY`) |
-| POST | `/api/v1/search/voice` | — (rate-limit riêng, cần `GEMINI_API_KEY`) |
+| POST | `/api/v1/chat/voice` | — (rate-limit riêng, cần `GEMINI_API_KEY`) |
 
 ## Example: create order
 
