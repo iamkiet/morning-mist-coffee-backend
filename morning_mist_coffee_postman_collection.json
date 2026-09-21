@@ -1239,7 +1239,7 @@
       "name": "Product Categories",
       "item": [
         {
-          "name": "List Categories (Admin/Staff)",
+          "name": "List Categories (public)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1251,7 +1251,8 @@
               "path": [
                 "product-categories"
               ]
-            }
+            },
+            "description": "No auth needed. Categories are flat (no parentId/hierarchy) — sorted by name."
           },
           "response": []
         },
@@ -1282,14 +1283,14 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Ca Phe\",\n  \"parentId\": null\n}",
+              "raw": "{\n  \"name\": \"Ca Phe\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "description": "name unique case-insensitively. Flat list; caller builds tree client-side via parentId."
+            "description": "name unique case-insensitively (case-insensitive). Only POST/PATCH/DELETE require admin/staff."
           },
           "response": [],
           "event": [
@@ -1340,8 +1341,7 @@
                   "language": "json"
                 }
               }
-            },
-            "description": "Cannot set a category as its own parentId."
+            }
           },
           "response": []
         },
@@ -1366,7 +1366,7 @@
                 "{{categoryId}}"
               ]
             },
-            "description": "Blocked (409 ConflictError) if the category still has children. Not blocked if attached to products (cascade removes join rows)."
+            "description": "Not blocked if attached to products (cascade removes join rows in products_categories)."
           },
           "response": []
         }
