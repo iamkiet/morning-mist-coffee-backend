@@ -1,6 +1,6 @@
 {
   "promptName": "security-decision",
-  "version": 1,
+  "version": 2,
   "templateFile": "security-decision.md",
   "variables": []
 }
