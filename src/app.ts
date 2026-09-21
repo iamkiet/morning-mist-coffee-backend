@@ -67,6 +67,7 @@ export async function buildApp() {
     max: 100,
     timeWindow: '1 minute',
     errorResponseBuilder: (_req, ctx) => ({
+      statusCode: ctx.statusCode,
       error: 'RATE_LIMIT_EXCEEDED',
       message: `Too many requests, retry in ${ctx.after}.`,
     }),
