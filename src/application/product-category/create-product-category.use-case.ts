@@ -1,4 +1,3 @@
-import { ConflictError, NotFoundError } from '../../lib/errors.ts';
 import { resolveUniqueName } from '../../lib/unique-name.ts';
 import type {
   CreateProductCategoryInput,
@@ -16,14 +15,6 @@ export class CreateProductCategoryUseCase {
       'Category',
     );
 
-    if (input.parentId) {
-      const parent = await this.repo.findById(input.parentId);
-      if (!parent) throw new NotFoundError('ProductCategory', input.parentId);
-      if (parent.parentId !== null) {
-        throw new ConflictError('Category only supports one level — cannot use a child category as parent');
-      }
-    }
-
-    return this.repo.create({ name, parentId: input.parentId ?? null });
+    return this.repo.create({ name });
   }
 }

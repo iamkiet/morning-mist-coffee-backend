@@ -246,8 +246,18 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
     productCategory: {
       list: new ListProductCategoriesUseCase(deps.productCategoryRepo),
       create: new CreateProductCategoryUseCase(deps.productCategoryRepo),
-      update: new UpdateProductCategoryUseCase(deps.productCategoryRepo),
-      delete: new DeleteProductCategoryUseCase(deps.productCategoryRepo),
+      update: new UpdateProductCategoryUseCase(
+        deps.productCategoryRepo,
+        deps.productRepo,
+        deps.embedding,
+        deps.logger,
+      ),
+      delete: new DeleteProductCategoryUseCase(
+        deps.productCategoryRepo,
+        deps.productRepo,
+        deps.embedding,
+        deps.logger,
+      ),
     },
     productProperty: {
       list: new ListProductPropertiesUseCase(deps.productPropertyRepo),

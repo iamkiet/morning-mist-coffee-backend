@@ -1,13 +1,22 @@
-import { ConflictError, NotFoundError } from '../../lib/errors.ts';
+import { NotFoundError } from '../../lib/errors.ts';
 import { resolveUniqueName } from '../../lib/unique-name.ts';
 import type {
   ProductCategory,
   UpdateProductCategoryInput,
 } from '../../domain/product-category/product-category.entity.ts';
 import type { ProductCategoryRepo } from '../../domain/product-category/product-category.repo.ts';
+import type { AppLogger } from '../../domain/ports/logger.port.ts';
+import type { MultimodalEmbeddingPort } from '../../domain/ports/multimodal-embedding.port.ts';
+import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import { syncProductEmbedding } from '../product/sync-product-embedding.ts';
 
 export class UpdateProductCategoryUseCase {
-  constructor(private readonly repo: ProductCategoryRepo) {}
+  constructor(
+    private readonly repo: ProductCategoryRepo,
+    private readonly products: ProductRepo,
+    private readonly embedding: MultimodalEmbeddingPort,
+    private readonly logger: AppLogger,
+  ) {}
 
   async execute(
     id: string,
@@ -26,23 +35,18 @@ export class UpdateProductCategoryUseCase {
       input = { ...input, name };
     }
 
-    if (input.parentId) {
-      if (input.parentId === id) {
-        throw new ConflictError('A category cannot be its own parent');
-      }
-      const parent = await this.repo.findById(input.parentId);
-      if (!parent) throw new NotFoundError('ProductCategory', input.parentId);
-      if (parent.parentId !== null) {
-        throw new ConflictError('Category only supports one level — cannot use a child category as parent');
-      }
-      const hasChildren = await this.repo.hasChildren(id);
-      if (hasChildren) {
-        throw new ConflictError('Category has children — cannot assign it a parent');
-      }
-    }
-
     const updated = await this.repo.update(id, input);
     if (!updated) throw new NotFoundError('ProductCategory', id);
+
+    if (input.name !== undefined) {
+      const productIds = await this.repo.getProductIdsForCategory(id);
+      await Promise.all(
+        productIds.map((productId) =>
+          syncProductEmbedding(productId, this.products, this.embedding, this.logger),
+        ),
+      );
+    }
+
     return updated;
   }
 }

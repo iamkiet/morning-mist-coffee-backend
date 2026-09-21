@@ -53,12 +53,7 @@ async function seed() {
   for (const category of seedData.productCategories) {
     const [row] = await db
       .insert(productCategories)
-      .values({
-        name: category.name,
-        parentId: category.parentId
-          ? (categoryIdMap.get(category.parentId) ?? null)
-          : null,
-      })
+      .values({ name: category.name })
       .returning();
     if (!row) throw new ExternalServiceError('Database', `Failed to seed category ${category.name}`);
     categoryIdMap.set(category.id, row.id);

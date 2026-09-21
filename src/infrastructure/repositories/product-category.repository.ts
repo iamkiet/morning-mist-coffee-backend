@@ -1,4 +1,4 @@
-import { asc, count, eq, inArray, sql } from 'drizzle-orm';
+import { asc, eq, inArray, sql } from 'drizzle-orm';
 import { ExternalServiceError } from '../../lib/errors.ts';
 import type {
   CreateProductCategoryInput,
@@ -14,7 +14,7 @@ import {
 } from '../db/schema.ts';
 
 function rowToCategory(row: ProductCategoryRow): ProductCategory {
-  return { id: row.id, name: row.name, parentId: row.parentId, createdAt: row.createdAt };
+  return { id: row.id, name: row.name, createdAt: row.createdAt };
 }
 
 export class PostgresProductCategoryRepository implements ProductCategoryRepo {
@@ -58,7 +58,7 @@ export class PostgresProductCategoryRepository implements ProductCategoryRepo {
   async create(input: CreateProductCategoryInput): Promise<ProductCategory> {
     const [row] = await this.db
       .insert(productCategories)
-      .values({ name: input.name, parentId: input.parentId ?? null })
+      .values({ name: input.name })
       .returning();
     if (!row) throw new ExternalServiceError('Database', 'Failed to create product category');
     return rowToCategory(row);
@@ -70,7 +70,6 @@ export class PostgresProductCategoryRepository implements ProductCategoryRepo {
   ): Promise<ProductCategory | null> {
     const values: Partial<typeof productCategories.$inferInsert> = {};
     if (input.name !== undefined) values.name = input.name;
-    if (input.parentId !== undefined) values.parentId = input.parentId;
 
     const [row] = await this.db
       .update(productCategories)
@@ -88,12 +87,12 @@ export class PostgresProductCategoryRepository implements ProductCategoryRepo {
     return result.length > 0;
   }
 
-  async hasChildren(id: string): Promise<boolean> {
-    const [row] = await this.db
-      .select({ count: count() })
-      .from(productCategories)
-      .where(eq(productCategories.parentId, id));
-    return (row?.count ?? 0) > 0;
+  async getProductIdsForCategory(categoryId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ id: productsCategories.productId })
+      .from(productsCategories)
+      .where(eq(productsCategories.productCategoryId, categoryId));
+    return rows.map((r) => r.id);
   }
 
   async getCategoryIdsForProduct(productId: string): Promise<string[]> {

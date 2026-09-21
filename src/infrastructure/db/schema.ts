@@ -193,16 +193,11 @@ export const productVariantPropertyValues = pgTable(
   ],
 );
 
-export const productCategories = pgTable(
-  'product_categories',
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    name: text().notNull(),
-    parentId: uuid(),
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [index('product_categories_parent_id_idx').on(t.parentId)],
-);
+export const productCategories = pgTable('product_categories', {
+  id: uuid().primaryKey().defaultRandom(),
+  name: text().notNull(),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
 
 export const productsCategories = pgTable(
   'products_categories',

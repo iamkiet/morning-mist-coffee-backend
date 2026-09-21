@@ -5,7 +5,6 @@ export function toProductCategoryDTO(c: ProductCategory): ProductCategoryDTO {
   return {
     id: c.id,
     name: c.name,
-    parentId: c.parentId,
     createdAt: c.createdAt.toISOString(),
   };
 }

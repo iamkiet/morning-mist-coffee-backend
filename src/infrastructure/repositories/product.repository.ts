@@ -140,18 +140,15 @@ export class PostgresProductRepository implements ProductRepo {
       .limit(1);
     if (!product) return null;
 
-    const [linkedCategoryIds, allCategories, propertyRows] = await Promise.all([
+    const [linkedCategories, propertyRows] = await Promise.all([
       this.db
-        .select({ id: productsCategories.productCategoryId })
+        .select({ name: productCategories.name })
         .from(productsCategories)
+        .innerJoin(
+          productCategories,
+          eq(productCategories.id, productsCategories.productCategoryId),
+        )
         .where(eq(productsCategories.productId, id)),
-      this.db
-        .select({
-          id: productCategories.id,
-          name: productCategories.name,
-          parentId: productCategories.parentId,
-        })
-        .from(productCategories),
       this.db
         .select({
           propertyName: productProperties.name,
@@ -169,15 +166,7 @@ export class PostgresProductRepository implements ProductRepo {
         .where(eq(productVariants.productId, id)),
     ]);
 
-    const categoryById = new Map(allCategories.map((c) => [c.id, c]));
-    const categoryNames = new Set<string>();
-    for (const { id: categoryId } of linkedCategoryIds) {
-      let current = categoryById.get(categoryId);
-      while (current) {
-        categoryNames.add(current.name);
-        current = current.parentId ? categoryById.get(current.parentId) : undefined;
-      }
-    }
+    const categoryNames = new Set(linkedCategories.map((c) => c.name));
 
     const seen = new Set<string>();
     const propertyValues = propertyRows.filter((r) => {

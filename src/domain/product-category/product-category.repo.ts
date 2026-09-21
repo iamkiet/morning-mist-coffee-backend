@@ -15,9 +15,9 @@ export interface ProductCategoryRepo {
     input: UpdateProductCategoryInput,
   ): Promise<ProductCategory | null>;
   delete(id: string): Promise<boolean>;
-  hasChildren(id: string): Promise<boolean>;
   getCategoryIdsForProduct(productId: string): Promise<string[]>;
   getCategoryIdsForProducts(productIds: string[]): Promise<Map<string, string[]>>;
+  getProductIdsForCategory(categoryId: string): Promise<string[]>;
   setCategoriesForProduct(
     productId: string,
     categoryIds: string[],
