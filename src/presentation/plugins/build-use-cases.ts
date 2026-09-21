@@ -115,6 +115,7 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
   const answerQuery = new AnswerQueryService(
     deps.productRepo,
     deps.productVariantRepo,
+    deps.productCategoryRepo,
     deps.chat,
     deps.filterExtraction,
     deps.logger,
@@ -187,8 +188,16 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
         deps.productVariantRepo,
         deps.productCategoryRepo,
       ),
-      getById: new GetProductByIdUseCase(deps.productRepo, deps.productVariantRepo),
-      getBySlug: new GetProductBySlugUseCase(deps.productRepo, deps.productVariantRepo),
+      getById: new GetProductByIdUseCase(
+        deps.productRepo,
+        deps.productVariantRepo,
+        deps.productCategoryRepo,
+      ),
+      getBySlug: new GetProductBySlugUseCase(
+        deps.productRepo,
+        deps.productVariantRepo,
+        deps.productCategoryRepo,
+      ),
       create: new CreateProductUseCase(
         deps.productRepo,
         deps.productVariantRepo,

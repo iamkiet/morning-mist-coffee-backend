@@ -13,6 +13,8 @@
   shipped  → delivered
   delivered, cancelled → (terminal)
   ```
-- `shippingFullName` + `shippingAddress` bắt buộc lúc tạo (nullable ở DB — order cũ trước khi field này tồn tại)
-- `GET /orders/lookup?code=` — public, rate-limit theo IP (`ORDER_LOOKUP_RATE_MAX`/`ORDER_LOOKUP_RATE_WINDOW`), tra theo mã đơn 8 ký tự hex đầu của order id
+- `shippingFullName` + `shippingAddress` + `shippingPhone` bắt buộc lúc tạo (nullable ở DB — order cũ trước khi field này tồn tại)
+- `cashReceivedCents` (nếu gửi) phải >= `totalCents`, `changeCents` server tự tính (không nhận từ client)
+- `GET /orders/lookup?code=` — public, rate-limit theo IP (`ORDER_LOOKUP_RATE_MAX`/`ORDER_LOOKUP_RATE_WINDOW`), `code` phải là full order id (UUID), trả `{ items: [] | [order] }`
+- `GET /orders/me` — login `customer`, tự lọc theo `req.user.email` (không nhận `customerEmail` query)
 - `q` search match: `email` (partial), `id` (prefix), `status`

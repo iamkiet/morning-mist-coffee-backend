@@ -35,6 +35,7 @@ export const ProductSchema = z.object({
   imageUrl: z.string().nullable(),
   variants: z.array(ProductVariantSchema),
   categoryIds: z.array(z.uuid()),
+  categoryNames: z.array(z.string()),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });

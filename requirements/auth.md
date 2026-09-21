@@ -11,7 +11,11 @@
 - `authenticate` chỉ đọc cookie `access_token` — không hỗ trợ `Authorization: Bearer`
 - `requireRole(role | role[])` chạy sau `authenticate`, check `req.user.role`
 - Lockout: 5 lần login sai → khoá 15 phút (`failedLoginAttempts`/`lockedUntil`)
-- Account `status !== 'active'` (vd. `banned`) → login và refresh đều từ chối (`UnauthorizedError`), không tiết lộ lý do cụ thể (dùng chung message "Invalid email or password")
+- Account `status !== 'active'` (vd. `banned`) → login từ chối, dùng chung message "Invalid email or password" (không tiết lộ lý do); refresh từ chối với message riêng "Account is no longer active" (đã qua access token nên không cần che giấu)
+- `refresh`/`logout` chỉ đọc `refresh_token` từ cookie, không có body fallback
+- Refresh mỗi lần dùng: revoke jti cũ, tạo jti mới, đồng thời dọn token hết hạn/đã revoke qua `deleteStale` (fire-and-forget)
+- `employee-login`/`customer-login`/`refresh` rate-limit theo `AUTH_LOGIN_RATE_MAX`/`AUTH_LOGIN_RATE_WINDOW` (`logout`, `me` không rate-limit)
+- Response body login/refresh chỉ trả `accessToken`/`refreshToken` khi `NODE_ENV !== 'production'` (test qua Swagger/Postman); production chỉ trả `user`/`csrfToken`
 - CSRF double-submit: header `X-CSRF-Token` phải khớp cookie `csrf_token` (so sánh `timingSafeEqual`)
   - Exempt: GET/HEAD/OPTIONS, `POST /auth/{employee-login,customer-login,refresh,logout}`, request không có cookie `access_token`
 - `GET /auth/me` trả `{ user, csrfToken }` — `csrfToken` có thể thiếu nếu không có cookie `csrf_token`

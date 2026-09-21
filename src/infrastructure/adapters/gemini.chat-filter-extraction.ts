@@ -11,6 +11,9 @@ import chatFilterExtractionPrompt from '../../prompts/configs/chat-filter-extrac
 import type { GeminiClient } from './gemini.client.ts';
 import { env } from '../../config/env.ts';
 
+// Upper bound matches RETRIEVAL_LIMIT in answer-query.service.ts — can't recommend more than what's retrieved.
+const MAX_QUANTITY = 8;
+
 const ExtractedProductFilterSchema = z.object({
   priceMin: z.number().int().min(0).optional(),
   priceMax: z.number().int().min(0).optional(),
@@ -18,6 +21,7 @@ const ExtractedProductFilterSchema = z.object({
     .string()
     .regex(/^\d+(\.\d+)?(kg|g|ml|l)$/)
     .optional(),
+  quantity: z.number().int().min(1).optional(),
 });
 
 const TIMEOUT_MS = 10_000;
@@ -31,6 +35,7 @@ const CONFIG: GenerateContentConfig = {
       priceMin: { type: Type.INTEGER },
       priceMax: { type: Type.INTEGER },
       weight: { type: Type.STRING },
+      quantity: { type: Type.INTEGER },
     },
   },
   httpOptions: { timeout: TIMEOUT_MS },
@@ -62,11 +67,13 @@ export class GeminiChatFilterExtractionAdapter implements ChatFilterExtractionPo
       const text = response.text;
       if (text === undefined) throw new ExternalServiceError('Gemini', 'Empty product filter extraction response');
       const parsed = ExtractedProductFilterSchema.parse(JSON.parse(text.trim()));
+      const quantity = parsed.quantity === undefined ? undefined : Math.min(parsed.quantity, MAX_QUANTITY);
       const isEmpty =
         parsed.priceMin === undefined &&
         parsed.priceMax === undefined &&
-        parsed.weight === undefined;
-      return isEmpty ? null : parsed;
+        parsed.weight === undefined &&
+        quantity === undefined;
+      return isEmpty ? null : { ...parsed, quantity };
     } catch (error) {
       this.logger.warn({ err: error }, 'Product filter extraction failed, skipping filter');
       return null;

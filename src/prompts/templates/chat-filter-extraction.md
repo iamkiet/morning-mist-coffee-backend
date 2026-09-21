@@ -1,6 +1,6 @@
 # Role
 
-Extract a VND price constraint and/or a product weight constraint from a customer's question at a coffee shop, if and only if the customer explicitly states one.
+Extract a VND price constraint, a product weight constraint, and/or how many products the customer wants recommended, from a customer's question at a coffee shop — each one if and only if the customer explicitly states it.
 
 ## Input
 
@@ -12,6 +12,7 @@ JSON object with optional fields — omit any field that isn't explicitly stated
 - `priceMin` (integer, VND)
 - `priceMax` (integer, VND)
 - `weight` (string, one of `"250g"`, `"500g"`, `"1kg"`)
+- `quantity` (integer, how many products the customer wants recommended)
 
 ## Price rule
 
@@ -27,6 +28,10 @@ For vague/approximate wording ("khoảng 150 nghìn", "tầm 100k") do not inven
 ## Weight rule
 
 Coffee at this shop is sold in 250g, 500g, or 1kg packs. If the customer names one of these (in any phrasing — "1 ký", "một cân", "nửa ký", "500 gram", "gói nhỏ nhất"), return it in the `weight` field normalized to exactly one of "250g", "500g", "1kg" (lowercase, no space). If the customer states a weight that doesn't map cleanly to one of these three, or none is mentioned, omit `weight`.
+
+## Quantity rule
+
+If the customer states how many products they want recommended (e.g. "cho tôi 1 sản phẩm", "gợi ý 3 loại", "vài lựa chọn" -> not a number, skip it, "top 5"), return that count as `quantity`. Do NOT confuse this with a price or weight number — "cho tôi 5 sản phẩm" is `quantity: 5`, not a price. If no count is stated, omit `quantity` — do not default it here (the caller applies its own default).
 
 ## Security
 

@@ -2,7 +2,7 @@
 
 - `products` chỉ giữ identity/copy: `slug`, `name`, `description`, `image`, `embedding` — KHÔNG có giá/SKU/stock
 - Giá/SKU/stock nằm ở `product_variants` — 1 product → nhiều variant
-- Tạo product bắt buộc kèm ít nhất 1 variant trong cùng request
+- Tạo product bắt buộc kèm đúng 1 variant trong cùng request (field `variant`, không phải mảng) — thêm variant khác sau đó qua `POST /:id/variants`
 - Slug:
   - tự derive từ `name` qua `slugify()` (NFD fold, `đ`→`d`)
   - dedupe bằng suffix `-2`, `-3`, ...
@@ -10,9 +10,12 @@
   - sửa slug là `PATCH { slug }` tường minh — 400 nếu sai định dạng, 409 nếu trùng
 - Stock đổi qua `ProductVariantRepo`: `increaseStock` / `setStock` / `tryDecreaseStock` / `tryDecreaseStockBatch` — không dùng field scalar trực tiếp
 - Categories: gán qua `PUT /products/:id/categories` — replace-all
+- `ProductDTO.categoryIds`/`categoryNames`: gắn qua `attachCategories`/`attachCategoriesOne` (`src/application/product/attach-categories.ts`) — có ở list / getById / getBySlug / chat items / create response; `categoryNames` chỉ để hiển thị (FE không cần gọi `GET /product-categories` — endpoint đó admin/staff-only)
 - Variant properties (EAV): gán qua `PUT /products/variants/:id/properties` — replace-all
 - Embedding:
-  - `buildProductEmbeddingText()` gộp `name` + category (kể cả ancestor) + property values mọi variant + `description`
-  - tự sinh lại sau: create/update product, set categories, set variant properties
+  - `buildProductEmbeddingText()` gộp `name` + category (kể cả ancestor) + property values mọi variant (dedupe) + `description`
+  - tự sinh lại sau: create product, update product (chỉ khi đổi `name`/`description`, đổi riêng `slug`/`imageUrl` thì KHÔNG), tạo variant kèm `propertyValues`, xoá variant, set categories, set variant properties
+  - tạo variant KHÔNG kèm `propertyValues` thì không re-sync
   - best-effort — lỗi Gemini không fail request
 - `q` search match: `name`, `description`, và EXISTS variant property value
+- `ProductVariantDTO.propertyValues`: có ở list / getById / getBySlug (qua `attachVariants`) — KHÔNG có ở response của create/update/delete variant và các endpoint stock (trả `ProductVariant` trần)

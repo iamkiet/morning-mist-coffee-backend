@@ -32,11 +32,13 @@ export class CreateProductUseCase {
   ) {}
 
   async execute(input: CreateProductWithVariantInput): Promise<ProductWithVariants> {
+    let categoryNames: string[] = [];
     if (input.categoryIds && input.categoryIds.length > 0) {
       const found = await this.categories.findByIds(input.categoryIds);
       const foundIds = new Set(found.map((c) => c.id));
       const missingId = input.categoryIds.find((id) => !foundIds.has(id));
       if (missingId) throw new NotFoundError('ProductCategory', missingId);
+      categoryNames = found.map((c) => c.name);
     }
 
     const slug = await this.resolveSlug(input.name);
@@ -59,6 +61,7 @@ export class CreateProductUseCase {
     return {
       ...(await attachVariantsOne(this.variants, product)),
       categoryIds: input.categoryIds ?? [],
+      categoryNames,
     };
   }
 

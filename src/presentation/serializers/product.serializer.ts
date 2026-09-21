@@ -35,6 +35,7 @@ export function toProductDTO(p: ProductWithVariants): ProductDTO {
     imageUrl: p.imageUrl,
     variants: p.variants.map(toProductVariantDTO),
     categoryIds: p.categoryIds ?? [],
+    categoryNames: p.categoryNames ?? [],
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };

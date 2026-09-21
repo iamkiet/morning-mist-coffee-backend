@@ -8,12 +8,16 @@ import type { Product } from '../../domain/product/product.entity.ts';
 import type { ProductWithVariants } from '../../domain/product/product-variant.entity.ts';
 import type { ProductVariantRepo } from '../../domain/product/product-variant.repo.ts';
 import type { ProductRepo } from '../../domain/product/product.repo.ts';
+import type { ProductCategoryRepo } from '../../domain/product-category/product-category.repo.ts';
 import { attachVariants } from '../product/attach-variants.ts';
+import { attachCategories } from '../product/attach-categories.ts';
 import { preferVariantByWeight } from '../product/prefer-variant-by-weight.ts';
 import { buildCatalogueProducts } from './build-catalogue-products.ts';
 import { buildChatPrompt, wrapUserMessage } from './build-chat-prompt.ts';
 
 const RETRIEVAL_LIMIT = 8;
+// How many product cards to return when the customer didn't state a count.
+const DEFAULT_RESULT_LIMIT = 6;
 const FALLBACK_REPLY =
   'Xin lỗi, trợ lý đang tạm quá tải. Đây là một vài gợi ý phù hợp, bạn thử lại sau ít phút để trò chuyện chi tiết hơn nhé.';
 
@@ -27,6 +31,7 @@ export class AnswerQueryService {
   constructor(
     private readonly products: ProductRepo,
     private readonly variants: ProductVariantRepo,
+    private readonly categories: ProductCategoryRepo,
     private readonly chat: ChatPort,
     private readonly filterExtraction: ChatFilterExtractionPort,
     private readonly logger: AppLogger,
@@ -44,10 +49,12 @@ export class AnswerQueryService {
     const relevant = await this.retrieveByVector(resolvedVector, question, filter);
     const message = await this.reply(relevant, history, question);
     const mentioned = this.filterMentioned(relevant, message);
-    const attached = await attachVariants(this.variants, mentioned);
-    const items = filter?.weight
+    const limited = mentioned.slice(0, filter?.quantity ?? DEFAULT_RESULT_LIMIT);
+    const attached = await attachVariants(this.variants, limited);
+    const withWeight = filter?.weight
       ? attached.map((p) => preferVariantByWeight(p, filter.weight as string))
       : attached;
+    const items = await attachCategories(this.categories, withWeight);
     return { message, items, weight: filter?.weight };
   }
 
@@ -70,8 +77,7 @@ export class AnswerQueryService {
   }
 
   private filterMentioned(products: Product[], reply: string): Product[] {
-    const mentioned = products.filter((p) => reply.includes(p.name));
-    return mentioned.length > 0 ? mentioned : products;
+    return products.filter((p) => reply.includes(p.name));
   }
 
   private async retrieveByVector(

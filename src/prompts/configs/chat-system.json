@@ -1,6 +1,6 @@
 {
   "promptName": "chat-system",
-  "version": 1,
+  "version": 2,
   "templateFile": "chat-system.md",
   "variables": []
 }
