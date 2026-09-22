@@ -325,7 +325,7 @@ export const productReviewReplies = pgTable(
     replyText: text().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('product_review_replies_review_id_idx').on(t.reviewId)],
+  (t) => [uniqueIndex('product_review_replies_review_id_idx').on(t.reviewId)],
 );
 
 export type OrderRow = typeof orders.$inferSelect;

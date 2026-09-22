@@ -15,7 +15,7 @@
   ngược lại                                  → status = auto_responded (tự đăng reply AI)
   ```
 - Không có cơ chế gán review cho 1 admin/staff cụ thể — `pending_reply` là hàng đợi chung, admin/staff filter theo `status=pending_reply` ở `mist-ops/product-reviews` rồi tự chọn review để trả lời, ai trả lời trước thì hết
-- Mỗi review tối đa **1 reply** — tạo reply thứ 2 → `ConflictError`. FE (`mist-ops/product-reviews`) chỉ hiện form trả lời khi status là `pending_classification`/`pending_reply` — `auto_responded`/`resolved` đã có reply rồi nên ẩn form (tránh gọi API chắc chắn 409)
+- Mỗi review tối đa **1 reply**, enforce ở cả application (`ConflictError` khi tạo reply thứ 2) lẫn DB (`product_review_replies.review_id` có `uniqueIndex`, không chỉ index thường) — quan hệ `product_reviews` → `product_review_replies` là **1-1**, không phải 1-N. FE (`mist-ops/product-reviews`) chỉ hiện form trả lời khi status là `pending_classification`/`pending_reply` — `auto_responded`/`resolved` đã có reply rồi nên ẩn form (tránh gọi API chắc chắn 409)
 - Chỉ admin/staff được tạo reply (`POST /:reviewId/replies`) — không có endpoint reply cho customer; customer muốn nói thêm thì viết review mới, hoặc hỏi Chat (tính năng khác hẳn)
 - Reply do admin/staff tạo luôn có `authorType = 'admin'` bất kể actor là `admin` hay `staff` (chỉ AI reply mới có `authorType = 'ai'`)
 - Admin tạo reply lúc đang `pending_reply` HOẶC `pending_classification` → tự động chuyển `resolved` luôn, không cần `PATCH /:id/status` riêng
