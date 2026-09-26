@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { RATE_LIMIT_AUTH } from '../middlewares/rate-limits.ts';
 import { z } from 'zod';
-import { env } from '../../config/env.ts';
 import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { CustomerController } from '../controllers/customer.controller.ts';
 import { checkCustomerRegistrationKey } from '../middlewares/customer-registration-key.ts';
@@ -17,13 +17,6 @@ import {
   UpdatePasswordBody,
 } from '../schemas/customer.schema.ts';
 
-const createRateLimit = {
-  rateLimit: {
-    max: env.AUTH_LOGIN_RATE_MAX,
-    timeWindow: env.AUTH_LOGIN_RATE_WINDOW,
-  },
-};
-
 export async function customerRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
   const controller = new CustomerController(app.useCases.customer);
@@ -33,7 +26,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
   // hit this same endpoint — the payload shape is identical either way, so
   // there is no separate admin-only "create customer" route.
   fastify.post('/', {
-    config: createRateLimit,
+    config: RATE_LIMIT_AUTH,
     schema: {
       tags: ['customers'],
       headers: CreateCustomerHeaders,

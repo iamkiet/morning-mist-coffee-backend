@@ -14,7 +14,7 @@
 - Account `status !== 'active'` (vd. `banned`) → login từ chối, dùng chung message "Invalid email or password" (không tiết lộ lý do); refresh từ chối với message riêng "Account is no longer active" (đã qua access token nên không cần che giấu)
 - `refresh`/`logout` chỉ đọc `refresh_token` từ cookie, không có body fallback
 - Refresh mỗi lần dùng: revoke jti cũ, tạo jti mới, đồng thời dọn token hết hạn/đã revoke qua `deleteStale` (fire-and-forget)
-- `employee-login`/`customer-login`/`refresh` rate-limit theo `AUTH_LOGIN_RATE_MAX`/`AUTH_LOGIN_RATE_WINDOW` (`logout`, `me` không rate-limit)
+- `employee-login`/`customer-login`/`refresh` rate-limit 5 req/phút (`RATE_LIMIT_AUTH`, dùng chung cho `POST /customers` và `POST /employees`) (`logout`, `me` không rate-limit)
 - Response body login/refresh chỉ trả `accessToken`/`refreshToken` khi `NODE_ENV !== 'production'` (test qua Swagger/Postman); production chỉ trả `user`/`csrfToken`
 - CSRF double-submit: header `X-CSRF-Token` phải khớp cookie `csrf_token` (so sánh `timingSafeEqual`)
   - Exempt: GET/HEAD/OPTIONS, `POST /auth/{employee-login,customer-login,refresh,logout}`, request không có cookie `access_token`

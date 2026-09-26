@@ -7,6 +7,8 @@ import type { TranscriptionPort } from '../../domain/ports/transcription.port.ts
 import type { AnswerQueryResult, AnswerQueryService } from './answer-query.service.ts';
 import { wrapUserMessage } from './build-chat-prompt.ts';
 
+const CHAT_VOICE_MAX_DURATION_SECONDS = 60;
+
 export interface ChatAudioInput {
   bytes: Buffer;
   mimeType: string;
@@ -23,7 +25,6 @@ export class SendChatMessageUseCase {
     private readonly audioConverter: AudioConverterPort,
     private readonly answerQuery: AnswerQueryService,
     private readonly logger: AppLogger,
-    private readonly maxAudioDurationSeconds: number,
   ) {}
 
   async execute(messages: ChatTurn[], audio?: ChatAudioInput): Promise<SendChatMessageResult> {
@@ -51,7 +52,7 @@ export class SendChatMessageUseCase {
     const { wavBytes } = await this.audioConverter.convertToWav(
       audio.bytes,
       audio.mimeType,
-      this.maxAudioDurationSeconds,
+      CHAT_VOICE_MAX_DURATION_SECONDS,
     );
 
     const transcript = await this.transcription.transcribe(wavBytes, 'audio/wav');

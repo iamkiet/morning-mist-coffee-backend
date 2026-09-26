@@ -4,8 +4,9 @@ import type { IpBlockList } from '../../domain/security/ip-block-list.port.ts';
 import type { SecurityDecisionPort } from '../../domain/security/security-decision.port.ts';
 import type { SecurityEventStore } from '../../domain/security/security-event-store.port.ts';
 import {
+  groupSecurityEventsByIp,
   isSecurityAgentAction,
-  type SecurityAgentAction,
+  type SecurityAgentDecision,
 } from '../../domain/security/security-event.entity.ts';
 
 export interface SecurityAgentConfig {
@@ -13,13 +14,10 @@ export interface SecurityAgentConfig {
   alertEmail: string;
 }
 
-const EVENT_WINDOW_MS = 5 * 60 * 1000;
 const BLOCK_TTL_MS = 5 * 60 * 1000;
 
 const ACTION_RATE_WINDOW_MS = 10 * 60 * 1000;
 const MAX_ACTIONS_PER_WINDOW = 5;
-
-const CIRCUIT_BREAKER_BLOCK_THRESHOLD = 3;
 
 export class SecurityAgentService {
   private executedActionTimestamps: number[] = [];
@@ -41,61 +39,48 @@ export class SecurityAgentService {
       return;
     }
 
-    const events = this.eventStore.getRecent(EVENT_WINDOW_MS);
-    if (events.length === 0) {
+    const readAt = new Date();
+    const ipEvents = groupSecurityEventsByIp(this.eventStore.getAll());
+    if (ipEvents.length === 0) {
       return;
     }
 
-    const decision = await this.decisionPort.decide(events);
-    if (decision === null) {
+    const decisions = await this.decisionPort.decide(ipEvents);
+    if (decisions === null) {
       this.logger.warn(
-        { event: 'security_agent.decision_failed', eventCount: events.length },
+        { event: 'security_agent.decision_failed', ipCount: ipEvents.length },
         'Security agent could not reach a decision this cycle (Gemini unavailable)',
       );
       return;
     }
 
-    if (!isSecurityAgentAction(decision.action)) {
-      this.logger.error(
-        { event: 'security_agent.invalid_action', decision },
-        'Security agent returned an action outside the allowed list — ignoring',
+    this.eventStore.removeUntil(readAt);
+
+    const knownIps = new Set(ipEvents.map((g) => g.ip));
+    const handledIps = new Set<string>();
+    for (const decision of decisions) {
+      if (!isSecurityAgentAction(decision.action)) {
+        this.logger.error(
+          { event: 'security_agent.invalid_action', decision },
+          'Security agent returned an action outside the allowed list — ignoring',
+        );
+        continue;
+      }
+      if (!knownIps.has(decision.ip) || handledIps.has(decision.ip)) {
+        this.logger.error(
+          { event: 'security_agent.unknown_target_ip', decision },
+          'Security agent returned an IP that is not in this cycle or was already handled — ignoring',
+        );
+        continue;
+      }
+      handledIps.add(decision.ip);
+
+      this.logger.info(
+        { event: 'security_agent.decision', decision },
+        `Security agent decided: ${decision.action} (${decision.severity}) for ${decision.ip}`,
       );
-      return;
+      await this.execute(decision);
     }
-
-    const finalDecision = this.applyCircuitBreaker(decision);
-
-    this.logger.info(
-      {
-        event: 'security_agent.decision',
-        decision: finalDecision,
-        eventCount: events.length,
-      },
-      `Security agent decided: ${finalDecision.action} (${finalDecision.severity})`,
-    );
-
-    await this.execute(finalDecision);
-  }
-
-  private applyCircuitBreaker(decision: SecurityAgentAction): SecurityAgentAction {
-    if (decision.action !== 'TEMP_BLOCK_IP') {
-      return decision;
-    }
-
-    const recentBlocks = this.ipBlockList.recentBlockCount(ACTION_RATE_WINDOW_MS);
-    if (recentBlocks >= CIRCUIT_BREAKER_BLOCK_THRESHOLD) {
-      this.logger.warn(
-        { event: 'security_agent.circuit_breaker_tripped', recentBlocks },
-        'Security agent circuit breaker tripped — too many TEMP_BLOCK_IP actions recently, downgrading to LOG_ONLY',
-      );
-      return {
-        action: 'LOG_ONLY',
-        reason: `Circuit breaker tripped (${recentBlocks} blocks in the last ${ACTION_RATE_WINDOW_MS / 60_000}min). Original reason: ${decision.reason}`,
-        severity: decision.severity,
-      };
-    }
-
-    return decision;
   }
 
   private isRateLimited(): boolean {
@@ -106,7 +91,7 @@ export class SecurityAgentService {
     return this.executedActionTimestamps.length >= MAX_ACTIONS_PER_WINDOW;
   }
 
-  private async execute(decision: SecurityAgentAction): Promise<void> {
+  private async execute(decision: SecurityAgentDecision): Promise<void> {
     if (decision.action === 'IGNORE' || decision.action === 'LOG_ONLY') {
       return;
     }
@@ -114,7 +99,7 @@ export class SecurityAgentService {
     if (this.isRateLimited()) {
       this.logger.warn(
         { event: 'security_agent.action_rate_limited', decision },
-        'Security agent action rate limit reached — skipping execution this cycle',
+        'Security agent action rate limit reached — skipping this action',
       );
       return;
     }
@@ -127,10 +112,11 @@ export class SecurityAgentService {
     this.blockIp(decision);
   }
 
-  private async sendAlert(decision: SecurityAgentAction): Promise<void> {
+  private async sendAlert(decision: SecurityAgentDecision): Promise<void> {
     try {
       await this.emailSender.sendSecurityAlert({
         to: this.config.alertEmail,
+        ip: decision.ip,
         action: decision.action,
         severity: decision.severity,
         reason: decision.reason,
@@ -145,20 +131,12 @@ export class SecurityAgentService {
     }
   }
 
-  private blockIp(decision: SecurityAgentAction): void {
-    if (!decision.targetIp) {
-      this.logger.warn(
-        { event: 'security_agent.missing_target_ip', decision },
-        'Security agent chose TEMP_BLOCK_IP without a targetIp — skipping',
-      );
-      return;
-    }
-
-    this.ipBlockList.block(decision.targetIp, BLOCK_TTL_MS, decision.reason);
+  private blockIp(decision: SecurityAgentDecision): void {
+    this.ipBlockList.block(decision.ip, BLOCK_TTL_MS, decision.reason);
     this.executedActionTimestamps.push(Date.now());
     this.logger.warn(
-      { event: 'security_agent.ip_blocked', ip: decision.targetIp, ttlMs: BLOCK_TTL_MS },
-      `Security agent temporarily blocked IP ${decision.targetIp}`,
+      { event: 'security_agent.ip_blocked', ip: decision.ip, ttlMs: BLOCK_TTL_MS },
+      `Security agent temporarily blocked IP ${decision.ip}`,
     );
   }
 }

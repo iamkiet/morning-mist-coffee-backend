@@ -1,5 +1,5 @@
 /**
- * Measures the two throttling layers inside SecurityAgentService against the
+ * Measures the action throttling layer inside SecurityAgentService against the
  * REAL running mechanism (real GeminiSecurityDecisionAdapter, real
  * InMemorySecurityEventStore, real InMemoryIpBlockList) — not a mock of the
  * threshold logic. Fills the gap noted in the DATN report ("đợt kiểm thử
@@ -7,8 +7,6 @@
  *
  *   - MAX_ACTIONS_PER_WINDOW = 5 actions / 10min (shared across ALERT_EMAIL
  *     and TEMP_BLOCK_IP)
- *   - CIRCUIT_BREAKER_BLOCK_THRESHOLD = 3 TEMP_BLOCK_IP / 10min (overrides
- *     the AI's decision to LOG_ONLY once tripped)
  *
  * Drives runCycle() repeatedly with a brute-force login pattern that
  * reliably makes the real model choose TEMP_BLOCK_IP (same event shape as
@@ -94,7 +92,7 @@ const agent = new SecurityAgentService(
 function seedBruteForceEvents(ip: string): void {
   for (let i = 0; i < 6; i++) {
     eventStore.record({
-      type: 'login_fail',
+      type: 'security_event_customer_login_fail',
       ip,
       occurredAt: new Date(),
       email: `victim${i}@test.com`,
@@ -111,10 +109,9 @@ interface CycleResult {
   cycle: number;
   aiChoseBlock: boolean;
   rateLimited: boolean;
-  circuitBreakerTripped: boolean;
   emailSentThisCycle: boolean;
   ipBlockedThisCycle: boolean;
-  recentBlockCountAfter: number;
+  totalBlocksSoFar: number;
   recentActionCountAfter: number;
 }
 
@@ -122,9 +119,10 @@ const THROTTLE_MS = 13_000;
 const CYCLES = 7;
 
 async function main(): Promise<void> {
-  console.log(`Running ${CYCLES} consecutive cycles with a brute-force pattern to observe the rate-limit (5/10min) and circuit-breaker (3/10min) thresholds...\n`);
+  console.log(`Running ${CYCLES} consecutive cycles with a brute-force pattern to observe the rate-limit (5/10min) threshold...\n`);
 
   const results: CycleResult[] = [];
+  let totalBlocksSoFar = 0;
 
   for (let cycle = 1; cycle <= CYCLES; cycle++) {
     logEntries.length = 0;
@@ -138,25 +136,22 @@ async function main(): Promise<void> {
     const aiChoseBlock =
       (decisionLog?.obj?.decision as { action?: string } | undefined)?.action === 'TEMP_BLOCK_IP';
     const rateLimited = logEntries.some((l) => l.event === 'security_agent.action_rate_limited');
-    const circuitBreakerTripped = logEntries.some(
-      (l) => l.event === 'security_agent.circuit_breaker_tripped',
-    );
     const ipBlockedThisCycle = logEntries.some((l) => l.event === 'security_agent.ip_blocked');
     const emailSentThisCycle = alertEmailCount > emailBefore;
+    if (ipBlockedThisCycle) totalBlocksSoFar++;
 
     results.push({
       cycle,
       aiChoseBlock,
       rateLimited,
-      circuitBreakerTripped,
       emailSentThisCycle,
       ipBlockedThisCycle,
-      recentBlockCountAfter: ipBlockList.recentBlockCount(10 * 60 * 1000),
+      totalBlocksSoFar,
       recentActionCountAfter: emailAndBlockActionCountSoFar(),
     });
 
     console.log(
-      `Cycle ${cycle}: AI chose block=${aiChoseBlock}, rate-limited=${rateLimited}, circuit-breaker=${circuitBreakerTripped}, IP blocked this cycle=${ipBlockedThisCycle}`,
+      `Cycle ${cycle}: AI chose block=${aiChoseBlock}, rate-limited=${rateLimited}, IP blocked this cycle=${ipBlockedThisCycle}`,
     );
 
     if (cycle < CYCLES) await sleep(THROTTLE_MS);
@@ -198,26 +193,19 @@ function results_ipBlockedOrEmailCount(): number {
 
 function writeReport(results: CycleResult[], killSwitchMadeNoCall: boolean, killSwitchLogged: boolean): void {
   const rateLimitCycle = results.find((r) => r.rateLimited)?.cycle;
-  const circuitBreakerCycle = results.find((r) => r.circuitBreakerTripped)?.cycle;
 
   const lines: string[] = [];
-  lines.push('# Đo ngưỡng rate-limit và circuit breaker của Security Agent');
+  lines.push('# Đo ngưỡng rate-limit hành động của Security Agent');
   lines.push('');
   lines.push('Đo bằng cách gọi trực tiếp `runCycle()` thật của `SecurityAgentService` liên tiếp nhiều lần trong thời gian ngắn, dùng đúng adapter Gemini thật (không mock quyết định AI), với một mẫu sự kiện đăng nhập sai dồn dập (giống tình huống S1 trong `prompt-safety-report.ts`) đủ để mô hình chọn tạm khoá IP.');
   lines.push('');
-  lines.push('| Chu kỳ | AI chọn tạm khoá? | Rate-limit (5/10ph) chặn? | Circuit breaker (3/10ph) chặn? | IP bị khoá thật? | Số lần tạm khoá cộng dồn |');
-  lines.push('|---|---|---|---|---|---|');
+  lines.push('| Chu kỳ | AI chọn tạm khoá? | Rate-limit (5/10ph) chặn? | IP bị khoá thật? | Số lần tạm khoá cộng dồn |');
+  lines.push('|---|---|---|---|---|');
   for (const r of results) {
     lines.push(
-      `| ${r.cycle} | ${r.aiChoseBlock ? 'Có' : 'Không'} | ${r.rateLimited ? '**Có**' : 'Không'} | ${r.circuitBreakerTripped ? '**Có**' : 'Không'} | ${r.ipBlockedThisCycle ? 'Có' : 'Không'} | ${r.recentBlockCountAfter} |`,
+      `| ${r.cycle} | ${r.aiChoseBlock ? 'Có' : 'Không'} | ${r.rateLimited ? '**Có**' : 'Không'} | ${r.ipBlockedThisCycle ? 'Có' : 'Không'} | ${r.totalBlocksSoFar} |`,
     );
   }
-  lines.push('');
-  lines.push(
-    circuitBreakerCycle
-      ? `Circuit breaker kích hoạt lần đầu ở chu kỳ ${circuitBreakerCycle} (đúng như ngưỡng cấu hình: 3 lần tạm khoá trong 10 phút).`
-      : 'Circuit breaker chưa kích hoạt trong đợt đo này (AI có thể đã không chọn tạm khoá đủ 3 lần liên tiếp — xem chi tiết từng chu kỳ ở bảng trên).',
-  );
   lines.push('');
   lines.push(
     rateLimitCycle
@@ -234,7 +222,7 @@ function writeReport(results: CycleResult[], killSwitchMadeNoCall: boolean, kill
   lines.push('## Ghi chú phương pháp đo');
   lines.push('');
   lines.push('- Mỗi chu kỳ chèn 6 sự kiện đăng nhập sai mới từ một IP riêng (để không bị trùng lặp giữa các chu kỳ), theo đúng mẫu tấn công brute-force kèm lệnh giả đã dùng ở Bảng 6.1.');
-  lines.push('- `recentBlockCount` và bộ đếm rate-limit dùng đúng bộ nhớ trong tiến trình thật của `InMemoryIpBlockList`/`SecurityAgentService`, không reset giữa các chu kỳ, đúng như hành vi khi chạy thật.');
+  lines.push('- Bộ đếm rate-limit dùng đúng bộ nhớ trong tiến trình thật của `SecurityAgentService`, không reset giữa các chu kỳ, đúng như hành vi khi chạy thật.');
   lines.push('- Vì đây là đo bằng mô hình AI thật (không phải kịch bản giả lập cố định), số chu kỳ đúng lúc ngưỡng kích hoạt có thể lệch 1-2 chu kỳ giữa các lần chạy nếu AI thỉnh thoảng không chọn tạm khoá; bảng trên là kết quả của 1 lần chạy cụ thể, không phải một hằng số tuyệt đối.');
   lines.push('');
 

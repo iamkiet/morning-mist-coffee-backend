@@ -19,6 +19,7 @@ export interface OrderConfirmationEmail {
 
 export interface SecurityAlertEmail {
   to: string;
+  ip: string;
   action: string;
   severity: string;
   reason: string;

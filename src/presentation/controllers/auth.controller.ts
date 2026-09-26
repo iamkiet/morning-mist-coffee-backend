@@ -51,7 +51,7 @@ export class AuthController {
   ) => {
     const result = await withAuthFailureLogging(
       req,
-      'login_fail',
+      'security_event_employee_login_fail',
       '/api/v1/auth/employee-login',
       req.body.email,
       () => this.uc.employeeLogin.execute(req.body),
@@ -75,7 +75,7 @@ export class AuthController {
   ) => {
     const result = await withAuthFailureLogging(
       req,
-      'login_fail',
+      'security_event_customer_login_fail',
       '/api/v1/auth/customer-login',
       req.body.email,
       () => this.uc.customerLogin.execute(req.body),

@@ -47,7 +47,6 @@ import { GetCustomerByIdUseCase } from '../../application/customer/get-customer-
 import { ListCustomersUseCase } from '../../application/customer/list-customers.use-case.ts';
 import { UpdateCustomerPasswordUseCase } from '../../application/customer/update-customer-password.use-case.ts';
 import { UpdateCustomerUseCase } from '../../application/customer/update-customer.use-case.ts';
-import { env } from '../../config/env.ts';
 import type { AppLogger } from '../../domain/ports/logger.port.ts';
 import type { AudioConverterPort } from '../../domain/ports/audio-converter.port.ts';
 import type { ChatPort } from '../../domain/ports/chat.port.ts';
@@ -127,7 +126,6 @@ export function buildUseCases(deps: UseCaseDeps): AppUseCases {
     deps.audioConverter,
     answerQuery,
     deps.logger,
-    env.SEARCH_VOICE_MAX_DURATION_SECONDS,
   );
 
   return {

@@ -28,6 +28,7 @@ import { productReviewRoutes } from './presentation/routes/product-review.routes
 import { productRoutes } from './presentation/routes/product.routes.ts';
 import { productCategoryRoutes } from './presentation/routes/product-category.routes.ts';
 import { productPropertyRoutes } from './presentation/routes/product-property.routes.ts';
+import { RATE_LIMIT_GLOBAL } from './presentation/middlewares/rate-limits.ts';
 import { customerRoutes } from './presentation/routes/customer.routes.ts';
 import { employeeRoutes } from './presentation/routes/employee.routes.ts';
 
@@ -64,8 +65,7 @@ export async function buildApp() {
     limits: { fileSize: 10 * 1024 * 1024, files: 1 },
   });
   await app.register(rateLimit, {
-    max: 100,
-    timeWindow: '1 minute',
+    ...RATE_LIMIT_GLOBAL,
     errorResponseBuilder: (_req, ctx) => ({
       statusCode: ctx.statusCode,
       error: 'RATE_LIMIT_EXCEEDED',
@@ -77,7 +77,7 @@ export async function buildApp() {
         'rate limit exceeded',
       );
       app.securityEvents.record({
-        type: 'rate_limit_hit',
+        type: 'security_event_rate_limit_hit',
         ip: req.ip,
         occurredAt: new Date(),
         endpoint: req.url,

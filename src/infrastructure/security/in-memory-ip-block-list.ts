@@ -1,5 +1,7 @@
 import type { IpBlockList } from '../../domain/security/ip-block-list.port.ts';
 
+const MAX_BLOCKS = 1000;
+
 interface BlockEntry {
   expiresAt: number;
   reason: string;
@@ -7,7 +9,6 @@ interface BlockEntry {
 
 export class InMemoryIpBlockList implements IpBlockList {
   private blocks = new Map<string, BlockEntry>();
-  private blockTimestamps: number[] = [];
 
   isBlocked(ip: string): boolean {
     const entry = this.blocks.get(ip);
@@ -20,13 +21,17 @@ export class InMemoryIpBlockList implements IpBlockList {
   }
 
   block(ip: string, ttlMs: number, reason: string): void {
-    this.blocks.set(ip, { expiresAt: Date.now() + ttlMs, reason });
-    this.blockTimestamps.push(Date.now());
+    const now = Date.now();
+    this.blocks.delete(ip);
+    for (const [key, entry] of this.blocks) {
+      if (entry.expiresAt <= now) this.blocks.delete(key);
+    }
+    while (this.blocks.size >= MAX_BLOCKS) {
+      const oldest = this.blocks.keys().next().value;
+      if (oldest === undefined) break;
+      this.blocks.delete(oldest);
+    }
+    this.blocks.set(ip, { expiresAt: now + ttlMs, reason });
   }
 
-  recentBlockCount(sinceMs: number): number {
-    const cutoff = Date.now() - sinceMs;
-    this.blockTimestamps = this.blockTimestamps.filter((t) => t > cutoff);
-    return this.blockTimestamps.length;
-  }
 }

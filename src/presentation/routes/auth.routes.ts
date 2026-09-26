@@ -1,23 +1,16 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { RATE_LIMIT_AUTH } from '../middlewares/rate-limits.ts';
 import { z } from 'zod';
-import { env } from '../../config/env.ts';
 import { AuthController } from '../controllers/auth.controller.ts';
 import { AuthResponse, LoginBody, MeResponse, RefreshResponse } from '../schemas/auth.schema.ts';
-
-const authRateLimit = {
-  rateLimit: {
-    max: env.AUTH_LOGIN_RATE_MAX,
-    timeWindow: env.AUTH_LOGIN_RATE_WINDOW,
-  },
-};
 
 export async function authRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
   const controller = new AuthController(app.useCases.auth);
 
   fastify.post('/employee-login', {
-    config: authRateLimit,
+    config: RATE_LIMIT_AUTH,
     schema: {
       tags: ['auth'],
       body: LoginBody,
@@ -27,7 +20,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/customer-login', {
-    config: authRateLimit,
+    config: RATE_LIMIT_AUTH,
     schema: {
       tags: ['auth'],
       body: LoginBody,
@@ -37,7 +30,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/refresh', {
-    config: authRateLimit,
+    config: RATE_LIMIT_AUTH,
     schema: {
       tags: ['auth'],
       response: { 200: RefreshResponse },

@@ -1,30 +1,16 @@
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { env } from '../../config/env.ts';
+import { RATE_LIMIT_CHAT_TEXT, RATE_LIMIT_CHAT_VOICE } from '../middlewares/rate-limits.ts';
 import { ChatController } from '../controllers/chat.controller.ts';
 import { requireAi } from '../middlewares/require-ai.ts';
 import { ChatRequestSchema, ChatResponseSchema, ChatVoiceResponse } from '../schemas/chat.schema.ts';
-
-const chatRateLimit = {
-  rateLimit: {
-    max: env.CHAT_RATE_MAX,
-    timeWindow: env.CHAT_RATE_WINDOW,
-  },
-};
-
-const chatVoiceRateLimit = {
-  rateLimit: {
-    max: env.SEARCH_VOICE_RATE_MAX,
-    timeWindow: env.SEARCH_VOICE_RATE_WINDOW,
-  },
-};
 
 export async function chatRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
   const controller = new ChatController(app.useCases.chat);
 
-  fastify.post('/', {
-    config: chatRateLimit,
+  fastify.post('/text', {
+    config: RATE_LIMIT_CHAT_TEXT,
     onRequest: requireAi,
     schema: {
       tags: ['chat'],
@@ -35,7 +21,7 @@ export async function chatRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/voice', {
-    config: chatVoiceRateLimit,
+    config: RATE_LIMIT_CHAT_VOICE,
     onRequest: requireAi,
     schema: {
       tags: ['chat'],

@@ -8,7 +8,7 @@ export class InMemorySecurityEventStore implements SecurityEventStore {
   private events: SecurityEvent[] = [];
 
   // Sanitize at the write boundary, not only at the one current read site
-  // (the Gemini prompt builder) — any future consumer of getRecent() must
+  // (the Gemini prompt builder) — any future consumer of getAll() must
   // not have to remember to sanitize attacker-controlled fields itself.
   record(event: SecurityEvent): void {
     this.events.push(sanitizeSecurityEvent(event));
@@ -17,9 +17,11 @@ export class InMemorySecurityEventStore implements SecurityEventStore {
     }
   }
 
-  getRecent(sinceMs: number): SecurityEvent[] {
-    const cutoff = Date.now() - sinceMs;
-    this.events = this.events.filter((e) => e.occurredAt.getTime() > cutoff);
-    return this.events;
+  getAll(): SecurityEvent[] {
+    return [...this.events];
+  }
+
+  removeUntil(cutoff: Date): void {
+    this.events = this.events.filter((e) => e.occurredAt.getTime() > cutoff.getTime());
   }
 }

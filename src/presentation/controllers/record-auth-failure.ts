@@ -3,7 +3,10 @@ import type { SecurityEventType } from '../../domain/security/security-event.ent
 
 export async function withAuthFailureLogging<T>(
   req: FastifyRequest,
-  type: Extract<SecurityEventType, 'login_fail' | 'register_fail'>,
+  type: Extract<
+    SecurityEventType,
+    'security_event_customer_login_fail' | 'security_event_employee_login_fail'
+  >,
   endpoint: string,
   email: string,
   run: () => Promise<T>,
@@ -11,7 +14,7 @@ export async function withAuthFailureLogging<T>(
   try {
     return await run();
   } catch (err) {
-    req.log.warn({ event: `auth.${type}`, email, ip: req.ip }, `${type} recorded`);
+    req.log.warn({ event: type, email, ip: req.ip }, `${type} recorded`);
     req.server.securityEvents.record({
       type,
       ip: req.ip,

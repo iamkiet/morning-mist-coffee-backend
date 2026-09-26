@@ -18,8 +18,6 @@ const EnvSchema = z.object({
   CUSTOMER_REGISTRATION_KEY: z.string().min(32),
   EMPLOYEE_REGISTRATION_KEY: z.string().min(32),
 
-  AUTH_LOGIN_RATE_MAX: z.coerce.number().int().positive(),
-  AUTH_LOGIN_RATE_WINDOW: z.string().min(1),
 
   COOKIE_SECURE: booleanString,
   COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']),
@@ -37,15 +35,8 @@ const EnvSchema = z.object({
 
   EMBEDDING_DIMENSION: z.coerce.number().int().positive().max(4000),
 
-  SEARCH_VOICE_MAX_DURATION_SECONDS: z.coerce.number().int().positive().max(180),
-  SEARCH_VOICE_RATE_MAX: z.coerce.number().int().positive(),
-  SEARCH_VOICE_RATE_WINDOW: z.string().min(1),
 
-  ORDER_LOOKUP_RATE_MAX: z.coerce.number().int().positive(),
-  ORDER_LOOKUP_RATE_WINDOW: z.string().min(1),
 
-  CHAT_RATE_MAX: z.coerce.number().int().positive(),
-  CHAT_RATE_WINDOW: z.string().min(1),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

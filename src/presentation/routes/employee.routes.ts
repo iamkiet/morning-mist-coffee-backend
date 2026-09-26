@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { EmployeeController } from '../controllers/employee.controller.ts';
 import { checkEmployeeRegistrationKey } from '../middlewares/employee-registration-key.ts';
+import { RATE_LIMIT_AUTH } from '../middlewares/rate-limits.ts';
 import {
   CreateEmployeeBody,
   CreateEmployeeHeaders,
@@ -33,6 +34,7 @@ export async function employeeRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.post('/', {
+    config: RATE_LIMIT_AUTH,
     schema: {
       tags: ['employees'],
       headers: CreateEmployeeHeaders,

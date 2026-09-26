@@ -83,7 +83,7 @@ Access token là HttpOnly cookie. Role: `admin` | `staff` | `customer`, lấy t�
 ### Orders
 
 - **`POST /api/v1/orders` yêu cầu đăng nhập customer** — không có guest checkout; `customerEmail` lấy từ session (`req.user.email`), không nhận từ body
-- **`GET /api/v1/orders/lookup?code=`** — public, rate-limit riêng theo IP (`ORDER_LOOKUP_RATE_MAX`/`ORDER_LOOKUP_RATE_WINDOW`), tra cứu bằng mã đơn (8 ký tự đầu order id) — dành cho khách có link xác nhận nhưng không đăng nhập
+- **`GET /api/v1/orders/lookup?code=`** — public, rate-limit riêng theo IP (5 req/phút), tra cứu bằng mã đơn (8 ký tự đầu order id) — dành cho khách có link xác nhận nhưng không đăng nhập
 - **`GET /api/v1/orders/me`** — customer xem đơn của chính mình
 - **Admin/staff:** list, get by id, cập nhật status
 
@@ -118,9 +118,9 @@ otherwise                                  → status = auto_responded (AI tự 
 
 Admin/staff trả lời lúc đang `pending_reply` → tự động chuyển `resolved`, không cần `PATCH /:id/status` riêng.
 
-### Voice Semantic Search
+### AI Chat Voice
 
-`POST /api/v1/search/voice` — public, rate-limit riêng (`SEARCH_VOICE_RATE_MAX`/`SEARCH_VOICE_RATE_WINDOW`), multipart audio (webm/wav/mp3/ogg, tối đa 10MB và `SEARCH_VOICE_MAX_DURATION_SECONDS`).
+`POST /api/v1/chat/voice` — public, rate-limit riêng (5 req/phút), multipart audio (webm/wav/mp3/ogg, tối đa 10MB và 60 giây — `CHAT_VOICE_MAX_DURATION_SECONDS` trong `SendChatMessageUseCase`).
 
 - Audio convert sang WAV (ffmpeg) → (a) transcribe bằng Gemini ra transcript, (b) embed thẳng bằng `gemini-embedding-2` (`embedAudioQuery`, cùng không gian vector với embedding sản phẩm) để cosine similarity search
 - Transcript dùng để: trích ràng buộc giá, làm keyword fallback (`ilike`) khi vector rỗng/lỗi, và làm input cho Gemini soạn câu trả lời
@@ -130,7 +130,7 @@ Admin/staff trả lời lúc đang `pending_reply` → tự động chuyển `re
 
 ### AI Chat Assistant
 
-`POST /api/v1/chat` — public, rate-limit riêng (`CHAT_RATE_MAX`/`CHAT_RATE_WINDOW`), cần `GEMINI_API_KEY` (thiếu → `503 AI_NOT_CONFIGURED`).
+`POST /api/v1/chat/text` — public, rate-limit riêng (5 req/phút), cần `GEMINI_API_KEY` (thiếu → `503 AI_NOT_CONFIGURED`).
 
 - Model Gemini, persona trợ lý Morning Mist Coffee, trả lời tiếng Việt
 - **RAG bằng vector:** embed tin nhắn mới nhất (`embedQuery`), lấy top 8 sản phẩm gần nhất (`findSimilarByVector`, cùng index với voice search), enrich với giá/property values (`buildCatalogueProducts`) rồi mới tiêm vào system prompt
@@ -160,24 +160,24 @@ Phòng thủ prompt injection ở bề mặt LLM: mọi tin nhắn khách (role 
 | A09 | Logging & Alerting | `pino` log có cấu trúc; Security Agent gửi email cảnh báo qua `resend` khi phát hiện bất thường | ✅ |
 | A10 | Exceptional Conditions | `process.on('uncaughtException'/'unhandledRejection')` bắt lỗi/promise reject ngoài tầm kiểm soát | ✅ |
 
-### Security Agent — OWASP Top 10 for Agentic Applications 2026: **6/10 covered**
+### Security Agent — OWASP Top 10 for Agentic Applications 2026: **7/10 covered**
 
 > Danh sách ASI01-10 này (nguồn: OWASP GenAI Security Project, genai.owasp.org) chỉ đánh giá riêng tính năng **Security Agent** (agent tự ra quyết định block IP / gửi email) — không phải toàn app.
 
-Agentic job (`SecurityAgentService`, chạy mỗi 60s) đọc log sự kiện bảo mật gần đây (login fail, register fail, rate-limit hit — `SecurityEventStore`, giữ 5 phút gần nhất) và giao cho Gemini quyết định action: `IGNORE` | `LOG_ONLY` | `ALERT_EMAIL` | `TEMP_BLOCK_IP` (structured output).
+Agentic job (`SecurityAgentService`, chạy mỗi 60s) gom toàn bộ sự kiện bảo mật phát sinh từ chu kỳ trước theo IP, gọi Gemini 1 lần để nhận quyết định cho từng IP (login fail và rate-limit hit của mọi rate-limit trong app — `SecurityEventStore`, xử lý xong thì xoá, mỗi sự kiện chỉ xử lý 1 lần) và giao cho Gemini quyết định action: `IGNORE` | `LOG_ONLY` | `ALERT_EMAIL` | `TEMP_BLOCK_IP` (structured output).
 
 | ASI | Hạng mục (tên chính thức) | Trạng thái | Cơ chế / lý do |
 |-----|----------|:---:|--------|
 | ASI01 | Agent Goal Hijack | ✅ Đã cover | `sanitizeSecurityEvent()` strip ký tự không in được + `` {}<>` ``, truncate 300 ký tự, bọc `<events>` tag + chỉ thị không theo lệnh giả bên trong (chặn prompt injection đổi mục tiêu agent) |
 | ASI02 | Tool Misuse | ✅ Đã cover | `isSecurityAgentAction()` allow-list cố định (reject action lạ); rate-limit riêng cho action thật (`ALERT_EMAIL`/`TEMP_BLOCK_IP`, tối đa 5 lần/10 phút) |
-| ASI03 | Identity & Privilege Abuse | ❌ Chưa cover | Agent chạy background job với quyền cố định, không có cơ chế identity/privilege riêng để kiểm soát leo thang quyền |
+| ASI03 | Identity & Privilege Abuse | ✅ Đã cover | Least privilege theo thiết kế: agent chỉ được inject event store, IP block list, Gemini và email sender — không truy cập DB, không có credential của user/admin; email chỉ gửi tới `SECURITY_AGENT_ALERT_EMAIL` cố định, AI không chọn được người nhận |
 | ASI04 | Agentic Supply Chain Vulnerabilities | ❌ Chưa cover | Chỉ có `npm audit`/Dependabot ở mức app chung (A03 ở trên), chưa có kiểm soát riêng cho chuỗi cung ứng của agent (tool/plugin) |
 | ASI05 | Unexpected Code Execution | ❌ Chưa cover | Agent không tự thực thi code nên rủi ro thấp, nhưng cũng chưa có sandbox/guard rail tường minh |
-| ASI06 | Memory & Context Poisoning | ✅ Đã cover (một phần) | Event store + IP block list đều có TTL/expiry và cap kích thước — dữ liệu cũ/độc tự hết hạn, không tồn tại vĩnh viễn trong context của agent |
+| ASI06 | Memory & Context Poisoning | ✅ Đã cover | Event store (cap 2000) + IP block list (cap 1000) đều có TTL/expiry và cap kích thước — dữ liệu cũ/độc tự hết hạn, không tồn tại vĩnh viễn trong context của agent |
 | ASI07 | Insecure Inter-Agent Communication | N/A | Hệ thống chỉ có 1 agent duy nhất, không có giao tiếp liên-agent nên hạng mục này chưa áp dụng |
-| ASI08 | Cascading Failures | ✅ Đã cover | Circuit breaker: quá 3 lần `TEMP_BLOCK_IP` trong 10 phút → tự hạ xuống `LOG_ONLY` |
-| ASI09 | Human-Agent Trust Exploitation | ✅ Đã cover | Email cảnh báo gửi `reason` do Gemini sinh ra dưới dạng **plain text only**, không HTML/link — tránh nội dung AI đánh lừa người vận hành |
-| ASI10 | Rogue Agents | ✅ Đã cover | `SECURITY_AGENT_ENABLED=false` tắt hoàn toàn hành động tự động (kill switch/human override), agent chỉ còn log |
+| ASI08 | Cascading Failures | ✅ Đã cover | Rate-limit action thật: tối đa 5 lần `ALERT_EMAIL`/`TEMP_BLOCK_IP` trong 10 phút (đếm toàn hệ thống), vượt → bỏ qua hành động của cycle đó |
+| ASI09 | Human-Agent Trust Exploitation | ✅ Đã cover | Email cảnh báo gửi `reason` do Gemini sinh ra dưới dạng **plain text only**, không HTML, URL/domain bị defang (`https[://]evil[.]com`), kèm dòng cảnh báo nội dung do AI sinh — tránh nội dung AI đánh lừa người vận hành |
+| ASI10 | Rogue Agents | ✅ Đã cover | `SECURITY_AGENT_ENABLED=false` tắt hành động tự động (kill switch/human override): job vẫn chạy mỗi 60s nhưng return ngay, không gọi Gemini, không email, không block (chỉ log mức `debug`); đổi cờ cần restart |
 
 `TEMP_BLOCK_IP` chặn IP 5 phút qua `IpBlockList` (in-memory), kiểm tra ở `onRequest` hook toàn app (trừ `/health`) → `403 FORBIDDEN`.
 
@@ -201,6 +201,8 @@ Production: dùng `npm run db:generate` + `npm run db:migrate` (không dùng `db
 
 ## Environment variables
 
+Rate-limit và giới hạn độ dài audio KHÔNG cấu hình qua env: rate-limit ở `src/presentation/middlewares/rate-limits.ts` (toàn app 100/phút, login + refresh + tạo customer/employee 5/phút, order lookup 5/phút, chat text 5/phút, chat voice 5/phút), độ dài audio tối đa 60s ở `CHAT_VOICE_MAX_DURATION_SECONDS` trong `SendChatMessageUseCase`.
+
 App không boot nếu thiếu hoặc sai env. Xem `.env.example` đầy đủ.
 
 | Variable | Purpose |
@@ -221,11 +223,6 @@ App không boot nếu thiếu hoặc sai env. Xem `.env.example` đầy đủ.
 | `SECURITY_AGENT_ENABLED` | Kill switch (ASI10) cho Security Agent — `false` = chỉ log, không tự hành động |
 | `SECURITY_AGENT_ALERT_EMAIL` | Email admin nhận cảnh báo `ALERT_EMAIL` từ agent |
 | `EMBEDDING_DIMENSION` | Số chiều output embedding (cột `products.embedding` là `halfvec(N)`). Đổi giá trị bắt buộc tạo migration mới + chạy lại `db:backfill` |
-| `SEARCH_VOICE_MAX_DURATION_SECONDS` | Độ dài audio tối đa chấp nhận |
-| `SEARCH_VOICE_RATE_MAX` / `SEARCH_VOICE_RATE_WINDOW` | Rate limit riêng cho `/api/v1/search/voice` |
-| `ORDER_LOOKUP_RATE_MAX` / `ORDER_LOOKUP_RATE_WINDOW` | Rate limit riêng cho `/api/v1/orders/lookup`, key theo IP |
-| `AUTH_LOGIN_RATE_MAX` / `AUTH_LOGIN_RATE_WINDOW` | Rate limit cho login/register/refresh |
-| `CHAT_RATE_MAX` / `CHAT_RATE_WINDOW` | Rate limit riêng cho `/api/v1/chat` |
 | `EXPOSE_INTERNAL_ERRORS` | `true` dev/staging, `false` prod |
 
 **Generate secrets:**
@@ -281,7 +278,7 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  
 | POST | `/api/v1/product-reviews` | customer |
 | GET/PATCH | `/api/v1/product-reviews`, `/:id`, `/:id/status` | admin/staff |
 | POST | `/api/v1/product-reviews/:id/replies` | admin/staff |
-| POST | `/api/v1/chat` | — (cần `GEMINI_API_KEY`) |
+| POST | `/api/v1/chat/text` | — (cần `GEMINI_API_KEY`) |
 | POST | `/api/v1/chat/voice` | — (rate-limit riêng, cần `GEMINI_API_KEY`) |
 
 ## Example: create order

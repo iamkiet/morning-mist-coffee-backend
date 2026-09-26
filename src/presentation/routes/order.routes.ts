@@ -1,6 +1,6 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { env } from '../../config/env.ts';
+import { RATE_LIMIT_ORDER_LOOKUP } from '../middlewares/rate-limits.ts';
 import { ROLES_ADMIN_STAFF } from '../../domain/auth/auth-role.ts';
 import { OrderController } from '../controllers/order.controller.ts';
 import {
@@ -14,14 +14,6 @@ import {
   OrderSchema,
   UpdateOrderStatusBody,
 } from '../schemas/order.schema.ts';
-
-const orderLookupRateLimit = {
-  rateLimit: {
-    max: env.ORDER_LOOKUP_RATE_MAX,
-    timeWindow: env.ORDER_LOOKUP_RATE_WINDOW,
-    keyGenerator: (req: FastifyRequest) => req.ip,
-  },
-};
 
 export async function orderRoutes(app: FastifyInstance): Promise<void> {
   const fastify = app.withTypeProvider<ZodTypeProvider>();
@@ -49,7 +41,7 @@ export async function orderRoutes(app: FastifyInstance): Promise<void> {
   });
 
   fastify.get('/lookup', {
-    config: orderLookupRateLimit,
+    config: RATE_LIMIT_ORDER_LOOKUP,
     schema: {
       tags: ['orders'],
       querystring: LookupOrdersQuery,
